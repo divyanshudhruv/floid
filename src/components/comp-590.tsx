@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/popover";
 
 import { Row } from "@once-ui-system/core";
+import Component from "./comp-329";
 const teams = ["Floid"];
 
 // Navigation links array to be used in both desktop and mobile menus
@@ -132,14 +133,15 @@ export default function NavBar() {
 
         {/* Right side */}
         <div className="flex flex-1 items-center justify-end gap-4">
-          <Button size="sm" className="text-sm max-sm:aspect-square max-sm:p-0">
+          {/* <Button size="sm" className="text-sm max-sm:aspect-square max-sm:p-0">
             <PlusIcon
               className="opacity-60 sm:-ms-1"
               size={16}
               aria-hidden="true"
             />
             <span className="max-sm:sr-only">Post</span>
-          </Button>
+          </Button> */}
+          <Component/>
           <NotificationMenu />
           <UserMenu />
         </div>

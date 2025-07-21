@@ -77,8 +77,12 @@ import ClickSpark from "@/blocks/Animations/ClickSpark/ClickSpark";
 import CountUp from "@/blocks/TextAnimations/CountUp/CountUp";
 import TextPressure from "@/blocks/TextAnimations/TextPressure/TextPressure";
 import AnimatedContent from "@/blocks/Animations/AnimatedContent/AnimatedContent";
+
+import { supabase } from "../utils/Supabase";
 // import SmoothScroll from "../utils/SmoothScroll";
 import Lenis from "lenis";
+import { useState } from "react";
+import { useEffect } from "react";
 function formatRelativeTime(date: string): string {
   const now = new Date();
   const diffInMs = now.getTime() - new Date(date).getTime();
@@ -90,158 +94,70 @@ function formatRelativeTime(date: string): string {
   return `${Math.floor(diffInMinutes / 1440)}d`;
 }
 
+type PostData = {
+  post_id: string;
+  uuid: string | null;
+  name: string | null;
+  pfp: string | null;
+  category: string | null;
+  tag: string | null;
+  last_post: string | null;
+  last_comment: string | null;
+  last_like: string | null;
+  created_at: string;
+  bot_id: string | null;
+  like_id: string | null;
+  comment_id: string | null;
+  post_content: {
+    body: string;
+    heading: string;
+  };
+  total_likes: number;
+  total_comments: number;
+  likers: { uuid: string }[];
+  commenters: {
+    date: string;
+    text: string;
+    user: {
+      name: string;
+      avatar: string;
+    };
+  }[];
+};
 export default function Home() {
-  const data = [
-    {
-      user: {
-        name: "John Doe",
-        avatar: "https://avatar.iran.liara.run/public/35",
-      },
-      tag: "show",
-      date: new Date("2025-07-21T13:00:00Z").toString(),
-      title: "Understanding React Components",
-      content:
-        "React components are the building blocks of any React application. They allow you to split the UI into independent, reusable pieces, and think about each piece in isolation. Components can be functional or class-based, and they can manage their own state and lifecycle methods. By composing components, you can build complex user interfaces from simple, isolated pieces of code. This modular approach not only improves code readability and maintainability but also enables reusability across your application. Furthermore, React's virtual DOM efficiently updates only the parts of the UI that change, resulting in better performance. Embracing component-driven development helps teams collaborate more effectively and scale applications with ease. Whether you're building a small widget or a large-scale web app, mastering React components is essential for modern frontend development.",
-      comments: [
-        {
-          user: {
-            name: "Jane Smith",
-            avatar: "https://avatar.iran.liara.run/public/36",
-          },
-          date: new Date("2023-10-02T12:30:00Z").toString(),
-          text: "Great article! Very informative.",
-        },
-        {
-          user: {
-            name: "Alice Johnson",
-            avatar: "https://avatar.iran.liara.run/public/37",
-          },
-          date: new Date("2023-10-03T09:45:00Z").toString(),
-          text: "I learned a lot from this post, thanks!",
-        },
-        {
-          user: {
-            name: "Bob Williams",
-            avatar: "https://avatar.iran.liara.run/public/48",
-          },
-          date: new Date("2023-10-04T10:15:00Z").toString(),
-          text: "The explanation about virtual DOM was really helpful.",
-        },
-        {
-          user: {
-            name: "Linda Evans",
-            avatar: "https://avatar.iran.liara.run/public/49",
-          },
-          date: new Date("2023-10-05T11:20:00Z").toString(),
-          text: "Component-driven development makes everything so much easier!",
-        },
-      ],
-      stats: {
-        comments: 4,
-        likes: 42,
-      },
-    },
-    {
-      user: {
-        name: "Emily Carter",
-        avatar: "https://avatar.iran.liara.run/public/38",
-      },
-      tag: "show",
-      date: new Date("2025-07-05T14:20:00Z").toString(),
-      title: "Designing for Accessibility",
-      content:
-        "Accessibility is crucial for building inclusive products. Learn how to make your UI accessible to everyone, including users with disabilities.",
-      comments: [
-        {
-          user: {
-            name: "Mark Lee",
-            avatar: "https://avatar.iran.liara.run/public/39",
-          },
-          date: new Date("2023-10-05T16:10:00Z").toString(),
-          text: "Thanks for highlighting accessibility!",
-        },
-      ],
-      stats: {
-        comments: 1,
-        likes: 8,
-      },
-    },
-    {
-      user: {
-        name: "Michael Brown",
-        avatar: "https://avatar.iran.liara.run/public/40",
-      },
-      tag: "test",
-      date: new Date("2023-10-06T08:05:00Z").toString(),
-      title: "Node.js Performance Tips",
-      content:
-        "Improve your Node.js application's performance with these simple and effective tips.",
-      comments: [
-        {
-          user: {
-            name: "Sara Kim",
-            avatar: "https://avatar.iran.liara.run/public/41",
-          },
-          date: new Date("2023-10-07T11:25:00Z").toString(),
-          text: "Super helpful, thanks!",
-        },
-      ],
-      stats: {
-        comments: 1,
-        likes: 10,
-      },
-    },
-    {
-      user: {
-        name: "Olivia Green",
-        avatar: "https://avatar.iran.liara.run/public/42",
-      },
-      tag: "help",
-      date: new Date("2023-10-08T17:40:00Z").toString(),
-      title: "Deploying with Docker",
-      content:
-        "Docker simplifies deployment and scaling. This post covers the basics of containerizing your app.",
-      comments: [
-        {
-          user: {
-            name: "Tom White",
-            avatar: "https://avatar.iran.liara.run/public/43",
-          },
-          date: new Date("2023-10-09T13:55:00Z").toString(),
-          text: "Docker is a game changer!",
-        },
-      ],
-      stats: {
-        comments: 1,
-        likes: 7,
-      },
-    },
-    {
-      user: {
-        name: "Sophia Turner",
-        avatar: "https://avatar.iran.liara.run/public/44",
-      },
-      tag: "show",
-      date: new Date("2023-10-10T19:00:00Z").toString(),
-      title: "CSS Grid vs Flexbox",
-      content:
-        "Both CSS Grid and Flexbox are powerful layout systems. Learn when to use each for your web projects.",
-      comments: [
-        {
-          user: {
-            name: "Lucas Brown",
-            avatar: "https://avatar.iran.liara.run/public/45",
-          },
-          date: new Date("2023-10-11T15:15:00Z").toString(),
-          text: "Very clear explanation, thanks!",
-        },
-      ],
-      stats: {
-        comments: 1,
-        likes: 6,
-      },
-    },
-  ];
+  const [postsData, setPostsData] = useState<PostData[]>([]);
+
+  useEffect(() => {
+    async function fetchPosts() {
+      const { data, error } = await supabase
+        .from("posts")
+        .select(
+          `
+          post_id,
+          uuid,
+          name,
+          pfp,
+          category,
+          tag,
+          last_post,
+          last_comment,
+          last_like,
+          created_at,
+          bot_id,
+          like_id,
+          comment_id,
+          post_content,
+          total_likes,
+          total_comments,
+          likers,
+          commenters
+        `
+        )
+        .order("created_at", { ascending: false });
+      if (!error && data) setPostsData(data as PostData[]);
+    }
+    fetchPosts();
+  }, []);
 
   // Initialize Lenis
   const lenis = new Lenis({
@@ -277,7 +193,7 @@ export default function Home() {
           <Navbar />
 
           <Column paddingY="m" paddingX="l" marginTop="64">
-            {data.map((item, idx) => (
+            {postsData.map((item, idx) => (
               <AnimatedContent key={idx} delay={idx * 0.5}>
                 <Cards data={item} />
               </AnimatedContent>
@@ -331,7 +247,7 @@ type CardData = {
   };
 };
 
-function Cards(props: { data: CardData }) {
+function Cards(props: { data: PostData }) {
   const { data } = props;
   return (
     <>
@@ -369,14 +285,14 @@ function Cards(props: { data: CardData }) {
             <Row gap="8" center fillHeight vertical="center">
               <Row center gap="8" fillHeight>
                 <Media
-                  src={data.user.avatar}
+                  src={data.pfp || ""}
                   unoptimized
                   width={1.5}
                   height={1.5}
                   radius="full"
                 />
                 <Text className={outfit.className} variant="label-default-s">
-                  {data.user.name}
+                  {data.name}
                 </Text>
               </Row>
               <Row fillHeight vertical="end" height={1.2} gap="2">
@@ -399,14 +315,14 @@ function Cards(props: { data: CardData }) {
                   onBackground="neutral-weak"
                   style={{ fontSize: "10px" }}
                 >
-                  {formatRelativeTime(data.date)}
+                  {formatRelativeTime(data.created_at)}
                 </Text>
               </Row>
             </Row>
           </Row>
           <Column id="main-content" gap="12">
             <Text variant="heading-default-s" className={outfit.className}>
-              {data.title}
+              {data.post_content?.heading}
             </Text>
             <Text
               variant="body-default-xs"
@@ -414,7 +330,7 @@ function Cards(props: { data: CardData }) {
               onBackground="neutral-weak"
               style={{ fontSize: "13px", letterSpacing: "0.1px" }}
             >
-              <SplitText text={data.content} />
+              <SplitText text={data.post_content?.body || ""} />
             </Text>
           </Column>
         </Column>
@@ -432,7 +348,7 @@ function Cards(props: { data: CardData }) {
               onBackground="neutral-weak"
               className={outfit.className}
             >
-              <CountUp from={0} to={data.stats.comments} duration={2} />
+              <CountUp from={0} to={data.total_comments} duration={2} />
             </Text>
           </Row>
           <Row gap="1" vertical="center" horizontal="start" minWidth={3}>
@@ -448,7 +364,7 @@ function Cards(props: { data: CardData }) {
               onBackground="neutral-weak"
               className={outfit.className}
             >
-              <CountUp from={0} to={data.stats.likes} duration={2} />
+              <CountUp from={0} to={data.total_likes} duration={2} />
             </Text>
           </Row>
           <Row gap="2" center>
@@ -470,7 +386,7 @@ function Cards(props: { data: CardData }) {
             </IconButton>
           </Row>
         </Row>
-        <Comments comments={data.comments} />
+        <Comments comments={data.commenters || []} />
       </Card>
     </>
   );

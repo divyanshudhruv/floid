@@ -15,6 +15,7 @@ import {
   useToast,
   Avatar
 } from "@once-ui-system/core";
+import { formatShortRelativeTime } from "../utils/date-formatter";
 
 interface CommentProps {
   comment: {
@@ -32,7 +33,7 @@ interface CommentProps {
   };
 }
 
-export default function Comment({ comment }: CommentProps) {
+export function Comment({ comment }: CommentProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [reactionCount, setReactionCount] = useState(comment.reactions.hearts);
@@ -85,7 +86,7 @@ export default function Comment({ comment }: CommentProps) {
             </Text>
           </SmartLink>
           <Text variant="body-default-xs" onBackground="neutral-weak">
-            {new Date(comment.createdAt).toLocaleString()}
+            {formatShortRelativeTime(new Date(comment.createdAt))}
           </Text>
         </Row>
         

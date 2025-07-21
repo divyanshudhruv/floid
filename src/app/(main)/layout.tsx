@@ -8,19 +8,20 @@ import classNames from "classnames";
 import { baseURL, meta, fonts, effects, style, dataStyle } from "@/resources/once-ui.config";
 import { Meta, Schema,  Column, Flex, opacity, SpacingToken, Background} from "@once-ui-system/core";
 import { Providers } from '@/components/Providers';
+// import SmoothScroll from '../utils/SmoothScroll';
 
-export async function generateMetadata() {
-  return Meta.generate({
-    title: meta.home.title,
-    description: meta.home.description,
-    baseURL: baseURL,
-    path: meta.home.path,
-    canonical: meta.home.canonical,
-    image: meta.home.image,
-    robots: meta.home.robots,
-    alternates: meta.home.alternates,
-  });
-}
+ export async function generateMetadata() {
+   return Meta.generate({
+     title: meta.home.title,
+     description: meta.home.description,
+     baseURL: baseURL,
+     path: meta.home.path,
+     canonical: meta.home.canonical,
+     image: meta.home.image,
+     robots: meta.home.robots,
+     alternates: meta.home.alternates,
+   });
+ }
 
 export default function RootLayout({
   children,
@@ -48,10 +49,12 @@ export default function RootLayout({
         path={meta.home.path}
       />
       <head>
+        <link rel="stylesheet" href="https://unpkg.com/lenis@1.3.8/dist/lenis.css"></link>
         <script
           id="theme-init"
           dangerouslySetInnerHTML={{
         __html: `
+
           (function() {
             try {
           const root = document.documentElement;
@@ -99,7 +102,8 @@ export default function RootLayout({
         />
       </head>
       <Providers>
-        <Column as="body" background="page" fillWidth margin="0" padding="0">
+        {/* <SmoothScroll/> */}
+        <Column as="body" background="page" fillWidth margin="0" padding="0"  >
           {/* <Background
             position="absolute"
             mask={{

@@ -29,6 +29,7 @@ import {
   Select,
   Checkbox,
   useToast,
+  StatusIndicator,
 } from "@once-ui-system/core";
 import { Outfit, Inter, DM_Sans } from "next/font/google";
 import "./../global.css";
@@ -40,16 +41,20 @@ import {
   Compass,
   Dot,
   Download,
+  DownloadIcon,
   Feather,
   Heart,
   House,
   Info,
   LayoutDashboardIcon,
+  LoaderPinwheelIcon,
+  LucideDownloadCloud,
   LucideSquareArrowOutUpRight,
   Menu,
   MessageCircle,
   MessageSquare,
   Plus,
+  Podcast,
   RefreshCcw,
   Reply,
   ReplyAllIcon,
@@ -149,6 +154,41 @@ type CommentData = {
 
 const Home: React.FC = () => {
   const [postsData, setPostsData] = useState<PostData[]>([]);
+  const [notification, setNotification] = useState<boolean>(false);
+
+  useEffect(() => {
+    async function fetchNotification() {
+      const { data, error } = await supabase
+        .from("notification")
+        .select("newPost")
+        .eq("id", 1)
+        .single();
+
+      if (!error && data && typeof data.newPost === "boolean") {
+        setNotification(data.newPost);
+      } else {
+        setNotification(false);
+      }
+    }
+    fetchNotification();
+
+    const subscription = supabase
+      .channel("realtime-notification")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notification" },
+        () => {
+          fetchNotification();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, []);
+  const router = useRouter();
+
   useEffect(() => {
     let subscription: any;
     const fetchPosts = async () => {
@@ -200,7 +240,7 @@ const Home: React.FC = () => {
     };
   }, []);
 
-  console.log("Posts Data:", postsData);
+  // console.log("Posts Data:", postsData);
 
   useEffect(() => {
     const lenis = new Lenis({ autoRaf: true });
@@ -265,12 +305,17 @@ const Home: React.FC = () => {
       <Column
         maxWidth={26}
         fillHeight
+        style={{ minHeight: "calc(100svh - 25px)" }}
         horizontal="center"
         vertical="start"
         gap="20"
       >
-        <Navbar userPfp={userPfp ?? ""} isLoading={userPfp === null} />
-        <Column paddingY="m" paddingX="l" marginTop="64">
+        <Navbar
+          userPfp={userPfp ?? ""}
+          isLoading={userPfp === null}
+          notification={notification}
+        />
+        <Column paddingY="m" paddingX="l" marginTop="64" gap="32">
           {postsData.length === 0 ? (
             <Column fillHeight center style={{ minHeight: "90vh" }}>
               <Spinner size="xl" />
@@ -283,6 +328,22 @@ const Home: React.FC = () => {
             ))
           )}
         </Column>
+        <Row center fillWidth>
+          <Button
+            variant="secondary"
+            weight="default"
+            data-border="conservative"
+            size="m"
+          >
+            <Text onBackground="neutral-medium">
+              <Row center>
+                <DownloadIcon size={13} color="#555" />
+                &nbsp;Load More
+              </Row>
+            </Text>
+          </Button>
+        </Row>
+        <Column fillHeight></Column>
         <Footer />
       </Column>
     </Column>
@@ -290,7 +351,7 @@ const Home: React.FC = () => {
 };
 
 const Footer: React.FC = () => (
-  <Flex fillWidth center paddingBottom="32">
+  <Flex fillWidth center paddingBottom="16">
     <Text variant="label-default-s" onBackground="neutral-weak">
       Built by a{" "}
       <SmartLink href="https://github.com/divyanshudhruv">developer</SmartLink>{" "}
@@ -301,10 +362,11 @@ const Footer: React.FC = () => (
 
 const Cards: React.FC<{ data: PostData }> = ({ data }) => (
   <Card
-    marginBottom="64"
+    // marginBottom="64"
     direction="column"
     gap="12"
     radius="l-4"
+    maxWidth={27}
     minWidth={27}
     fitHeight
     padding="l"
@@ -498,10 +560,11 @@ const Comments: React.FC<{ comments: CommentData[] }> = ({ comments }) => (
   </Column>
 );
 
-const Navbar: React.FC<{ userPfp: string; isLoading: boolean }> = ({
-  userPfp,
-  isLoading,
-}) => {
+const Navbar: React.FC<{
+  userPfp: string;
+  isLoading: boolean;
+  notification: boolean;
+}> = ({ userPfp, isLoading, notification }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSession, setIsSession] = useState(false);
   const [isPostOpen, setIsPostOpen] = useState(false);
@@ -513,6 +576,11 @@ const Navbar: React.FC<{ userPfp: string; isLoading: boolean }> = ({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
+  const [notificationNewPost, setNotificationNewPost] = useState(false);
+
+  useEffect(() => {
+    setNotificationNewPost(notification);
+  }, [notification]);
 
   const handleCreateDroid = async () => {
     setLoading(true);
@@ -699,6 +767,13 @@ const Navbar: React.FC<{ userPfp: string; isLoading: boolean }> = ({
             size="m"
             style={{ borderColor: "transparent", borderRadius: "100%" }}
           >
+            {notificationNewPost ? (
+              <StatusIndicator
+                color="red"
+                size="s"
+                style={{ position: "absolute", top: "6px", right: "6px" }}
+              />
+            ) : null}
             <Bell color="#777" size={15} />
           </IconButton>
           <UserMenu
@@ -747,7 +822,6 @@ const Navbar: React.FC<{ userPfp: string; isLoading: boolean }> = ({
       <Dialog
         style={{ zIndex: "999999999" }}
         maxHeight={37}
-        
         isOpen={isPostOpen}
         onClose={() => setIsPostOpen(false)}
         title={"Create a new Droid "}
@@ -896,3 +970,54 @@ const Navbar: React.FC<{ userPfp: string; isLoading: boolean }> = ({
 };
 
 export default Home;
+
+
+/*  <Row
+          fillWidth
+          gap="16"
+          style={{
+            marginTop: "90px",
+            padding: "0 1.5rem",
+            minHeight: "90vh",
+            alignItems: "start",
+          }}
+        >
+          {(() => {
+            // Responsive column count based on window width
+            const cardWidth = 27 * 16; // 27rem in px (assuming 1rem = 16px)
+            let colCount = 3;
+            if (typeof window !== "undefined") {
+              const width = window.innerWidth;
+              if (width < cardWidth * 3 + 64) colCount = 2;
+              if (width < cardWidth * 2 + 32) colCount = 1;
+            }
+            // Split posts into columns
+            const columns: PostData[][] = Array.from({ length: colCount }, () => []);
+            postsData.forEach((item, idx) => {
+              columns[idx % colCount].push(item);
+            });
+            return columns.map((col, colIdx) => (
+              <Column
+                key={colIdx}
+                gap="16"
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                }}
+              >
+                {col.map((item, idx) => (
+                  <Cards data={item} key={`${item.post_id}-${idx}`} />
+                ))}
+              </Column>
+            ));
+          })()}
+          {postsData.length === 0 && (
+            <Column
+              fillHeight
+              center
+              style={{ minHeight: "90vh", width: "100%" }}
+            >
+              <Spinner size="xl" />
+            </Column>
+          )}
+        </Row> */

@@ -23,6 +23,8 @@ import {
   InlineCode,
   SmartLink,
   Spinner,
+  Dialog,
+  Input,
 } from "@once-ui-system/core";
 import { Outfit, Inter, DM_Sans } from "next/font/google";
 import Avvvatars from "avvvatars-react";
@@ -128,6 +130,7 @@ type CommentData = {
 
 const Home: React.FC = () => {
   const [postsData, setPostsData] = useState<PostData[]>([]);
+
   useEffect(() => {
     let isMounted = true;
     const fetchPosts = async () => {
@@ -150,37 +153,27 @@ const Home: React.FC = () => {
             like_id,
             comment_id,
             post_content,
+            
             likers,
             commenters
           `
           )
           .order("created_at", { ascending: false });
         if (!error && data && isMounted) {
+          // Ensure each post is a separate object in postsData array
           if (Array.isArray(data)) {
             setPostsData([...data]);
           } else {
             setPostsData([]);
           }
         }
-      } catch (err) {}
+      } catch (err) {
+        // Optionally log error
+      }
     };
     fetchPosts();
-
-    // Enable realtime updates
-    const subscription = supabase
-      .channel("posts-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "posts" },
-        () => {
-          fetchPosts();
-        }
-      )
-      .subscribe();
-
     return () => {
       isMounted = false;
-      supabase.removeChannel(subscription);
     };
   }, []);
 
@@ -201,72 +194,33 @@ const Home: React.FC = () => {
       fillWidth
       fillHeight
       paddingY="xs"
-      style={{ minWidth: "100vw !important", backgroundColor: "#f7f7f7" }}
+      style={{ minWidth: "100vw !important",backgroundColor: "#f7f7f7" }}
       paddingX="xl"
       horizontal="center"
       vertical="start"
       gap="20"
     >
       <Column
+        maxWidth={26}
         fillHeight
-        fillWidth
-        maxWidth={90}
         horizontal="center"
         vertical="start"
         gap="20"
-        style={{ minHeight: "100vh !important," }}
       >
         <Navbar />
-        {/* Responsive Masonry grid */}
-        <Row
-          fillWidth
-          gap="16"
-          style={{
-            marginTop: "90px",
-            padding: "0 1.5rem",
-            minHeight: "90vh",
-            alignItems: "start",
-          }}
-        >
-          {(() => {
-            // Responsive column count based on window width
-            const cardWidth = 27 * 16; // 27rem in px (assuming 1rem = 16px)
-            let colCount = 3;
-            if (typeof window !== "undefined") {
-              const width = window.innerWidth;
-              if (width < cardWidth * 3 + 64) colCount = 2;
-              if (width < cardWidth * 2 + 32) colCount = 1;
-            }
-            // Split posts into columns
-            const columns: PostData[][] = Array.from({ length: colCount }, () => []);
-            postsData.forEach((item, idx) => {
-              columns[idx % colCount].push(item);
-            });
-            return columns.map((col, colIdx) => (
-              <Column
-                key={colIdx}
-                gap="16"
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                }}
-              >
-                {col.map((item, idx) => (
-                  <Cards data={item} key={`${item.post_id}-${idx}`} />
-                ))}
-              </Column>
-            ));
-          })()}
-          {postsData.length === 0 && (
-            <Column
-              fillHeight
-              center
-              style={{ minHeight: "90vh", width: "100%" }}
-            >
+        <Column paddingY="m" paddingX="l" marginTop="64">
+          {postsData.length === 0 ? (
+            <Column fillHeight center style={{ minHeight: "90vh" }}>
               <Spinner size="xl" />
             </Column>
+          ) : (
+            postsData.map((item, idx) => (
+              // <AnimatedContent key={`${item.post_id}-${idx}`} delay={idx * 0.5}>
+              <Cards data={item} key={`${item.post_id}-${idx}`} />
+              // </AnimatedContent>
+            ))
           )}
-        </Row>
+        </Column>
         <Footer />
       </Column>
     </Column>
@@ -285,28 +239,26 @@ const Footer: React.FC = () => (
 
 const Cards: React.FC<{ data: PostData }> = ({ data }) => (
   <Card
-    // marginBottom="64"
-    // marginRight="32"
+    marginBottom="64"
     direction="column"
     gap="12"
     radius="xl-8"
     minWidth={27}
-    maxWidth={27}
     fitHeight
     padding="l"
     horizontal="center"
     vertical="space-between"
     style={{
-      border: "2px solid #f7f7f7",
+      border: "2px solid #efeef0",
       backgroundColor: "#efeef0",
     }}
     onMouseEnter={(e) => {
       e.currentTarget.style.backgroundColor = "transparent";
-      e.currentTarget.style.border = "2px solid #f7f7f7";
+      e.currentTarget.style.border = "2px solid #efeef0";
     }}
     onMouseLeave={(e) => {
       e.currentTarget.style.backgroundColor = "#efeef0";
-      e.currentTarget.style.border = "2px solid #f7f7f7";
+      e.currentTarget.style.border = "2px solid #efeef0";
     }}
   >
     <Column gap="4">
@@ -483,97 +435,118 @@ const Comments: React.FC<{ comments: CommentData[] }> = ({ comments }) => (
   </Column>
 );
 
-const Navbar: React.FC = () => (
-  <Row
-    style={{
-      position: "fixed",
-      top: 0,
-      left: 0,
-      right: 0,
-      margin: "auto",
-      zIndex: 100,
-      backdropFilter: "blur(12px)",
-      background: "rgba(255,255,255,0.1)",
-    }}
-    vertical="center"
-    horizontal="space-between"
-    fillWidth
-    paddingX="l"
-    width={50}
-    paddingY="s"
-  >
-    <Flex
-      gap="8"
+const Navbar: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <Row
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        margin: "auto",
+        zIndex: 100,
+        backdropFilter: "blur(12px)",
+        background: "rgba(255,255,255,0.1)",
+      }}
       vertical="center"
-      horizontal="start"
-      fitWidth
-      fillHeight
-      width={10}
+      horizontal="space-between"
+      fillWidth
+      paddingX="l"
+      width={50}
+      paddingY="s"
     >
-      <Media
-        id="profile-avatar"
-        src="logo.png"
-        unoptimized
-        width={2.25}
-        height={2.25}
-        radius="full"
-      />
-      <Text className={outfit.className} variant="label-default-m">
-        Floid
-      </Text>
-    </Flex>
-    <Row center gap="8">
-      <IconButton
-        variant="secondary"
-        size="m"
-        style={{ borderColor: "transparent" }}
+      <Flex
+        gap="8"
+        vertical="center"
+        horizontal="start"
+        fitWidth
+        fillHeight
+        width={10}
       >
-        <House color="#777" size={15} />
-      </IconButton>
-      <IconButton
-        variant="secondary"
-        size="m"
-        style={{ borderColor: "transparent" }}
-      >
-        <Compass color="#777" size={15} />
-      </IconButton>
-      <IconButton
-        variant="secondary"
-        size="m"
-        style={{ borderColor: "transparent" }}
-      >
-        <Feather color="#777" size={15} />
-      </IconButton>
-      <IconButton
-        variant="secondary"
-        size="m"
-        style={{ borderColor: "transparent" }}
-      >
-        <Search color="#777" size={15} />
-      </IconButton>
-    </Row>
-    <Row gap="12" center>
-      <Button size="s" weight="default">
-        <Row gap="8" center>
-          <Plus color="#999" size={15} fontWeight={3} />
-          <Text className={outfit.className} variant="body-default-s">
-            Post
-          </Text>
+        <Media
+          id="profile-avatar"
+          src="logo.png"
+          unoptimized
+          width={2.25}
+          height={2.25}
+          radius="full"
+        />
+        <Text className={outfit.className} variant="label-default-m">
+          Floid
+        </Text>
+      </Flex>
+      <Row center gap="8">
+        <IconButton
+          variant="secondary"
+          size="m"
+          style={{ borderColor: "transparent" }}
+        >
+          <House color="#777" size={15} />
+        </IconButton>
+        <IconButton
+          variant="secondary"
+          size="m"
+          style={{ borderColor: "transparent" }}
+        >
+          <Compass color="#777" size={15} />
+        </IconButton>
+        <IconButton
+          variant="secondary"
+          size="m"
+          style={{ borderColor: "transparent" }}
+        >
+          <Feather color="#777" size={15} />
+        </IconButton>
+        <IconButton
+          variant="secondary"
+          size="m"
+          style={{ borderColor: "transparent" }}
+        >
+          <Search color="#777" size={15} />
+        </IconButton>
+      </Row>
+      <Row gap="12" center>
+        <Button size="s" weight="default" onClick={() => setIsOpen(true)}>
+          <Row gap="8" center>
+            <Plus color="#999" size={15} fontWeight={3} />
+            <Text className={outfit.className} variant="body-default-s">
+              Post
+            </Text>
+          </Row>
+        </Button>
+        <IconButton
+          variant="secondary"
+          size="m"
+          style={{ borderColor: "transparent", borderRadius: "100%" }}
+        >
+          <Bell color="#777" size={15} />
+        </IconButton>
+        <UserMenu
+          style={{ borderColor: "transparent", borderRadius: "100%" }}
+          avatarProps={{ src: "https://avatar.iran.liara.run/public/35" }}
+        />
+      </Row>
+       <Dialog
+      isOpen={isOpen}
+      onClose={() => setIsOpen(false)}
+      title="Basic dialog"
+      description="This is a simple dialog with a title and description."
+    >
+      <Column fillWidth gap="16" marginTop="12">
+        Dialog content goes here. This area can contain any React components.
+        <Row fillWidth vertical="center" gap="8">
+          <Input
+            id="name"
+            label="Enter your name"
+          />
+          <Button label="Submit" onClick={() => setIsOpen(false)}/>
         </Row>
-      </Button>
-      <IconButton
-        variant="secondary"
-        size="m"
-        style={{ borderColor: "transparent", borderRadius: "100%" }}
-      >
-        <Bell color="#777" size={15} />
-      </IconButton>
-      <UserMenu
-        style={{ borderColor: "transparent", borderRadius: "100%" }}
-        avatarProps={{ src: "https://avatar.iran.liara.run/public/35" }}
-      />
+      </Column>
+    </Dialog>
     </Row>
-  </Row>
-);
+  );
+};
 
 export default Home;

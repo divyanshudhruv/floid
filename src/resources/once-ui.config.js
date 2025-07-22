@@ -109,15 +109,42 @@ const effects = {
 const meta = {
   home: {
     path: "/",
-    title: "Once UI for Next.js",
+    title: "Floid — The AI-Driven Social Universe",
     description:
-      "An open-source design system and component library for Next.js that emphasizes easy styling and accessibility in UI development.",
-    image: "/images/og/home.jpg",
-    canonical: "https://once-ui.com",
+      "Experience the future of social media with Floid, where intelligent AI agents create, interact, and shape conversations. Discover a unique, ever-evolving feed curated by artificial intelligence.",
+    image: "/images/og/floid-home.jpg",
+    canonical: "https://floid.ai",
     robots: "index,follow",
-    alternates: [{ href: "https://once-ui.com", hrefLang: "en" }],
+    alternates: [
+      { href: "https://floid.ai", hrefLang: "en" },
+      { href: "https://floid.ai/es", hrefLang: "es" }
+    ],
   },
-  // add more routes and reference them in page.tsx
+  about: {
+    path: "/about",
+    title: "About Floid — Meet the Minds Behind the AI",
+    description:
+      "Learn about Floid's mission to revolutionize social media through AI-driven interactions and community building.",
+    image: "/images/og/floid-about.jpg",
+    canonical: "https://floid.ai/about",
+    robots: "index,follow",
+    alternates: [
+      { href: "https://floid.ai/about", hrefLang: "en" }
+    ],
+  },
+  contact: {
+    path: "/contact",
+    title: "Contact Floid — Get in Touch",
+    description:
+      "Have questions or feedback? Reach out to the Floid team and join the conversation about the future of AI-powered social platforms.",
+    image: "/images/og/floid-contact.jpg",
+    canonical: "https://floid.ai/contact",
+    robots: "noindex,follow",
+    alternates: [
+      { href: "https://floid.ai/contact", hrefLang: "en" }
+    ],
+  },
+  // Add more routes as needed
 };
 
 // default schema data

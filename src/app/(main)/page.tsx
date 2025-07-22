@@ -104,7 +104,7 @@ type PostData = {
     body: string;
     heading: string;
   };
- 
+
   likers: { uuid: string }[];
   commenters: {
     date: string;
@@ -128,7 +128,6 @@ type CommentData = {
 
 const Home: React.FC = () => {
   const [postsData, setPostsData] = useState<PostData[]>([]);
-
   useEffect(() => {
     let isMounted = true;
     const fetchPosts = async () => {
@@ -151,27 +150,37 @@ const Home: React.FC = () => {
             like_id,
             comment_id,
             post_content,
-            
             likers,
             commenters
           `
           )
           .order("created_at", { ascending: false });
         if (!error && data && isMounted) {
-          // Ensure each post is a separate object in postsData array
           if (Array.isArray(data)) {
             setPostsData([...data]);
           } else {
             setPostsData([]);
           }
         }
-      } catch (err) {
-        // Optionally log error
-      }
+      } catch (err) {}
     };
     fetchPosts();
+
+    // Enable realtime updates
+    const subscription = supabase
+      .channel("posts-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "posts" },
+        () => {
+          fetchPosts();
+        }
+      )
+      .subscribe();
+
     return () => {
       isMounted = false;
+      supabase.removeChannel(subscription);
     };
   }, []);
 
@@ -192,31 +201,72 @@ const Home: React.FC = () => {
       fillWidth
       fillHeight
       paddingY="xs"
-      style={{ minWidth: "100vw !important" }}
+      style={{ minWidth: "100vw !important", backgroundColor: "#f7f7f7" }}
       paddingX="xl"
       horizontal="center"
       vertical="start"
       gap="20"
     >
       <Column
-        maxWidth={26}
         fillHeight
+        fillWidth
+        maxWidth={90}
         horizontal="center"
         vertical="start"
         gap="20"
+        style={{ minHeight: "100vh !important," }}
       >
         <Navbar />
-        <Column paddingY="m" paddingX="l" marginTop="64">
-          {postsData.length === 0 ? (
-            <Column fillHeight center style={{ minHeight: "90vh" }}><Spinner size="xl"/></Column>
-          ) : (
-            postsData.map((item, idx) => (
-              // <AnimatedContent key={`${item.post_id}-${idx}`} delay={idx * 0.5}>
-              <Cards data={item} key={`${item.post_id}-${idx}`} />
-              // </AnimatedContent>
-            ))
+        {/* Responsive Masonry grid */}
+        <Row
+          fillWidth
+          gap="16"
+          style={{
+            marginTop: "90px",
+            padding: "0 1.5rem",
+            minHeight: "90vh",
+            alignItems: "start",
+          }}
+        >
+          {(() => {
+            // Responsive column count based on window width
+            const cardWidth = 27 * 16; // 27rem in px (assuming 1rem = 16px)
+            let colCount = 3;
+            if (typeof window !== "undefined") {
+              const width = window.innerWidth;
+              if (width < cardWidth * 3 + 64) colCount = 2;
+              if (width < cardWidth * 2 + 32) colCount = 1;
+            }
+            // Split posts into columns
+            const columns: PostData[][] = Array.from({ length: colCount }, () => []);
+            postsData.forEach((item, idx) => {
+              columns[idx % colCount].push(item);
+            });
+            return columns.map((col, colIdx) => (
+              <Column
+                key={colIdx}
+                gap="16"
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                }}
+              >
+                {col.map((item, idx) => (
+                  <Cards data={item} key={`${item.post_id}-${idx}`} />
+                ))}
+              </Column>
+            ));
+          })()}
+          {postsData.length === 0 && (
+            <Column
+              fillHeight
+              center
+              style={{ minHeight: "90vh", width: "100%" }}
+            >
+              <Spinner size="xl" />
+            </Column>
           )}
-        </Column>
+        </Row>
         <Footer />
       </Column>
     </Column>
@@ -235,26 +285,28 @@ const Footer: React.FC = () => (
 
 const Cards: React.FC<{ data: PostData }> = ({ data }) => (
   <Card
-    marginBottom="64"
+    // marginBottom="64"
+    // marginRight="32"
     direction="column"
     gap="12"
     radius="xl-8"
     minWidth={27}
+    maxWidth={27}
     fitHeight
     padding="l"
     horizontal="center"
     vertical="space-between"
     style={{
-      border: "2px solid #fbfbfb",
-      backgroundColor: "#f5f5f5",
+      border: "2px solid #f7f7f7",
+      backgroundColor: "#efeef0",
     }}
     onMouseEnter={(e) => {
       e.currentTarget.style.backgroundColor = "transparent";
-      e.currentTarget.style.border = "2px solid #F5F5F5";
+      e.currentTarget.style.border = "2px solid #f7f7f7";
     }}
     onMouseLeave={(e) => {
-      e.currentTarget.style.backgroundColor = "#f5f5f5";
-      e.currentTarget.style.border = "2px solid #fbfbfb";
+      e.currentTarget.style.backgroundColor = "#efeef0";
+      e.currentTarget.style.border = "2px solid #f7f7f7";
     }}
   >
     <Column gap="4">

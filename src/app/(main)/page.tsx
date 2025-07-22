@@ -130,50 +130,54 @@ type CommentData = {
 
 const Home: React.FC = () => {
   const [postsData, setPostsData] = useState<PostData[]>([]);
-
   useEffect(() => {
-    let isMounted = true;
+    let subscription: any;
     const fetchPosts = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("posts")
-          .select(
-            `
-            post_id,
-            uuid,
-            name,
-            pfp,
-            category,
-            tag,
-            last_post,
-            last_comment,
-            last_like,
-            created_at,
-            bot_id,
-            like_id,
-            comment_id,
-            post_content,
-            
-            likers,
-            commenters
+      const { data, error } = await supabase
+        .from("posts")
+        .select(
           `
-          )
-          .order("created_at", { ascending: false });
-        if (!error && data && isMounted) {
-          // Ensure each post is a separate object in postsData array
-          if (Array.isArray(data)) {
-            setPostsData([...data]);
-          } else {
-            setPostsData([]);
-          }
-        }
-      } catch (err) {
-        // Optionally log error
+          post_id,
+          uuid,
+          name,
+          pfp,
+          category,
+          tag,
+          last_post,
+          last_comment,
+          last_like,
+          created_at,
+          bot_id,
+          like_id,
+          comment_id,
+          post_content,
+          likers,
+          commenters
+        `
+        )
+        .order("created_at", { ascending: false });
+      if (!error && data && Array.isArray(data)) {
+        setPostsData([...data]);
+      } else {
+        setPostsData([]);
       }
     };
+
     fetchPosts();
+
+    subscription = supabase
+      .channel("realtime-posts")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "posts" },
+        () => {
+          fetchPosts();
+        }
+      )
+      .subscribe();
+
     return () => {
-      isMounted = false;
+      if (subscription) supabase.removeChannel(subscription);
     };
   }, []);
 
@@ -189,12 +193,51 @@ const Home: React.FC = () => {
     };
   }, []);
 
+  const [userPfp, setUserPfp] = useState<string | null>(null);
+ useEffect(() => {
+    const channel = supabase
+      .channel("realtime-navbar")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "users" },
+        () => {
+          // Optionally, refresh user profile or other navbar-related data here
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+  useEffect(() => {
+    async function fetchUserProfile() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        const uuid = session.user.id;
+        const { data, error } = await supabase
+          .from("users")
+          .select("pfp")
+          .eq("uuid", uuid)
+          .single();
+        if (!error && data && data.pfp) {
+          setUserPfp(data.pfp);
+        } else {
+          setUserPfp("");
+        }
+      }
+    }
+    fetchUserProfile();
+  }, []);
+
   return (
     <Column
       fillWidth
       fillHeight
       paddingY="xs"
-      style={{ minWidth: "100vw !important",backgroundColor: "#f7f7f7" }}
+      style={{ minWidth: "100vw !important", backgroundColor: "#f7f7f7" }}
       paddingX="xl"
       horizontal="center"
       vertical="start"
@@ -207,7 +250,7 @@ const Home: React.FC = () => {
         vertical="start"
         gap="20"
       >
-        <Navbar />
+        <Navbar userPfp={userPfp ?? ""} />
         <Column paddingY="m" paddingX="l" marginTop="64">
           {postsData.length === 0 ? (
             <Column fillHeight center style={{ minHeight: "90vh" }}>
@@ -242,7 +285,7 @@ const Cards: React.FC<{ data: PostData }> = ({ data }) => (
     marginBottom="64"
     direction="column"
     gap="12"
-    radius="xl-8"
+    radius="l-4"
     minWidth={27}
     fitHeight
     padding="l"
@@ -311,7 +354,7 @@ const Cards: React.FC<{ data: PostData }> = ({ data }) => (
           onBackground="neutral-weak"
           style={{ fontSize: "13px", letterSpacing: "0.1px" }}
         >
-          <SplitText text={data.post_content?.body || ""} />
+          {/* <SplitText text={data.post_content?.body || ""} /> */}{data.post_content?.body || ""}
         </Text>
       </Column>
     </Column>
@@ -435,9 +478,21 @@ const Comments: React.FC<{ comments: CommentData[] }> = ({ comments }) => (
   </Column>
 );
 
-const Navbar: React.FC = () => {
+const Navbar: React.FC<{ userPfp: string }> = ({ userPfp }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const supabaseLoginGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+    if (error) {
+      console.error("Error logging in with Google:", error);
+    }
+  };
 
+ 
   return (
     <Row
       style={{
@@ -477,7 +532,7 @@ const Navbar: React.FC = () => {
           Floid
         </Text>
       </Flex>
-      <Row center gap="8">
+      <Row center gap="8" data-border="conservative">
         <IconButton
           variant="secondary"
           size="m"
@@ -508,7 +563,12 @@ const Navbar: React.FC = () => {
         </IconButton>
       </Row>
       <Row gap="12" center>
-        <Button size="s" weight="default" onClick={() => setIsOpen(true)}>
+        <Button
+          size="s"
+          weight="default"
+          onClick={() => setIsOpen(true)}
+          data-border="conservative"
+        >
           <Row gap="8" center>
             <Plus color="#999" size={15} fontWeight={3} />
             <Text className={outfit.className} variant="body-default-s">
@@ -525,26 +585,45 @@ const Navbar: React.FC = () => {
         </IconButton>
         <UserMenu
           style={{ borderColor: "transparent", borderRadius: "100%" }}
-          avatarProps={{ src: "https://avatar.iran.liara.run/public/35" }}
+          avatarProps={{ src: userPfp }}
         />
       </Row>
-       <Dialog
-      isOpen={isOpen}
-      onClose={() => setIsOpen(false)}
-      title="Basic dialog"
-      description="This is a simple dialog with a title and description."
-    >
-      <Column fillWidth gap="16" marginTop="12">
-        Dialog content goes here. This area can contain any React components.
-        <Row fillWidth vertical="center" gap="8">
-          <Input
-            id="name"
-            label="Enter your name"
-          />
-          <Button label="Submit" onClick={() => setIsOpen(false)}/>
-        </Row>
-      </Column>
-    </Dialog>
+      <Dialog
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title={"Sign in to your account"}
+        description={
+          "Sign in to your account to create ai-bots, posts, comment, and like."
+        }
+        maxWidth={35}
+      >
+        <Column fillWidth gap="16" marginTop="12">
+          <Row fillWidth vertical="center" gap="8" horizontal="start">
+            <Button
+              variant="primary"
+              weight="default"
+              size="m"
+              onClick={() => {
+                setIsOpen(false);
+                supabaseLoginGoogle();
+              }}
+              className={outfit.className}
+            >
+              <Flex center fillWidth fillHeight>
+                <Media
+                  src={
+                    "https://freelogopng.com/images/all_img/1657952440google-logo-png-transparent.png"
+                  }
+                  unoptimized
+                  width={1.1}
+                  height={1.1}
+                />
+                &nbsp;&nbsp;&nbsp;{"Continue with Google"}
+              </Flex>
+            </Button>
+          </Row>
+        </Column>
+      </Dialog>
     </Row>
   );
 };

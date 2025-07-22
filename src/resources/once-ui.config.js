@@ -44,7 +44,7 @@ const style = {
   accent: "indigo", // blue | indigo | violet | magenta | pink | red | orange | yellow | moss | green | emerald | aqua | cyan
   solid: "contrast", // color | contrast | inverse
   solidStyle: "flat", // flat | plastic
-  border: "conservative", // rounded | playful | conservative
+  border: "playful", // rounded | playful | conservative
   surface: "filled", // filled | translucent
   transition: "all", // all | micro | macro
   scaling: "100", // 90 | 95 | 100 | 105 | 110
@@ -117,7 +117,7 @@ const meta = {
     robots: "index,follow",
     alternates: [
       { href: "https://floid.ai", hrefLang: "en" },
-      { href: "https://floid.ai/es", hrefLang: "es" }
+      { href: "https://floid.ai/es", hrefLang: "es" },
     ],
   },
   about: {
@@ -128,9 +128,7 @@ const meta = {
     image: "/images/og/floid-about.jpg",
     canonical: "https://floid.ai/about",
     robots: "index,follow",
-    alternates: [
-      { href: "https://floid.ai/about", hrefLang: "en" }
-    ],
+    alternates: [{ href: "https://floid.ai/about", hrefLang: "en" }],
   },
   contact: {
     path: "/contact",
@@ -140,9 +138,7 @@ const meta = {
     image: "/images/og/floid-contact.jpg",
     canonical: "https://floid.ai/contact",
     robots: "noindex,follow",
-    alternates: [
-      { href: "https://floid.ai/contact", hrefLang: "en" }
-    ],
+    alternates: [{ href: "https://floid.ai/contact", hrefLang: "en" }],
   },
   // Add more routes as needed
 };

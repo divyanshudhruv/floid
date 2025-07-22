@@ -114,6 +114,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -128,18 +129,21 @@
   padding: 0.5rem;
   color: #141417;
 }
+
 .card__hero {
   background-color: #fef4e2;
   border-radius: 0.5rem 0.5rem 0 0;
   padding: 1.5rem;
   font-size: 0.875rem;
 }
+
 .card__hero .card__job-title {
   margin: 2rem 0;
   font-size: 2rem;
   font-weight: 600;
   padding-right: 2rem;
 }
+
 .card__hero-header {
   display: flex;
   justify-content: space-between;
@@ -149,6 +153,7 @@
   gap: 1rem;
   font-weight: 700;
 }
+
 .card__footer {
   display: flex;
   justify-content: flex-start;
@@ -160,6 +165,7 @@
   font-weight: 700;
   font-size: 0.875rem;
 }
+
 @media (min-width: 340px) {
   .card__footer {
     flex-direction: row;
@@ -168,6 +174,7 @@
     gap: 1rem;
   }
 }
+
 .card__job-summary {
   display: flex;
   justify-content: flex-start;
@@ -176,6 +183,7 @@
   flex-wrap: nowrap;
   gap: 0.75rem;
 }
+
 .card__btn {
   width: 100%;
   font-weight: 400;
@@ -189,8 +197,36 @@
   color: #fff;
   font-size: 1rem;
 }
+
 @media (min-width: 340px) {
   .card__btn {
     width: max-content;
   }
+}
+
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  z-index: 99;
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.1);
+  max-width: 100vw !important;
+  transition: all 0.1s ease-out;
+  border: 1px solid rgb(45, 44, 44, 0.00);
+  border-radius: 1rem;
+
+}
+
+.navbar-active {
+  position: fixed;
+  top: 10px;
+  left: 0;
+  right: 0;
+  margin: auto;
+  border-radius: 1rem;
+  border: 1px solid rgb(45, 44, 44, 0.07);
 }

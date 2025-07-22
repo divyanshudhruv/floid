@@ -31,6 +31,7 @@ import {
   useToast,
 } from "@once-ui-system/core";
 import { Outfit, Inter, DM_Sans } from "next/font/google";
+import "./../global.css";
 import Avvvatars from "avvvatars-react";
 import {
   ArrowRight,
@@ -268,7 +269,7 @@ const Home: React.FC = () => {
         vertical="start"
         gap="20"
       >
-        <Navbar userPfp={userPfp ?? ""} />
+        <Navbar userPfp={userPfp ?? ""} isLoading={userPfp === null} />
         <Column paddingY="m" paddingX="l" marginTop="64">
           {postsData.length === 0 ? (
             <Column fillHeight center style={{ minHeight: "90vh" }}>
@@ -310,16 +311,16 @@ const Cards: React.FC<{ data: PostData }> = ({ data }) => (
     horizontal="center"
     vertical="space-between"
     style={{
-      border: "2px solid #efeef0",
+      border: "1px solid #efeef0",
       backgroundColor: "#efeef0",
     }}
     onMouseEnter={(e) => {
       e.currentTarget.style.backgroundColor = "transparent";
-      e.currentTarget.style.border = "2px solid #efeef0";
+      e.currentTarget.style.border = "1px solid #d3d3d366";
     }}
     onMouseLeave={(e) => {
       e.currentTarget.style.backgroundColor = "#efeef0";
-      e.currentTarget.style.border = "2px solid #efeef0";
+      e.currentTarget.style.border = "1px solid #efeef0";
     }}
   >
     <Column gap="4">
@@ -497,7 +498,10 @@ const Comments: React.FC<{ comments: CommentData[] }> = ({ comments }) => (
   </Column>
 );
 
-const Navbar: React.FC<{ userPfp: string }> = ({ userPfp }) => {
+const Navbar: React.FC<{ userPfp: string; isLoading: boolean }> = ({
+  userPfp,
+  isLoading,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSession, setIsSession] = useState(false);
   const [isPostOpen, setIsPostOpen] = useState(false);
@@ -597,20 +601,27 @@ const Navbar: React.FC<{ userPfp: string }> = ({ userPfp }) => {
     setName(newName);
   };
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const navbar = document.getElementById("navbar");
+      if (!navbar) return;
+      if (window.scrollY > 20) {
+        navbar.classList.add("navbar-active");
+      } else {
+        navbar.classList.remove("navbar-active");
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   return (
     <>
       <Row
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          margin: "auto",
-          zIndex: 99,
-          backdropFilter: "blur(12px)",
-          background: "rgba(255,255,255,0.1)",
-          maxWidth: "100vw !important",
-        }}
+        className="navbar"
+        id="navbar"
         vertical="center"
         horizontal="space-between"
         fillWidth
@@ -693,6 +704,7 @@ const Navbar: React.FC<{ userPfp: string }> = ({ userPfp }) => {
           <UserMenu
             style={{ borderColor: "transparent", borderRadius: "100%" }}
             avatarProps={{ src: userPfp }}
+            loading={isLoading}
           />
         </Row>
       </Row>
@@ -734,14 +746,15 @@ const Navbar: React.FC<{ userPfp: string }> = ({ userPfp }) => {
       </Dialog>
       <Dialog
         style={{ zIndex: "999999999" }}
-        maxHeight={40}
+        maxHeight={37}
+        
         isOpen={isPostOpen}
         onClose={() => setIsPostOpen(false)}
         title={"Create a new Droid "}
         description={
           "Create a new Droid to post, comment, and like on the platform."
         }
-        maxWidth={35}
+        maxWidth={31}
         footer={
           <Row fillWidth horizontal="start" vertical="center">
             <Info color="#777" size={12} />
@@ -784,6 +797,7 @@ const Navbar: React.FC<{ userPfp: string }> = ({ userPfp }) => {
           <Select
             id="driod-tag"
             label="Choose a tag"
+            height="s"
             description={
               <Text variant="label-default-s" onBackground="neutral-weak">
                 <Row center vertical="center" horizontal="start">
@@ -797,6 +811,8 @@ const Navbar: React.FC<{ userPfp: string }> = ({ userPfp }) => {
             options={[
               { label: "#show", value: "show" },
               { label: "#post", value: "post" },
+              { label: "#question", value: "question" },
+              { label: "#funny", value: "funny" },
               { label: "#news", value: "news" },
               { label: "#thought", value: "thought" },
               { label: "#event", value: "event" },

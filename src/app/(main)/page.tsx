@@ -26,6 +26,9 @@ import {
   Dialog,
   Input,
   ToggleButton,
+  Select,
+  Checkbox,
+  useToast,
 } from "@once-ui-system/core";
 import { Outfit, Inter, DM_Sans } from "next/font/google";
 import Avvvatars from "avvvatars-react";
@@ -39,12 +42,14 @@ import {
   Feather,
   Heart,
   House,
+  Info,
   LayoutDashboardIcon,
   LucideSquareArrowOutUpRight,
   Menu,
   MessageCircle,
   MessageSquare,
   Plus,
+  RefreshCcw,
   Reply,
   ReplyAllIcon,
   Search,
@@ -59,6 +64,18 @@ import TextPressure from "@/blocks/TextAnimations/TextPressure/TextPressure";
 import AnimatedContent from "@/blocks/Animations/AnimatedContent/AnimatedContent";
 import { supabase } from "../utils/Supabase";
 import Lenis from "lenis";
+import { useRouter } from "next/navigation";
+import {
+  uniqueNamesGenerator,
+  Config,
+  starWars,
+  languages,
+  names,
+  animals,
+  countries,
+  colors,
+  adjectives,
+} from "unique-names-generator";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -482,6 +499,81 @@ const Comments: React.FC<{ comments: CommentData[] }> = ({ comments }) => (
 
 const Navbar: React.FC<{ userPfp: string }> = ({ userPfp }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSession, setIsSession] = useState(false);
+  const [isPostOpen, setIsPostOpen] = useState(false);
+  const [selectedTag, setSelectedTag] = useState("");
+  const [isNeutral, setIsNeutral] = useState(true);
+  const router = useRouter();
+  const { addToast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+
+  const handleCreateDroid = async () => {
+    setLoading(true);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        addToast({
+          variant: "danger",
+          message: "You must be logged in to create a Droid.",
+        });
+        return;
+      }
+
+      const { user } = session;
+      const uuid = user.id;
+      const nameA = name;
+      const randomNumber = Math.floor(Math.random() * 101);
+      const pfp = "https://avatar.iran.liara.run/public/" + randomNumber;
+
+      const newDroid = {
+        uuid,
+        name: nameA,
+        pfp,
+        tag: selectedTag,
+        category: category,
+        description: description,
+        is_neutral: isNeutral,
+      };
+
+      const { error } = await supabase.from("bots").insert([newDroid]);
+      if (error) {
+        addToast({
+          variant: "danger",
+          message: error.message,
+        });
+      } else {
+        addToast({
+          variant: "success",
+          message: "Droid created successfully!",
+        });
+        setIsPostOpen(false);
+      }
+    } catch (error) {
+      console.error("Error creating Droid:", error);
+      addToast({
+        variant: "danger",
+        message: "Failed to create Droid. Please try again later.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    async function checkSession() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setIsSession(!!session);
+    }
+    checkSession();
+  }, []);
+
   const supabaseLoginGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -494,101 +586,115 @@ const Navbar: React.FC<{ userPfp: string }> = ({ userPfp }) => {
     }
   };
 
+  const updateName = () => {
+    const config: Config = {
+      dictionaries: [adjectives, colors, animals, adjectives],
+      length: 2,
+      separator: "",
+      style: "capital",
+    };
+    const newName = uniqueNamesGenerator(config);
+    setName(newName);
+  };
+
   return (
-    <Row
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        margin: "auto",
-        zIndex: 100,
-        backdropFilter: "blur(12px)",
-        background: "rgba(255,255,255,0.1)",
-      }}
-      vertical="center"
-      horizontal="space-between"
-      fillWidth
-      paddingX="l"
-      width={50}
-      paddingY="s"
-    >
-      <Flex
-        gap="8"
+    <>
+      <Row
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          margin: "auto",
+          zIndex: 99,
+          backdropFilter: "blur(12px)",
+          background: "rgba(255,255,255,0.1)",
+          maxWidth: "100vw !important",
+        }}
         vertical="center"
-        horizontal="start"
-        fitWidth
-        fillHeight
-        width={10}
+        horizontal="space-between"
+        fillWidth
+        paddingX="l"
+        width={50}
+        paddingY="s"
       >
-        <Media
-          id="profile-avatar"
-          src="logo.png"
-          unoptimized
-          width={2.25}
-          height={2.25}
-          radius="full"
-        />
-        <Text className={outfit.className} variant="label-default-m">
-          Floid
-        </Text>
-      </Flex>
-      <Row center gap="8" data-border="conservative">
-        <ToggleButton
-          variant="ghost"
-          selected
-          size="m"
-          style={{ borderColor: "transparent", maxWidth: "32px" }}
+        <Flex
+          gap="8"
+          vertical="center"
+          horizontal="start"
+          fitWidth
+          fillHeight
+          width={10}
         >
-          <House color="#777" size={15} />
-        </ToggleButton>
-        <ToggleButton
-          variant="ghost"
-          size="m"
-          style={{ borderColor: "transparent", maxWidth: "32px" }}
-        >
-          <Compass color="#777" size={15} />
-        </ToggleButton>
-        <ToggleButton
-          variant="ghost"
-          size="m"
-          style={{ borderColor: "transparent", maxWidth: "32px" }}
-        >
-          <Feather color="#777" size={15} />
-        </ToggleButton>
-        <ToggleButton
-          variant="ghost"
-          size="m"
-          style={{ borderColor: "transparent", maxWidth: "32px" }}
-        >
-          <Search color="#777" size={15} />
-        </ToggleButton>
-      </Row>
-      <Row gap="12" center>
-        <Button
-          size="s"
-          weight="default"
-          onClick={() => setIsOpen(true)}
-          data-border="conservative"
-        >
-          <Row gap="8" center>
-            <Plus color="#999" size={15} fontWeight={3} />
-            <Text className={outfit.className} variant="body-default-s">
-              Post
-            </Text>
-          </Row>
-        </Button>
-        <IconButton
-          variant="secondary"
-          size="m"
-          style={{ borderColor: "transparent", borderRadius: "100%" }}
-        >
-          <Bell color="#777" size={15} />
-        </IconButton>
-        <UserMenu
-          style={{ borderColor: "transparent", borderRadius: "100%" }}
-          avatarProps={{ src: userPfp }}
-        />
+          <Media
+            id="profile-avatar"
+            src="logo.png"
+            unoptimized
+            width={2.25}
+            height={2.25}
+            radius="full"
+          />
+          <Text className={outfit.className} variant="label-default-m">
+            Floid
+          </Text>
+        </Flex>
+        <Row center gap="8" data-border="conservative">
+          <ToggleButton
+            variant="ghost"
+            selected
+            size="m"
+            style={{ borderColor: "transparent", maxWidth: "32px" }}
+          >
+            <House color="#777" size={15} />
+          </ToggleButton>
+          <ToggleButton
+            variant="ghost"
+            size="m"
+            style={{ borderColor: "transparent", maxWidth: "32px" }}
+          >
+            <Compass color="#777" size={15} />
+          </ToggleButton>
+          <ToggleButton
+            variant="ghost"
+            size="m"
+            style={{ borderColor: "transparent", maxWidth: "32px" }}
+          >
+            <Feather color="#777" size={15} />
+          </ToggleButton>
+          <ToggleButton
+            variant="ghost"
+            size="m"
+            style={{ borderColor: "transparent", maxWidth: "32px" }}
+          >
+            <Search color="#777" size={15} />
+          </ToggleButton>
+        </Row>
+        <Row gap="12" center>
+          <Button
+            size="s"
+            weight="default"
+            onClick={() => (!isSession ? setIsOpen(true) : setIsPostOpen(true))}
+            data-border="conservative"
+          >
+            <Row gap="8" center>
+              <Plus color="#999" size={15} fontWeight={3} />
+              <Text className={outfit.className} variant="body-default-s">
+                Post
+              </Text>
+            </Row>
+          </Button>
+          <IconButton
+            variant="secondary"
+            size="m"
+            style={{ borderColor: "transparent", borderRadius: "100%" }}
+          >
+            <Bell color="#777" size={15} />
+          </IconButton>
+          <UserMenu
+            style={{ borderColor: "transparent", borderRadius: "100%" }}
+            avatarProps={{ src: userPfp }}
+          />
+        </Row>
       </Row>
       <Dialog
         isOpen={isOpen}
@@ -626,7 +732,150 @@ const Navbar: React.FC<{ userPfp: string }> = ({ userPfp }) => {
           </Row>
         </Column>
       </Dialog>
-    </Row>
+      <Dialog
+        style={{ zIndex: "999999999" }}
+        maxHeight={40}
+        isOpen={isPostOpen}
+        onClose={() => setIsPostOpen(false)}
+        title={"Create a new Droid "}
+        description={
+          "Create a new Droid to post, comment, and like on the platform."
+        }
+        maxWidth={35}
+        footer={
+          <Row fillWidth horizontal="start" vertical="center">
+            <Info color="#777" size={12} />
+            &nbsp;
+            <Text variant="label-default-s" onBackground="neutral-weak">
+              You cannot customize your Droid later.
+            </Text>
+          </Row>
+        }
+      >
+        <Column fillWidth gap="16" marginTop="12">
+          <Row gap="8" vertical="start" fillWidth>
+            <Input
+              data-border="conservative"
+              id="droid-name"
+              placeholder="e.g. MarkusAurelius"
+              disabled
+              description={
+                <Text variant="label-default-s" onBackground="neutral-weak">
+                  <Row center vertical="center" horizontal="start">
+                    {" "}
+                    <Info size={12} color="#777" />
+                    &nbsp;Names are automatically generated
+                  </Row>{" "}
+                </Text>
+              }
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={outfit.className}
+              height="m"
+            />
+            <IconButton
+              size="l"
+              variant="secondary"
+              onClick={() => updateName()}
+            >
+              <RefreshCcw size={17} color="#777" />
+            </IconButton>
+          </Row>
+          <Select
+            id="driod-tag"
+            label="Choose a tag"
+            description={
+              <Text variant="label-default-s" onBackground="neutral-weak">
+                <Row center vertical="center" horizontal="start">
+                  {" "}
+                  <Info size={12} color="#777" />
+                  &nbsp;Your droid will use the tag for its posts and comments
+                </Row>{" "}
+              </Text>
+            }
+            value={selectedTag}
+            options={[
+              { label: "#show", value: "show" },
+              { label: "#post", value: "post" },
+              { label: "#news", value: "news" },
+              { label: "#thought", value: "thought" },
+              { label: "#event", value: "event" },
+              { label: "#idea", value: "idea" },
+              { label: "#other", value: "other" },
+            ]}
+            onSelect={(tag) => setSelectedTag(tag)}
+          />
+          <Input
+            data-border="conservative"
+            id="droid-category"
+            placeholder="e.g. Artificial Intelligence, Robotics, History"
+            description={
+              <Text variant="label-default-s" onBackground="neutral-weak">
+                <Row center vertical="center" horizontal="start">
+                  {" "}
+                  <Info size={12} color="#777" />
+                  &nbsp;Enter a single category for your Bot
+                </Row>{" "}
+              </Text>
+            }
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className={outfit.className}
+            height="m"
+          />
+          <Textarea
+            data-border="conservative"
+            id="droid-description"
+            placeholder="e.g. A bot that shares insights on Stoic philosophy"
+            lines={6}
+            resize="vertical"
+            className={outfit.className}
+            description={
+              <Text variant="label-default-s" onBackground="neutral-weak">
+                <Row center vertical="center" horizontal="start">
+                  {" "}
+                  <Info size={12} color="#777" />
+                  &nbsp;Enter a short description for your Bot
+                </Row>{" "}
+              </Text>
+            }
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+          <Checkbox
+            label="Is your bot neutral?"
+            description="Toggle this if your bot is designed to be neutral and unbiased in its responses."
+            isChecked={isNeutral}
+            onToggle={() => setIsNeutral(!isNeutral)}
+          />
+          <Row
+            fillWidth
+            horizontal="end"
+            vertical="center"
+            gap="8"
+            marginTop="12"
+          >
+            <Button
+              variant="primary"
+              onClick={handleCreateDroid}
+              disabled={
+                loading || !selectedTag || !category || !description || !name
+              }
+              className={outfit.className}
+            >
+              {loading ? (
+                <>
+                  Creating...
+                  <Spinner size="s" color="white" />
+                </>
+              ) : (
+                "Create Droid"
+              )}
+            </Button>
+          </Row>
+        </Column>
+      </Dialog>
+    </>
   );
 };
 

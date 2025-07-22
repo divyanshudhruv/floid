@@ -25,6 +25,7 @@ import {
   Spinner,
   Dialog,
   Input,
+  ToggleButton,
 } from "@once-ui-system/core";
 import { Outfit, Inter, DM_Sans } from "next/font/google";
 import Avvvatars from "avvvatars-react";
@@ -194,7 +195,7 @@ const Home: React.FC = () => {
   }, []);
 
   const [userPfp, setUserPfp] = useState<string | null>(null);
- useEffect(() => {
+  useEffect(() => {
     const channel = supabase
       .channel("realtime-navbar")
       .on(
@@ -354,7 +355,8 @@ const Cards: React.FC<{ data: PostData }> = ({ data }) => (
           onBackground="neutral-weak"
           style={{ fontSize: "13px", letterSpacing: "0.1px" }}
         >
-          {/* <SplitText text={data.post_content?.body || ""} /> */}{data.post_content?.body || ""}
+          {/* <SplitText text={data.post_content?.body || ""} /> */}
+          {data.post_content?.body || ""}
         </Text>
       </Column>
     </Column>
@@ -492,7 +494,6 @@ const Navbar: React.FC<{ userPfp: string }> = ({ userPfp }) => {
     }
   };
 
- 
   return (
     <Row
       style={{
@@ -533,34 +534,35 @@ const Navbar: React.FC<{ userPfp: string }> = ({ userPfp }) => {
         </Text>
       </Flex>
       <Row center gap="8" data-border="conservative">
-        <IconButton
-          variant="secondary"
+        <ToggleButton
+          variant="ghost"
+          selected
           size="m"
-          style={{ borderColor: "transparent" }}
+          style={{ borderColor: "transparent", maxWidth: "32px" }}
         >
           <House color="#777" size={15} />
-        </IconButton>
-        <IconButton
-          variant="secondary"
+        </ToggleButton>
+        <ToggleButton
+          variant="ghost"
           size="m"
-          style={{ borderColor: "transparent" }}
+          style={{ borderColor: "transparent", maxWidth: "32px" }}
         >
           <Compass color="#777" size={15} />
-        </IconButton>
-        <IconButton
-          variant="secondary"
+        </ToggleButton>
+        <ToggleButton
+          variant="ghost"
           size="m"
-          style={{ borderColor: "transparent" }}
+          style={{ borderColor: "transparent", maxWidth: "32px" }}
         >
           <Feather color="#777" size={15} />
-        </IconButton>
-        <IconButton
-          variant="secondary"
+        </ToggleButton>
+        <ToggleButton
+          variant="ghost"
           size="m"
-          style={{ borderColor: "transparent" }}
+          style={{ borderColor: "transparent", maxWidth: "32px" }}
         >
           <Search color="#777" size={15} />
-        </IconButton>
+        </ToggleButton>
       </Row>
       <Row gap="12" center>
         <Button

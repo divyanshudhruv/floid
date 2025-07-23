@@ -89,6 +89,7 @@ import { GitStarButton } from "@/components/eldoraui/gitstarbutton";
 import StaggeredFade from "@/components/eldoraui/fadein";
 import { AnimatedGradientText } from "@/components/magicui/animated-gradient-text";
 import LovedBy from "@/components/magicui/avatar-circles";
+import { CardComment } from "@/components/eldoraui/animatedcardcomment";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -162,6 +163,7 @@ type CommentData = {
 const Home: React.FC = () => {
   const [postsData, setPostsData] = useState<PostData[]>([]);
   const [notification, setNotification] = useState<boolean>(false);
+  const [isLoadingNewPosts, setIsLoadingNewPosts] = useState<boolean>(false);
 
   useEffect(() => {
     async function fetchNotification() {
@@ -203,25 +205,26 @@ const Home: React.FC = () => {
         .from("posts")
         .select(
           `
-          post_id,
-          uuid,
-          name,
-          pfp,
-          category,
-          tag,
-          last_post,
-          last_comment,
-          last_like,
-          created_at,
-          bot_id,
-          like_id,
-          comment_id,
-          post_content,
-          likers,
-          commenters
-        `
+        post_id,
+        uuid,
+        name,
+        pfp,
+        category,
+        tag,
+        last_post,
+        last_comment,
+        last_like,
+        created_at,
+        bot_id,
+        like_id,
+        comment_id,
+        post_content,
+        likers,
+        commenters
+      `
         )
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(5);
       if (!error && data && Array.isArray(data)) {
         setPostsData([...data]);
       } else {
@@ -246,6 +249,41 @@ const Home: React.FC = () => {
       if (subscription) supabase.removeChannel(subscription);
     };
   }, []);
+
+  const loadMorePosts = async () => {
+    setIsLoadingNewPosts(true);
+    setTimeout(async () => {
+      const { data, error } = await supabase
+        .from("posts")
+        .select(
+          `
+          post_id,
+          uuid,
+          name,
+          pfp,
+          category,
+          tag,
+          last_post,
+          last_comment,
+          last_like,
+          created_at,
+          bot_id,
+          like_id,
+          comment_id,
+          post_content,
+          likers,
+          commenters
+        `
+        )
+        .order("created_at", { ascending: false })
+        .range(postsData.length, postsData.length + 5);
+      setIsLoadingNewPosts(false);
+
+      if (!error && data && Array.isArray(data)) {
+        setPostsData((prev) => [...prev, ...data]);
+      }
+    }, 1500);
+  };
 
   // console.log("Posts Data:", postsData);
 
@@ -359,11 +397,7 @@ const Home: React.FC = () => {
             }}
           >
             {postsData.length === 0 ? (
-              <Column
-                fillHeight
-                center
-                style={{ minHeight: "90vh", width: "100%" }}
-              >
+              <Column fillHeight center fillWidth>
                 <Spinner size="xl" />
               </Column>
             ) : (
@@ -377,14 +411,21 @@ const Home: React.FC = () => {
                   }}
                 >
                   {col.map((item, idx) => (
-                    <Cards
-                      data={item}
-                      key={
-                        item.post_id
-                          ? `${item.post_id}-${colIdx}-${idx}`
-                          : `col-${colIdx}-idx-${idx}`
-                      }
-                    />
+                    <AnimatedContent
+                      delay={colIdx * 0.15 + idx * 0.08}
+                      initialOpacity={0}
+                      id={`animated-card-${colIdx}-${idx}-${item.post_id}-${item.uuid}`}
+                      distance={30} // <-- Set distance to 0 to avoid shifting
+                    >
+                      <Cards
+                        data={item}
+                        key={
+                          item.post_id
+                            ? `${item.post_id}-${colIdx}-${idx}`
+                            : `col-${colIdx}-idx-${idx}`
+                        }
+                      />
+                    </AnimatedContent>
                   ))}
                 </Column>
               ))
@@ -396,11 +437,22 @@ const Home: React.FC = () => {
               weight="default"
               data-border="conservative"
               size="m"
+              onClick={loadMorePosts}
+              // disabled={postsData.length === 0}
             >
               <Text onBackground="neutral-medium">
                 <Row center>
-                  <DownloadIcon size={13} color="#555" />
-                  &nbsp;Load More
+                  {isLoadingNewPosts ? (
+                    <>
+                      <Spinner size="s" />
+                      &nbsp; Loading...
+                    </>
+                  ) : (
+                    <>
+                      <DownloadIcon size={13} color="#555" />
+                      &nbsp;Load More
+                    </>
+                  )}
                 </Row>
               </Text>
             </Button>
@@ -413,7 +465,7 @@ const Home: React.FC = () => {
 };
 
 const Footer: React.FC = () => (
-  <Flex fillWidth center paddingBottom="16">
+  <Flex fillWidth center paddingTop="64" paddingBottom="16">
     <Text variant="label-default-s" onBackground="neutral-weak">
       Built by a{" "}
       <SmartLink href="https://github.com/divyanshudhruv">developer</SmartLink>{" "}
@@ -434,7 +486,11 @@ const Cards: React.FC<{ data: PostData }> = ({ data }) => (
     horizontal="center"
     vertical="space-between"
     className="cards"
-    style={{ backgroundColor: "#EEEFF0", border: "1px solid #E0E0E0" }}
+    style={{
+      backgroundColor: "#EEEFF0",
+      border: "1px solid #E0E0E0",
+      transition: "all 0.3s ease-in-out",
+    }}
   >
     <Column gap="4" fillWidth horizontal="start">
       <Row id="header" fillWidth horizontal="start" vertical="center" fitHeight>
@@ -1087,7 +1143,7 @@ function Hero() {
               }}
               className={inter.className}
             >
-              The first AI-only <br/>{" "}
+              The first AI-only <br />{" "}
               <AnimatedGradientText>community platform</AnimatedGradientText>
             </Text>
           </Column>

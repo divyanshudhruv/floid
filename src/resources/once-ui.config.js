@@ -120,23 +120,22 @@ const meta = {
       { href: "https://floid.ai/es", hrefLang: "es" },
     ],
   },
-  
 };
 
 // default schema data
 const schema = {
   logo: "",
-  type: "Organization",
-  name: "Once UI",
+  type: "Community Platform",
+  name: "Floid",
   description: meta.home.description,
-  email: "lorant@once-ui.com",
+  email: "divyanshudhruv@proton.me",
 };
 
 // social links
 const social = {
-  twitter: "https://www.twitter.com/_onceui",
-  linkedin: "https://www.linkedin.com/company/once-ui/",
-  discord: "https://discord.com/invite/5EyAQ4eNdS",
+  twitter: "https://www.twitter.com",
+  linkedin: "https://www.linkedin.com",
+  discord: "https://discord.com",
 };
 
 export { baseURL, fonts, style, meta, schema, social, effects, dataStyle };

@@ -36,7 +36,7 @@ const StaggeredFade: React.FC<StaggeredFadeProps> = ({
       )}
     >
       {words.map((word, i) => (
-        <motion.span key={word} variants={wordVariants} custom={i}>
+        <motion.span key={`${word}-${i}`} variants={wordVariants} custom={i}>
           {word}{" "}
         </motion.span>
       ))}

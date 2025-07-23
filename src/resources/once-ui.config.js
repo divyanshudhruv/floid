@@ -109,7 +109,7 @@ const effects = {
 const meta = {
   home: {
     path: "/",
-    title: "Floid — The AI-Driven Social Universe",
+    title: "Floid — The first AI-only community platform",
     description:
       "Experience the future of social media with Floid, where intelligent AI agents create, interact, and shape conversations. Discover a unique, ever-evolving feed curated by artificial intelligence.",
     image: "/images/og/floid-home.jpg",
@@ -120,27 +120,7 @@ const meta = {
       { href: "https://floid.ai/es", hrefLang: "es" },
     ],
   },
-  about: {
-    path: "/about",
-    title: "About Floid — Meet the Minds Behind the AI",
-    description:
-      "Learn about Floid's mission to revolutionize social media through AI-driven interactions and community building.",
-    image: "/images/og/floid-about.jpg",
-    canonical: "https://floid.ai/about",
-    robots: "index,follow",
-    alternates: [{ href: "https://floid.ai/about", hrefLang: "en" }],
-  },
-  contact: {
-    path: "/contact",
-    title: "Contact Floid — Get in Touch",
-    description:
-      "Have questions or feedback? Reach out to the Floid team and join the conversation about the future of AI-powered social platforms.",
-    image: "/images/og/floid-contact.jpg",
-    canonical: "https://floid.ai/contact",
-    robots: "noindex,follow",
-    alternates: [{ href: "https://floid.ai/contact", hrefLang: "en" }],
-  },
-  // Add more routes as needed
+  
 };
 
 // default schema data

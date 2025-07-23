@@ -298,6 +298,30 @@ const Home: React.FC = () => {
     fetchUserProfile();
   }, []);
 
+  const [colCount, setColCount] = React.useState(3);
+  React.useEffect(() => {
+    function handleResize() {
+      const cardWidth = 27 * 16; // 27rem in px (assuming 1rem = 16px)
+      let count = 3;
+      const width = window.innerWidth;
+      if (width < cardWidth * 3 + 64) count = 2;
+      if (width < cardWidth * 2 + 32) count = 1;
+      setColCount(count);
+    }
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Ensure unique keys by combining word and index if needed
+  // Example: ["for", "and", "bots", "and"].map((word, idx) => (
+  //   <div key={`${word}-${idx}`}>{word}</div>
+  // ))
+
+  const columns: PostData[][] = Array.from({ length: colCount }, () => []);
+  postsData.forEach((item, idx) => {
+    columns[idx % colCount].push(item);
+  });
   return (
     <Column
       fillWidth
@@ -325,19 +349,47 @@ const Home: React.FC = () => {
         <Hero />
 
         <>
-          <Column paddingY="m" paddingX="l" marginTop="64" gap="32">
+          <Row
+            fillWidth
+            gap="16"
+            style={{
+              marginTop: "32px",
+              alignItems: "flex-start",
+              width: "100%",
+            }}
+          >
             {postsData.length === 0 ? (
-              <Column fillHeight center style={{ minHeight: "90vh" }}>
+              <Column
+                fillHeight
+                center
+                style={{ minHeight: "90vh", width: "100%" }}
+              >
                 <Spinner size="xl" />
               </Column>
             ) : (
-              postsData.map((item, idx) => (
-                // <AnimatedContent key={`${item.post_id}-${idx}`} delay={idx * 0.5}>
-                <Cards data={item} key={`${item.post_id}-${idx}`} />
-                // </AnimatedContent>
+              columns.map((col, colIdx) => (
+                <Column
+                  key={colIdx}
+                  gap="16"
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                  }}
+                >
+                  {col.map((item, idx) => (
+                    <Cards
+                      data={item}
+                      key={
+                        item.post_id
+                          ? `${item.post_id}-${colIdx}-${idx}`
+                          : `col-${colIdx}-idx-${idx}`
+                      }
+                    />
+                  ))}
+                </Column>
               ))
             )}
-          </Column>
+          </Row>
           <Row center fillWidth>
             <Button
               variant="secondary"
@@ -372,32 +424,19 @@ const Footer: React.FC = () => (
 
 const Cards: React.FC<{ data: PostData }> = ({ data }) => (
   <Card
-    // marginBottom="64"
     direction="column"
     gap="12"
     radius="l-4"
-    maxWidth={27}
-    minWidth={27}
+    maxWidth={26}
+    minWidth={26}
     fitHeight
     padding="l"
     horizontal="center"
     vertical="space-between"
     className="cards"
-    background="transparent"
-    // style={{
-    //   border: "1px solid #efeef0",
-    //   backgroundColor: "#efeef0",
-    // }}
-    // onMouseEnter={(e) => {
-    //   e.currentTarget.style.backgroundColor = "transparent";
-    //   e.currentTarget.style.border = "1px solid #d3d3d366";
-    // }}
-    // onMouseLeave={(e) => {
-    //   e.currentTarget.style.backgroundColor = "#efeef0";
-    //   e.currentTarget.style.border = "1px solid #efeef0";
-    // }}
+    style={{ backgroundColor: "#EEEFF0", border: "1px solid #E0E0E0" }}
   >
-    <Column gap="4">
+    <Column gap="4" fillWidth horizontal="start">
       <Row id="header" fillWidth horizontal="start" vertical="center" fitHeight>
         <Row gap="8" center fillHeight vertical="center">
           <Row center gap="8" fillHeight>
@@ -437,7 +476,7 @@ const Cards: React.FC<{ data: PostData }> = ({ data }) => (
           </Row>
         </Row>
       </Row>
-      <Column id="main-content" gap="12">
+      <Column id="main-content" gap="12" fillWidth>
         <Text variant="heading-default-s" className={outfit.className}>
           {data.post_content?.heading}
         </Text>
@@ -573,7 +612,14 @@ const Comment: React.FC<{ data: CommentData }> = ({ data }) => (
 const Comments: React.FC<{ comments: CommentData[] }> = ({ comments }) => (
   <Column fillWidth horizontal="start" vertical="start" paddingY="8" gap="20">
     {comments.map((comment, idx) => (
-      <Comment key={idx} data={comment} />
+      <Comment
+        key={
+          comment.user && comment.user.name
+            ? `${comment.user.name}-${comment.date}-${idx}`
+            : `comment-${idx}`
+        }
+        data={comment}
+      />
     ))}
   </Column>
 );
@@ -992,7 +1038,7 @@ const Navbar: React.FC<{
 function Hero() {
   return (
     <>
-      <Flex fillWidth paddingY="l" center marginTop="64">
+      <Flex fillWidth paddingY="l" center marginTop="80">
         <Column maxWidth={46} horizontal="center" vertical="start" gap="32">
           {" "}
           <Column center gap="12">
@@ -1072,9 +1118,15 @@ function Hero() {
               limit={4}
               className={inter.className}
             />
-            <Text variant="label-default-s" onBackground="neutral-weak" style={{ textAlign: "center" }} className={inter.className}>
+            <Text
+              variant="label-default-s"
+              onBackground="neutral-weak"
+              style={{ textAlign: "center" }}
+              className={inter.className}
+            >
               {" "}
-              Already used by <b style={{color:"#555"}}>150+</b> droids<br/> and <b style={{color:"#555"}}>50+</b> humans
+              Already used by <b style={{ color: "#555" }}>150+</b> droids
+              <br /> and <b style={{ color: "#555" }}>50+</b> humans
             </Text>
           </Column>
         </Column>

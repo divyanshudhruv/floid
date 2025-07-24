@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Heading,
   Text,
@@ -35,7 +35,6 @@ import {
 } from "@once-ui-system/core";
 import { Outfit, Inter, DM_Sans } from "next/font/google";
 import "./../global.css";
-import Avvvatars from "avvvatars-react";
 import {
   ArrowRight,
   Bell,
@@ -78,13 +77,9 @@ import { useRouter } from "next/navigation";
 import {
   uniqueNamesGenerator,
   Config,
-  starWars,
-  languages,
-  names,
-  animals,
-  countries,
-  colors,
   adjectives,
+  colors,
+  animals,
 } from "unique-names-generator";
 import { GitStarButton } from "@/components/eldoraui/gitstarbutton";
 import StaggeredFade from "@/components/eldoraui/fadein";
@@ -92,6 +87,7 @@ import { AnimatedGradientText } from "@/components/magicui/animated-gradient-tex
 import LovedBy from "@/components/magicui/avatar-circles";
 import { CardComment } from "@/components/eldoraui/animatedcardcomment";
 
+// Fonts
 const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-outfit",
@@ -111,81 +107,7 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
-const kbarItems = [
-  {
-    id: "home",
-    name: "Home",
-    section: "Navigation",
-    shortcut: ["H"],
-    keywords: "home main start",
-    href: "/",
-    icon: "home",
-  },
-  {
-    id: "docs",
-    name: "Documentation",
-    section: "Navigation",
-    shortcut: ["D"],
-    keywords: "docs guide help",
-    href: "/docs",
-    icon: "docs",
-  },
-  {
-    id: "create-droid",
-    name: "Create Droid",
-    section: "Actions",
-    shortcut: ["C"],
-    keywords: "create droid bot new",
-    icon: "bot",
-  },
-  {
-    id: "post",
-    name: "Post Something",
-    section: "Actions",
-    shortcut: ["P"],
-    keywords: "create post new",
-    href: "/create-post",
-    icon: "plus",
-  },
-
-  {
-    id: "explore",
-    name: "Explore Droids",
-    section: "Navigation",
-    shortcut: ["E"],
-    keywords: "explore droids bots",
-    href: "/explore",
-    icon: "feather",
-  },
-  {
-    id: "search",
-    name: "Search Droids",
-    section: "Navigation",
-    shortcut: ["S"],
-    keywords: "search droids bots",
-    href: "/search",
-    icon: "search",
-  },
-  {
-    id: "github",
-    name: "GitHub Repository",
-    section: "Links",
-    shortcut: ["G"],
-    keywords: "github repository code",
-    href: "https://github.com/divyanshudhruv/floid",
-    icon: "globe",
-  },
-];
-function formatRelativeTime(date: string): string {
-  const now = new Date();
-  const diffInMs = now.getTime() - new Date(date).getTime();
-  const diffInMinutes = Math.floor(diffInMs / 1000 / 60);
-  if (diffInMinutes < 1) return "just now";
-  if (diffInMinutes < 60) return `${diffInMinutes}min`;
-  if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}hr`;
-  return `${Math.floor(diffInMinutes / 1440)}d`;
-}
-
+// Types
 type PostData = {
   post_id: string;
   uuid: string | null;
@@ -204,7 +126,6 @@ type PostData = {
     body: string;
     heading: string;
   };
-
   likers: { uuid: string }[];
   commenters: {
     date: string;
@@ -224,46 +145,56 @@ type CommentData = {
   date: string;
   text: string;
 };
-// ...imports and other code remain unchanged
 
+// Utils
+const formatRelativeTime = (date: string): string => {
+  const now = new Date();
+  const diffInMs = now.getTime() - new Date(date).getTime();
+  const diffInMinutes = Math.floor(diffInMs / 1000 / 60);
+  if (diffInMinutes < 1) return "just now";
+  if (diffInMinutes < 60) return `${diffInMinutes}min`;
+  if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}hr`;
+  return `${Math.floor(diffInMinutes / 1440)}d`;
+};
+
+// Main Page
 const Home: React.FC = () => {
   const [postsData, setPostsData] = useState<PostData[]>([]);
-  const [notification, setNotification] = useState<boolean>(false);
-  const [isLoadingNewPosts, setIsLoadingNewPosts] = useState<boolean>(false);
+  const [notification, setNotification] = useState(false);
+  const [isLoadingNewPosts, setIsLoadingNewPosts] = useState(false);
+  const [userPfp, setUserPfp] = useState<string | null>(null);
+  const [colCount, setColCount] = useState(3);
+  const router = useRouter();
 
+  // Notification
   useEffect(() => {
-    async function fetchNotification() {
+    const fetchNotification = async () => {
       const { data, error } = await supabase
         .from("notification")
         .select("newPost")
         .eq("id", 1)
         .single();
-
-      if (!error && data && typeof data.newPost === "boolean") {
-        setNotification(data.newPost);
-      } else {
-        setNotification(false);
-      }
-    }
+      setNotification(
+        !error && data && typeof data.newPost === "boolean"
+          ? data.newPost
+          : false
+      );
+    };
     fetchNotification();
-
     const subscription = supabase
       .channel("realtime-notification")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "notification" },
-        () => {
-          fetchNotification();
-        }
+        fetchNotification
       )
       .subscribe();
-
     return () => {
       supabase.removeChannel(subscription);
     };
   }, []);
-  const router = useRouter();
 
+  // Posts
   useEffect(() => {
     let subscription: any;
     const fetchPosts = async () => {
@@ -271,117 +202,75 @@ const Home: React.FC = () => {
         .from("posts")
         .select(
           `
-        post_id,
-        uuid,
-        name,
-        pfp,
-        category,
-        tag,
-        last_post,
-        last_comment,
-        last_like,
-        created_at,
-        bot_id,
-        like_id,
-        comment_id,
-        post_content,
-        likers,
-        commenters
-      `
+          post_id, uuid, name, pfp, category, tag, last_post, last_comment, last_like, created_at, bot_id, like_id, comment_id, post_content, likers, commenters
+        `
         )
         .order("created_at", { ascending: false })
         .limit(5);
-      if (!error && data && Array.isArray(data)) {
-        setPostsData([...data]);
-      } else {
-        setPostsData([]);
-      }
+      setPostsData(!error && Array.isArray(data) ? [...data] : []);
     };
-
     fetchPosts();
-
     subscription = supabase
       .channel("realtime-posts")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "posts" },
-        () => {
-          fetchPosts();
-        }
+        fetchPosts
       )
       .subscribe();
-
     return () => {
-      if (subscription) supabase.removeChannel(subscription);
+      if (subscription) {
+        // Ensure cleanup is synchronous
+        supabase.removeChannel(subscription);
+      }
     };
   }, []);
 
-  const loadMorePosts = async () => {
+  // Load More
+  const loadMorePosts = useCallback(async () => {
     setIsLoadingNewPosts(true);
     setTimeout(async () => {
       const { data, error } = await supabase
         .from("posts")
         .select(
           `
-          post_id,
-          uuid,
-          name,
-          pfp,
-          category,
-          tag,
-          last_post,
-          last_comment,
-          last_like,
-          created_at,
-          bot_id,
-          like_id,
-          comment_id,
-          post_content,
-          likers,
-          commenters
+          post_id, uuid, name, pfp, category, tag, last_post, last_comment, last_like, created_at, bot_id, like_id, comment_id, post_content, likers, commenters
         `
         )
         .order("created_at", { ascending: false })
         .range(postsData.length, postsData.length + 5);
       setIsLoadingNewPosts(false);
-
-      if (!error && data && Array.isArray(data)) {
+      if (!error && Array.isArray(data))
         setPostsData((prev) => [...prev, ...data]);
-      }
     }, 1500);
-  };
+  }, [postsData.length]);
 
-  // console.log("Posts Data:", postsData);
-
+  // Smooth Scroll
   useEffect(() => {
     const lenis = new Lenis({ autoRaf: true });
-    const onScroll = (e: any) => {};
-    lenis.on("scroll", onScroll);
+    lenis.on("scroll", () => {});
     return () => {
-      lenis.off("scroll", onScroll);
+      lenis.off("scroll", () => {});
       lenis.destroy();
     };
   }, []);
 
-  const [userPfp, setUserPfp] = useState<string | null>(null);
+  // Navbar user pfp
   useEffect(() => {
     const channel = supabase
       .channel("realtime-navbar")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "users" },
-        () => {
-          // Optionally, refresh user profile or other navbar-related data here
-        }
+        () => {}
       )
       .subscribe();
-
     return () => {
       supabase.removeChannel(channel);
     };
   }, []);
   useEffect(() => {
-    async function fetchUserProfile() {
+    const fetchUserProfile = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -392,44 +281,33 @@ const Home: React.FC = () => {
           .select("pfp")
           .eq("uuid", uuid)
           .single();
-        if (!error && data && data.pfp) {
-          setUserPfp(data.pfp);
-        } else {
-          setUserPfp("");
-        }
+        setUserPfp(!error && data && data.pfp ? data.pfp : "");
       }
-    }
+    };
     fetchUserProfile();
   }, []);
 
-  const [colCount, setColCount] = React.useState(3);
-  React.useEffect(() => {
-    function handleResize() {
-      const cardWidth = 27 * 16; // 27rem in px (assuming 1rem = 16px)
+  // Responsive columns
+  useEffect(() => {
+    const handleResize = () => {
+      const cardWidth = 27 * 16;
       let count = 3;
       const width = window.innerWidth;
       if (width < cardWidth * 3 + 64) count = 2;
       if (width < cardWidth * 2 + 32) count = 1;
       setColCount(count);
-    }
+    };
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Ensure unique keys by combining word and index if needed
-  // Example: ["for", "and", "bots", "and"].map((word, idx) => (
-  //   <div key={`${word}-${idx}`}>{word}</div>
-  // ))
-
+  // Columns split
   const columns: PostData[][] = Array.from({ length: colCount }, () => []);
-  postsData.forEach((item, idx) => {
-    columns[idx % colCount].push(item);
-  });
+  postsData.forEach((item, idx) => columns[idx % colCount].push(item));
+
   return (
     <>
-      {" "}
-      <Kbar items={kbarItems}>{""}</Kbar>
       <Column
         fillWidth
         fillHeight
@@ -452,9 +330,7 @@ const Home: React.FC = () => {
             isLoading={userPfp === null}
             notification={notification}
           />
-
           <Hero />
-
           <>
             <Row
               fillWidth
@@ -474,17 +350,15 @@ const Home: React.FC = () => {
                   <Column
                     key={colIdx}
                     gap="20"
-                    style={{
-                      flex: 1,
-                      minWidth: 0,
-                    }}
+                    style={{ flex: 1, minWidth: 0 }}
                   >
                     {col.map((item, idx) => (
                       <AnimatedContent
                         delay={colIdx * 0.15 + idx * 0.08}
                         initialOpacity={0}
                         id={`animated-card-${colIdx}-${idx}-${item.post_id}-${item.uuid}`}
-                        distance={30} // <-- Set distance to 0 to avoid shifting
+                        distance={30}
+                        key={`animated-card-${colIdx}-${idx}-${item.post_id}-${item.uuid}`}
                       >
                         <Cards
                           data={item}
@@ -507,7 +381,6 @@ const Home: React.FC = () => {
                 data-border="conservative"
                 size="m"
                 onClick={loadMorePosts}
-                // disabled={postsData.length === 0}
               >
                 <Text onBackground="neutral-medium">
                   <Row center>
@@ -534,6 +407,7 @@ const Home: React.FC = () => {
   );
 };
 
+// Footer
 const Footer: React.FC = () => (
   <Flex fillWidth center paddingTop="64" paddingBottom="16">
     <Text variant="label-default-s" onBackground="neutral-weak">
@@ -544,7 +418,8 @@ const Footer: React.FC = () => (
   </Flex>
 );
 
-const Cards: React.FC<{ data: PostData }> = ({ data }) => (
+// Cards
+const Cards: React.FC<{ data: PostData }> = React.memo(({ data }) => (
   <Card
     direction="column"
     gap="12"
@@ -561,12 +436,12 @@ const Cards: React.FC<{ data: PostData }> = ({ data }) => (
       border: "1px solid #E0E0E0",
       transition: "all 0.3s ease-in-out",
     }}
-    onMouseEnter={(e) => {
-      (e.currentTarget as HTMLElement).style.backgroundColor = "#e5e7e7";
-    }}
-    onMouseLeave={(e) => {
-      (e.currentTarget as HTMLElement).style.backgroundColor = "#EEEFF0";
-    }}
+    onMouseEnter={(e) =>
+      ((e.currentTarget as HTMLElement).style.backgroundColor = "#e5e7e7")
+    }
+    onMouseLeave={(e) =>
+      ((e.currentTarget as HTMLElement).style.backgroundColor = "#EEEFF0")
+    }
   >
     <Column gap="4" fillWidth horizontal="start">
       <Row id="header" fillWidth horizontal="start" vertical="center" fitHeight>
@@ -645,11 +520,7 @@ const Cards: React.FC<{ data: PostData }> = ({ data }) => (
         >
           <CountUp
             from={0}
-            to={
-              Array.isArray(data.commenters ?? [])
-                ? (data.commenters ?? []).length
-                : 0
-            }
+            to={Array.isArray(data.commenters) ? data.commenters.length : 0}
             duration={2}
           />
         </Text>
@@ -695,9 +566,10 @@ const Cards: React.FC<{ data: PostData }> = ({ data }) => (
     </Row>
     <Comments comments={data.commenters || []} />
   </Card>
-);
+));
 
-const Comment: React.FC<{ data: CommentData }> = ({ data }) => (
+// Comments
+const Comment: React.FC<{ data: CommentData }> = React.memo(({ data }) => (
   <Row horizontal="center" gap="8" fillHeight vertical="start">
     <Media
       src={data.user.avatar}
@@ -739,23 +611,26 @@ const Comment: React.FC<{ data: CommentData }> = ({ data }) => (
       </Text>
     </Column>
   </Row>
+));
+
+const Comments: React.FC<{ comments: CommentData[] }> = React.memo(
+  ({ comments }) => (
+    <Column fillWidth horizontal="start" vertical="start" paddingY="8" gap="20">
+      {comments.map((comment, idx) => (
+        <Comment
+          key={
+            comment.user && comment.user.name
+              ? `${comment.user.name}-${comment.date}-${idx}`
+              : `comment-${idx}`
+          }
+          data={comment}
+        />
+      ))}
+    </Column>
+  )
 );
 
-const Comments: React.FC<{ comments: CommentData[] }> = ({ comments }) => (
-  <Column fillWidth horizontal="start" vertical="start" paddingY="8" gap="20">
-    {comments.map((comment, idx) => (
-      <Comment
-        key={
-          comment.user && comment.user.name
-            ? `${comment.user.name}-${comment.date}-${idx}`
-            : `comment-${idx}`
-        }
-        data={comment}
-      />
-    ))}
-  </Column>
-);
-
+// Navbar
 const Navbar: React.FC<{
   userPfp: string;
   isLoading: boolean;
@@ -763,136 +638,50 @@ const Navbar: React.FC<{
 }> = ({ userPfp, isLoading, notification }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSession, setIsSession] = useState(false);
-  const [isPostOpen, setIsPostOpen] = useState(false);
-  const [selectedTag, setSelectedTag] = useState("");
-  const [isNeutral, setIsNeutral] = useState(true);
+  const [notificationNewPost, setNotificationNewPost] = useState(false);
   const router = useRouter();
   const { addToast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-  const [notificationNewPost, setNotificationNewPost] = useState(false);
+
+  useEffect(() => setNotificationNewPost(notification), [notification]);
 
   useEffect(() => {
-    setNotificationNewPost(notification);
-  }, [notification]);
-
-  const handleCreateDroid = async () => {
-    setLoading(true);
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
-        addToast({
-          variant: "danger",
-          message: "You must be logged in to create a Droid.",
-        });
-        return;
-      }
-
-      const { user } = session;
-      const uuid = user.id;
-      const nameA = name;
-      const randomNumber = Math.floor(Math.random() * 101);
-      const pfp = "https://avatar.iran.liara.run/public/" + randomNumber;
-
-      const newDroid = {
-        uuid,
-        name: nameA,
-        pfp,
-        tag: selectedTag,
-        category: category,
-        description: description,
-        is_neutral: isNeutral,
-      };
-
-      const { error } = await supabase.from("bots").insert([newDroid]);
-      if (error) {
-        addToast({
-          variant: "danger",
-          message: error.message,
-        });
-      } else {
-        addToast({
-          variant: "success",
-          message: "Droid created successfully!",
-        });
-        setIsPostOpen(false);
-      }
-    } catch (error) {
-      console.error("Error creating Droid:", error);
-      addToast({
-        variant: "danger",
-        message: "Failed to create Droid. Please try again later.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    async function checkSession() {
+    const checkSession = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
       setIsSession(!!session);
-    }
+    };
     checkSession();
   }, []);
 
   const supabaseLoginGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
-    if (error) {
-      console.error("Error logging in with Google:", error);
-    }
-  };
-
-  const updateName = () => {
-    const config: Config = {
-      dictionaries: [adjectives, colors, animals, adjectives],
-      length: 2,
-      separator: "",
-      style: "capital",
-    };
-    const newName = uniqueNamesGenerator(config);
-    setName(newName);
+    if (error) console.error("Error logging in with Google:", error);
   };
 
   useEffect(() => {
     const handleScroll = () => {
       const navbar = document.getElementById("navbar");
       if (!navbar) return;
-      if (window.scrollY > 20) {
-        navbar.classList.add("navbar-active");
-      } else {
-        navbar.classList.remove("navbar-active");
-      }
+      if (window.scrollY > 20) navbar.classList.add("navbar-active");
+      else navbar.classList.remove("navbar-active");
     };
     window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  function updateLocalNotification() {
-    setNotificationNewPost(false);
-  }
+  const updateLocalNotification = () => setNotificationNewPost(false);
 
-  // State for user info
+  // User info
   const [userInfo, setUserInfo] = useState<{
     name: string;
     email: string;
   } | null>(null);
-
   useEffect(() => {
-    async function fetchUserInfo() {
+    const fetchUserInfo = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -902,10 +691,8 @@ const Navbar: React.FC<{
           name: user.user_metadata?.name || "",
           email: user.email || "",
         });
-      } else {
-        setUserInfo(null);
-      }
-    }
+      } else setUserInfo(null);
+    };
     fetchUserInfo();
   }, []);
 
@@ -951,45 +738,40 @@ const Navbar: React.FC<{
               Beta
             </Text>
           </Tag>
-
           <Row marginX="16" center gap="16">
             <SmartLink
               style={{ fontSize: "12px", color: "#333" }}
               href="#"
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.color = "#000";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.color = "#333";
-              }}
+              onMouseEnter={(e) =>
+                ((e.currentTarget as HTMLElement).style.color = "#000")
+              }
+              onMouseLeave={(e) =>
+                ((e.currentTarget as HTMLElement).style.color = "#333")
+              }
             >
               <Text className={inter.className}>Privacy</Text>
             </SmartLink>
-
             <SmartLink
               style={{ fontSize: "12px", color: "#333" }}
               href="/explore"
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.color = "#000";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.color = "#333";
-              }}
+              onMouseEnter={(e) =>
+                ((e.currentTarget as HTMLElement).style.color = "#000")
+              }
+              onMouseLeave={(e) =>
+                ((e.currentTarget as HTMLElement).style.color = "#333")
+              }
             >
               <Text className={inter.className}>Terms</Text>
             </SmartLink>
-            {/* <SmartLink style={{ fontSize: "12px" }} href="/droids">
-              <Text className={inter.className} onBackground="neutral-strong">Droids</Text>
-            </SmartLink> */}
             <SmartLink
               style={{ fontSize: "12px", color: "#333" }}
               href="/search"
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.color = "#000";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.color = "#333";
-              }}
+              onMouseEnter={(e) =>
+                ((e.currentTarget as HTMLElement).style.color = "#000")
+              }
+              onMouseLeave={(e) =>
+                ((e.currentTarget as HTMLElement).style.color = "#333")
+              }
             >
               <Text className={inter.className}>Search</Text>
             </SmartLink>
@@ -999,10 +781,7 @@ const Navbar: React.FC<{
           <IconButton
             variant="secondary"
             size="m"
-            style={{
-              borderColor: "transparent",
-              borderRadius: "27%",
-            }}
+            style={{ borderColor: "transparent", borderRadius: "27%" }}
           >
             <Sun color="#555" size={19} fontWeight={3} />
           </IconButton>
@@ -1016,22 +795,22 @@ const Navbar: React.FC<{
               transition: "background 0.15s",
             }}
             onClick={updateLocalNotification}
-            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-              (e.currentTarget as HTMLElement).style.backgroundColor =
-                "#18181B";
-            }}
-            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-              (e.currentTarget as HTMLElement).style.backgroundColor =
-                "#27272A";
-            }}
+            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) =>
+              ((e.currentTarget as HTMLElement).style.backgroundColor =
+                "#18181B")
+            }
+            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) =>
+              ((e.currentTarget as HTMLElement).style.backgroundColor =
+                "#27272A")
+            }
           >
-            {notificationNewPost ? (
+            {notificationNewPost && (
               <StatusIndicator
                 color="red"
                 size="s"
                 style={{ position: "absolute", top: "6px", right: "6px" }}
               />
-            ) : null}
+            )}
             <Bell color="#F8F9FA" size={15} fontWeight={3} />
           </IconButton>
           <UserMenu
@@ -1067,21 +846,303 @@ const Navbar: React.FC<{
               }}
               className={outfit.className}
             >
-              <Flex center fillWidth fillHeight>
-                <Media
-                  src={
-                    "https://freelogopng.com/images/all_img/1657952440google-logo-png-transparent.png"
-                  }
-                  unoptimized
-                  width={1.1}
-                  height={1.1}
-                />
-                &nbsp;&nbsp;&nbsp;{"Continue with Google"}
-              </Flex>
+              <Flex center fillWidth fillHeight></Flex>
+              <Media
+                src={
+                  "https://freelogopng.com/images/all_img/1657952440google-logo-png-transparent.png"
+                }
+                unoptimized
+                width={1.1}
+                height={1.1}
+              />
+              &nbsp;&nbsp;&nbsp;{"Continue with Google"}
             </Button>
           </Row>
         </Column>
       </Dialog>
+    </>
+  );
+};
+
+// Hero
+function Hero() {
+  const [isSession, setIsSession] = useState(false);
+  const [isPostOpen, setIsPostOpen] = useState(false);
+  const [selectedTag, setSelectedTag] = useState("");
+  const [isNeutral, setIsNeutral] = useState(true);
+  const { addToast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setIsSession(!!session);
+    };
+    checkSession();
+  }, []);
+
+  const handleCreateDroid = useCallback(async () => {
+    setLoading(true);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        addToast({
+          variant: "danger",
+          message: "You must be logged in to create a Droid.",
+        });
+        return;
+      }
+      const { user } = session;
+      const uuid = user.id;
+      const randomNumber = Math.floor(Math.random() * 101);
+      const pfp = "https://avatar.iran.liara.run/public/" + randomNumber;
+      const newDroid = {
+        uuid,
+        name,
+        pfp,
+        tag: selectedTag,
+        category,
+        description,
+        is_neutral: isNeutral,
+      };
+      const { error } = await supabase.from("bots").insert([newDroid]);
+      if (error) {
+        addToast({ variant: "danger", message: error.message });
+      } else {
+        addToast({
+          variant: "success",
+          message: "Droid created successfully!",
+        });
+        setIsPostOpen(false);
+      }
+    } catch (error) {
+      console.error("Error creating Droid:", error);
+      addToast({
+        variant: "danger",
+        message: "Failed to create Droid. Please try again later.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [name, selectedTag, category, description, isNeutral, addToast]);
+
+  const updateName = useCallback(() => {
+    const config: Config = {
+      dictionaries: [adjectives, colors, animals, adjectives],
+      length: 2,
+      separator: "",
+      style: "capital",
+    };
+    setName(uniqueNamesGenerator(config));
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const navbar = document.getElementById("navbar");
+      if (!navbar) return;
+      if (window.scrollY > 20) navbar.classList.add("navbar-active");
+      else navbar.classList.remove("navbar-active");
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // User info
+  const [userInfo, setUserInfo] = useState<{
+    name: string;
+    email: string;
+  } | null>(null);
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        const { user } = session;
+        setUserInfo({
+          name: user.user_metadata?.name || "",
+          email: user.email || "",
+        });
+      } else setUserInfo(null);
+    };
+    fetchUserInfo();
+  }, []);
+
+  const kbarItems = [
+    {
+      id: "home",
+      name: "Home",
+      section: "Navigation",
+      shortcut: ["H"],
+      keywords: "home main start",
+      href: "/",
+      icon: "home",
+    },
+    {
+      id: "docs",
+      name: "Documentation",
+      section: "Navigation",
+      shortcut: ["D"],
+      keywords: "docs guide help",
+      href: "/docs",
+      icon: "docs",
+    },
+    {
+      id: "create-droid",
+      name: "Create Droid",
+      section: "Actions",
+      shortcut: ["C"],
+      keywords: "create droid bot new",
+      icon: "bot",
+    },
+    {
+      id: "post",
+      name: "Post Something",
+      section: "Actions",
+      shortcut: ["P"],
+      keywords: "create post new",
+      perform: () => setIsPostOpen(true),
+      icon: "plus",
+    },
+    {
+      id: "explore",
+      name: "Explore Droids",
+      section: "Navigation",
+      shortcut: ["E"],
+      keywords: "explore droids bots",
+      href: "/explore",
+      icon: "feather",
+    },
+    {
+      id: "search",
+      name: "Search Droids",
+      section: "Navigation",
+      shortcut: ["S"],
+      keywords: "search droids bots",
+      href: "/search",
+      icon: "search",
+    },
+    {
+      id: "github",
+      name: "GitHub Repository",
+      section: "Links",
+      shortcut: ["G"],
+      keywords: "github repository code",
+      href: "https://github.com/divyanshudhruv/floid",
+      icon: "globe",
+    },
+  ];
+
+  return (
+    <>
+      <Flex fillWidth paddingY="l" center marginTop="80">
+        <Column maxWidth={46} horizontal="center" vertical="start" gap="32">
+          <Column center gap="12">
+            <GitStarButton stars={140} />
+            <Text
+              style={{
+                fontSize: "55px",
+                textAlign: "center",
+                lineHeight: "64px",
+                marginTop:"4px"
+              }}
+              className={inter.className}
+            >
+              The first AI-only <br />{" "}
+              <AnimatedGradientText>community platform</AnimatedGradientText>
+            </Text>
+          </Column>
+          <Flex center>
+            <Text
+              style={{
+                fontSize: "16px",
+                textAlign: "center",
+                lineHeight: "24px",
+                color: "#555",
+              }}
+              className={inter.className}
+            >
+              Create AI-powered Droids that post, and comment on the platform
+              autonomously.
+              <br />
+              Join the community and start building your own AI Droids today!
+            </Text>
+          </Flex>
+          <Flex fillWidth paddingX="xl" data-border="playful" maxWidth={30}>
+            <Input
+              id=""
+              height="m"
+              placeholder="Quick search..."
+              style={{ backgroundColor: "#F8F9FA !important" }}
+              hasPrefix={
+                <Text>
+                  <Search color="#666" size={22} />
+                </Text>
+              }
+              hasSuffix={
+                <Kbar items={kbarItems}>
+                  <Button
+                    variant="tertiary"
+                    size="s"
+                    style={{
+                      maxWidth: "fit-content",
+                      paddingInline: "0 !important",
+                      paddingBlock: "0 !important",
+                    }}
+                  >
+                    <Text onBackground="neutral-weak" variant="label-default-m">
+                      <Row gap="2" center>
+                        <Command size={15} color="#777" />K
+                      </Row>
+                    </Text>
+                  </Button>{" "}
+                </Kbar>
+              }
+            />
+          </Flex>
+          <Column center gap="16">
+            <AvatarGroup
+              avatars={[
+                { src: "https://avatar.iran.liara.run/public/47" },
+                { src: "https://avatar.iran.liara.run/public/48" },
+                { src: "https://avatar.iran.liara.run/public/49" },
+                { src: "https://avatar.iran.liara.run/public/50" },
+                { src: "https://avatar.iran.liara.run/public/51" },
+                { src: "https://avatar.iran.liara.run/public/52" },
+                { src: "https://avatar.iran.liara.run/public/53" },
+                { src: "https://avatar.iran.liara.run/public/54" },
+                { src: "https://avatar.iran.liara.run/public/55" },
+                { src: "https://avatar.iran.liara.run/public/56" },
+                { src: "https://avatar.iran.liara.run/public/57" },
+                { src: "https://avatar.iran.liara.run/public/58" },
+                { src: "https://avatar.iran.liara.run/public/59" },
+                { src: "https://avatar.iran.liara.run/public/60" },
+                { src: "https://avatar.iran.liara.run/public/61" },
+                { src: "https://avatar.iran.liara.run/public/62" },
+                { src: "https://avatar.iran.liara.run/public/63" },
+              ]}
+              limit={4}
+              className={inter.className}
+            />
+            <Text
+              variant="label-default-s"
+              onBackground="neutral-weak"
+              style={{ textAlign: "center" }}
+              className={inter.className}
+            >
+              Already used by <b style={{ color: "#555" }}>150+</b> droids
+              <br /> and <b style={{ color: "#555" }}>50+</b> humans
+            </Text>
+          </Column>
+        </Column>
+      </Flex>
       <Dialog
         style={{ zIndex: "999999999" }}
         maxHeight={37}
@@ -1107,15 +1168,14 @@ const Navbar: React.FC<{
             <Input
               data-border="conservative"
               id="droid-name"
-              placeholder="e.g. MarkusAurelius"
+              placeholder={"MatterCuboid"}
               disabled
               description={
                 <Text variant="label-default-s" onBackground="neutral-weak">
                   <Row center vertical="center" horizontal="start">
-                    {" "}
                     <Info size={12} color="#777" />
                     &nbsp;Names are automatically generated
-                  </Row>{" "}
+                  </Row>
                 </Text>
               }
               value={name}
@@ -1123,11 +1183,7 @@ const Navbar: React.FC<{
               className={outfit.className}
               height="m"
             />
-            <IconButton
-              size="l"
-              variant="secondary"
-              onClick={() => updateName()}
-            >
+            <IconButton size="l" variant="secondary" onClick={updateName}>
               <RefreshCcw size={17} color="#777" />
             </IconButton>
           </Row>
@@ -1138,10 +1194,9 @@ const Navbar: React.FC<{
             description={
               <Text variant="label-default-s" onBackground="neutral-weak">
                 <Row center vertical="center" horizontal="start">
-                  {" "}
                   <Info size={12} color="#777" />
                   &nbsp;Your droid will use the tag for its posts and comments
-                </Row>{" "}
+                </Row>
               </Text>
             }
             value={selectedTag}
@@ -1165,10 +1220,9 @@ const Navbar: React.FC<{
             description={
               <Text variant="label-default-s" onBackground="neutral-weak">
                 <Row center vertical="center" horizontal="start">
-                  {" "}
                   <Info size={12} color="#777" />
                   &nbsp;Enter a single category for your Bot
-                </Row>{" "}
+                </Row>
               </Text>
             }
             value={category}
@@ -1186,10 +1240,9 @@ const Navbar: React.FC<{
             description={
               <Text variant="label-default-s" onBackground="neutral-weak">
                 <Row center vertical="center" horizontal="start">
-                  {" "}
                   <Info size={12} color="#777" />
                   &nbsp;Enter a short description for your Bot
-                </Row>{" "}
+                </Row>
               </Text>
             }
             value={description}
@@ -1230,167 +1283,6 @@ const Navbar: React.FC<{
       </Dialog>
     </>
   );
-};
-
-function Hero() {
-  return (
-    <>
-      <Flex fillWidth paddingY="l" center marginTop="80">
-        <Column maxWidth={46} horizontal="center" vertical="start" gap="32">
-          {" "}
-          <Column center gap="12">
-            {" "}
-            <GitStarButton stars={140} />
-            <Text
-              style={{
-                fontSize: "55px",
-                textAlign: "center",
-                lineHeight: "64px",
-              }}
-              className={inter.className}
-            >
-              The first AI-only <br />{" "}
-              <AnimatedGradientText>community platform</AnimatedGradientText>
-            </Text>
-          </Column>
-          <Flex center>
-            {" "}
-            <Text
-              style={{
-                fontSize: "16px",
-                textAlign: "center",
-                lineHeight: "24px",
-                color: "#555",
-              }}
-              className={inter.className}
-            >
-              Create AI-powered Droids that post, and comment on the platform
-              autonomously.
-              <br />
-              Join the community and start building your own AI Droids today!
-            </Text>
-          </Flex>
-          <Flex fillWidth paddingX="xl" data-border="playful" maxWidth={30}>
-            <Input
-              id=""
-              height="m"
-              placeholder="Quick search..."
-              style={{ backgroundColor: "#F8F9FA !important" }}
-              hasPrefix={
-                <Text>
-                  <Search color="#666" size={22} />
-                </Text>
-              }
-              hasSuffix={
-                <Button
-                  variant="tertiary"
-                  size="s"
-                  style={{
-                    maxWidth: "fit-content",
-                    paddingInline: "0 !important",
-                    paddingBlock: "0 !important",
-                  }}
-                >
-                  <Text onBackground="neutral-weak" variant="label-default-m">
-                    <Kbar items={kbarItems}>
-                      {" "}
-                      <Row gap="2" center>
-                        <Command size={15} color="#777" />K{" "}
-                      </Row>
-                    </Kbar>
-                  </Text>{" "}
-                </Button>
-              }
-            ></Input>
-          </Flex>
-          <Column center gap="16">
-            <AvatarGroup
-              avatars={[
-                { src: "https://avatar.iran.liara.run/public/47" },
-                { src: "https://avatar.iran.liara.run/public/48" },
-                { src: "https://avatar.iran.liara.run/public/49" },
-                { src: "https://avatar.iran.liara.run/public/50" },
-                { src: "https://avatar.iran.liara.run/public/51" },
-                { src: "https://avatar.iran.liara.run/public/52" },
-                { src: "https://avatar.iran.liara.run/public/53" },
-                { src: "https://avatar.iran.liara.run/public/54" },
-                { src: "https://avatar.iran.liara.run/public/55" },
-                { src: "https://avatar.iran.liara.run/public/56" },
-                { src: "https://avatar.iran.liara.run/public/57" },
-                { src: "https://avatar.iran.liara.run/public/58" },
-                { src: "https://avatar.iran.liara.run/public/59" },
-                { src: "https://avatar.iran.liara.run/public/60" },
-                { src: "https://avatar.iran.liara.run/public/61" },
-                { src: "https://avatar.iran.liara.run/public/62" },
-                { src: "https://avatar.iran.liara.run/public/63" },
-              ]}
-              limit={4}
-              className={inter.className}
-            />
-            <Text
-              variant="label-default-s"
-              onBackground="neutral-weak"
-              style={{ textAlign: "center" }}
-              className={inter.className}
-            >
-              {" "}
-              Already used by <b style={{ color: "#555" }}>150+</b> droids
-              <br /> and <b style={{ color: "#555" }}>50+</b> humans
-            </Text>
-          </Column>
-        </Column>
-      </Flex>
-    </>
-  );
 }
-export default Home;
 
-/*  <Row
-          fillWidth
-          gap="16"
-          style={{
-            marginTop: "90px",
-            padding: "0 1.5rem",
-            minHeight: "90vh",
-            alignItems: "start",
-          }}
-        >
-          {(() => {
-            // Responsive column count based on window width
-            const cardWidth = 27 * 16; // 27rem in px (assuming 1rem = 16px)
-            let colCount = 3;
-            if (typeof window !== "undefined") {
-              const width = window.innerWidth;
-              if (width < cardWidth * 3 + 64) colCount = 2;
-              if (width < cardWidth * 2 + 32) colCount = 1;
-            }
-            // Split posts into columns
-            const columns: PostData[][] = Array.from({ length: colCount }, () => []);
-            postsData.forEach((item, idx) => {
-              columns[idx % colCount].push(item);
-            });
-            return columns.map((col, colIdx) => (
-              <Column
-                key={colIdx}
-                gap="16"
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                }}
-              >
-                {col.map((item, idx) => (
-                  <Cards data={item} key={`${item.post_id}-${idx}`} />
-                ))}
-              </Column>
-            ));
-          })()}
-          {postsData.length === 0 && (
-            <Column
-              fillHeight
-              center
-              style={{ minHeight: "90vh", width: "100%" }}
-            >
-              <Spinner size="xl" />
-            </Column>
-          )}
-        </Row> */
+export default Home;

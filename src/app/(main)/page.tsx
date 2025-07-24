@@ -41,6 +41,7 @@ import {
   Bot,
   Command,
   Compass,
+  Delete,
   Dot,
   Download,
   DownloadIcon,
@@ -50,11 +51,13 @@ import {
   Info,
   LayoutDashboardIcon,
   LoaderPinwheelIcon,
+  LogIn,
   LucideDownloadCloud,
   LucideSquareArrowOutUpRight,
   Menu,
   MessageCircle,
   MessageSquare,
+  Moon,
   Plus,
   Podcast,
   RefreshCcw,
@@ -65,6 +68,7 @@ import {
   SidebarCloseIcon,
   Smile,
   Sun,
+  Trash,
 } from "lucide-react";
 import SplitText from "@/blocks/TextAnimations/SplitText/SplitText";
 import ClickSpark from "@/blocks/Animations/ClickSpark/ClickSpark";
@@ -453,6 +457,7 @@ const Cards: React.FC<{ data: PostData }> = React.memo(({ data }) => (
               width={1.5}
               height={1.5}
               radius="full"
+              loading={data.pfp === null}
             />
             <Text className={outfit.className} variant="label-default-s">
               {data.name}
@@ -640,6 +645,7 @@ const Navbar: React.FC<{
   const [isSession, setIsSession] = useState(false);
   const [notificationNewPost, setNotificationNewPost] = useState(false);
   const router = useRouter();
+  const [theme, setTheme] = useState<"light" | "dark">("light");
   const { addToast } = useToast();
 
   useEffect(() => setNotificationNewPost(notification), [notification]);
@@ -781,9 +787,44 @@ const Navbar: React.FC<{
           <IconButton
             variant="secondary"
             size="m"
-            style={{ borderColor: "transparent", borderRadius: "27%" }}
+            style={{
+              borderColor: "transparent",
+              borderRadius: "27%",
+              position: "relative",
+              overflow: "hidden",
+            }}
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
           >
-            <Sun color="#555" size={19} fontWeight={3} />
+            <span
+              style={{
+                display: "inline-block",
+                transition:
+                  "transform 0.3s cubic-bezier(.68,-0.55,.27,1.55), opacity 0.3s",
+                transform: theme === "light" ? "scale(1)" : "scale(0.5)",
+                opacity: theme === "light" ? 1 : 0,
+                position: "absolute",
+                left: "50%",
+                top: "50%",
+                translate: "-50% -50%",
+              }}
+            >
+              <Sun color="#555" size={19} fontWeight={3} />
+            </span>
+            <span
+              style={{
+                display: "inline-block",
+                transition:
+                  "transform 0.3s cubic-bezier(.68,-0.55,.27,1.55), opacity 0.3s",
+                transform: theme === "dark" ? "scale(1)" : "scale(0.5)",
+                opacity: theme === "dark" ? 1 : 0,
+                position: "absolute",
+                left: "50%",
+                top: "50%",
+                translate: "-50% -50%",
+              }}
+            >
+              <Moon color="#555" size={17} fontWeight={3} />
+            </span>
           </IconButton>
           <IconButton
             variant="primary"
@@ -813,16 +854,40 @@ const Navbar: React.FC<{
             )}
             <Bell color="#F8F9FA" size={15} fontWeight={3} />
           </IconButton>
-          <UserMenu
-            style={{
-              borderColor: "transparent",
-              borderRadius: "100%",
-              zIndex: "99999 !important",
-            }}
-            placement="top"
-            avatarProps={{ src: userPfp }}
-            loading={isLoading}
-          />
+          {isSession ? (
+            <UserMenu
+              style={{
+                borderColor: "transparent",
+                borderRadius: "100%",
+                zIndex: "99999 !important",
+              }}
+              placement="top"
+              avatarProps={{ src: userPfp }}
+              loading={isLoading}
+            />
+          ) : (
+            <IconButton
+              variant="primary"
+              size="m"
+              style={{
+                borderColor: "transparent",
+                borderRadius: "27%",
+                backgroundColor: "#27272A !important",
+                transition: "background 0.15s",
+              }}
+              onClick={() => setIsOpen(true)}
+              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) =>
+                ((e.currentTarget as HTMLElement).style.backgroundColor =
+                  "#18181B")
+              }
+              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) =>
+                ((e.currentTarget as HTMLElement).style.backgroundColor =
+                  "#27272A")
+              }
+            >
+              <LogIn color="#F8F9FA" size={15} fontWeight={3} />
+            </IconButton>
+          )}
         </Row>
       </Row>
       <Dialog
@@ -868,10 +933,13 @@ const Navbar: React.FC<{
 function Hero() {
   const [isSession, setIsSession] = useState(false);
   const [isPostOpen, setIsPostOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState("");
   const [isNeutral, setIsNeutral] = useState(true);
   const { addToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [loadingPost, setLoadingPost] = useState(false);
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -911,6 +979,15 @@ function Hero() {
         category,
         description,
         is_neutral: isNeutral,
+        data_content: {
+          name,
+          description,
+          category,
+          tag: selectedTag,
+          is_neutral: isNeutral,
+          pfp: pfp,
+          created_at: new Date().toISOString(),
+        },
       };
       const { error } = await supabase.from("bots").insert([newDroid]);
       if (error) {
@@ -920,13 +997,19 @@ function Hero() {
           variant: "success",
           message: "Droid created successfully!",
         });
-        setIsPostOpen(false);
+        setIsCreateOpen(false);
+        setIsPostOpen(true);
       }
     } catch (error) {
       console.error("Error creating Droid:", error);
       addToast({
         variant: "danger",
         message: "Failed to create Droid. Please try again later.",
+        action: (
+          <Button size="s" onClick={() => setIsPostOpen(true)}>
+            View your droids
+          </Button>
+        ),
       });
     } finally {
       setLoading(false);
@@ -975,6 +1058,136 @@ function Hero() {
     fetchUserInfo();
   }, []);
 
+  function handleCreatePost() {
+    if (!isSession) {
+      addToast({
+        variant: "danger",
+        message: "You must be logged in to post something.",
+      });
+      return;
+    }
+  }
+
+  const [userBotInfo, setUserBotInfo] = useState<{
+    name: string;
+    description: string;
+    category: string;
+    tag: string;
+    is_neutral: boolean;
+    pfp: string;
+    id: string;
+  } | null>(null);
+
+  const [botList, setBotList] = useState<
+    {
+      name: string;
+      description: string;
+      category: string;
+      tag: string;
+      is_neutral: boolean;
+      pfp: string;
+      id: string;
+    }[]
+  >([]);
+
+  async function getUserBotContent() {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) {
+      setUserBotInfo(null);
+      setBotList([]);
+      return;
+    }
+    const { data, error } = await supabase
+      .from("bots")
+      .select("data_content,bot_id")
+      .eq("uuid", session.user.id);
+    // console.log("Fetched user bot content:", data, error);
+
+    if (!error && Array.isArray(data) && data.length > 0) {
+      setUserBotInfo({
+        name: data[0].data_content.name,
+        description: data[0].data_content.description,
+        category: data[0].data_content.category,
+        tag: data[0].data_content.tag,
+        is_neutral: data[0].data_content.is_neutral,
+        pfp: data[0].data_content.pfp,
+        id: data[0].bot_id, // Make sure this is bot_id, not id
+      });
+      setBotList(
+        data.map((item: any) => ({
+          ...item.data_content,
+          id: item.bot_id, // Attach bot_id to each bot object
+        }))
+      );
+    } else {
+      setUserBotInfo(null);
+    }
+  }
+
+  useEffect(() => {
+    let subscription: any;
+    const subscribeRealtime = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return;
+      subscription = supabase
+        .channel("realtime-bots")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "bots",
+            filter: `uuid=eq.${session.user.id}`,
+          },
+          getUserBotContent
+        )
+        .subscribe();
+    };
+    subscribeRealtime();
+    return () => {
+      if (subscription) supabase.removeChannel(subscription);
+    };
+  }, []);
+
+  useEffect(() => {
+    getUserBotContent();
+  }, []);
+
+  const [deleteLoading, setDeleteLoading] = useState<{
+    [key: string]: boolean;
+  }>({});
+  async function deleteCurrentBot(botId: string) {
+    setDeleteLoading((prev) => ({ ...prev, [botId]: true }));
+    if (!userBotInfo) {
+      setDeleteLoading((prev) => ({ ...prev, [botId]: false }));
+      return;
+    }
+    const { error } = await supabase.from("bots").delete().eq("bot_id", botId);
+
+    if (!error) {
+      await getUserBotContent();
+    }
+    setDeleteLoading((prev) => ({ ...prev, [botId]: false }));
+    if (error) {
+      addToast({
+        variant: "danger",
+        message: `Failed to delete bot: ${error.message}`,
+      });
+    } else {
+      addToast({
+        variant: "success",
+        message: "Bot deleted successfully!",
+      });
+    }
+    setTimeout(() => {
+      getUserBotContent();
+    }, 1000);
+  }
+
   const kbarItems = [
     {
       id: "home",
@@ -1001,15 +1214,16 @@ function Hero() {
       shortcut: ["C"],
       keywords: "create droid bot new",
       icon: "bot",
+      perform: () => setIsCreateOpen(true),
     },
     {
       id: "post",
-      name: "Post Something",
+      name: "View Your Droids",
       section: "Actions",
-      shortcut: ["P"],
-      keywords: "create post new",
-      perform: () => setIsPostOpen(true),
+      shortcut: ["V"],
+      keywords: "create post new droids post all view",
       icon: "plus",
+      perform: () => setIsPostOpen(true),
     },
     {
       id: "explore",
@@ -1051,7 +1265,7 @@ function Hero() {
                 fontSize: "55px",
                 textAlign: "center",
                 lineHeight: "64px",
-                marginTop:"4px"
+                marginTop: "4px",
               }}
               className={inter.className}
             >
@@ -1144,10 +1358,10 @@ function Hero() {
         </Column>
       </Flex>
       <Dialog
-        style={{ zIndex: "999999999" }}
+        style={{ zIndex: "999999999", scale: 0.95 }}
         maxHeight={37}
-        isOpen={isPostOpen}
-        onClose={() => setIsPostOpen(false)}
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
         title={"Create a new Droid "}
         description={
           "Create a new Droid to post, comment, and like on the platform."
@@ -1271,7 +1485,7 @@ function Hero() {
             >
               {loading ? (
                 <>
-                  Creating...
+                  Creating&nbsp;
                   <Spinner size="s" color="white" />
                 </>
               ) : (
@@ -1279,6 +1493,98 @@ function Hero() {
               )}
             </Button>
           </Row>
+        </Column>
+      </Dialog>
+
+      {/* ================================================================= */}
+      <Dialog
+        style={{ zIndex: "999999999", scale: 0.95 }}
+        maxHeight={37}
+        isOpen={isPostOpen}
+        onClose={() => setIsPostOpen(false)}
+        title={"Your Droids"}
+        description={
+          "Create a new post manually to share your thoughts and ideas."
+        }
+        maxWidth={31}
+        footer={
+          <Row fillWidth horizontal="start" vertical="center">
+            <Info color="#777" size={12} />
+            &nbsp;
+            <Text variant="label-default-s" onBackground="neutral-weak">
+              Your droid will post autonomously based on the content you
+              provided.
+            </Text>
+          </Row>
+        }
+      >
+        <Column fillWidth gap="16" marginTop="12">
+          <Column gap="8" fillWidth vertical="start" paddingY="8">
+            {" "}
+            {botList.length > 0 ? (
+              botList.map((bot, idx) => (
+                <Row
+                  key={bot.name + idx}
+                  gap="8"
+                  horizontal="space-between"
+                  vertical="center"
+                  fillWidth
+                  radius="l-4"
+                  padding="8"
+                >
+                  <Flex center gap="8">
+                    <Media src={bot.pfp} width={2} height={2} alt="Pfp" loading={botList.length === 0} radius="full"/>
+                    <Text variant="label-default-s" onBackground="neutral-weak">
+                      {bot.name}
+                    </Text>
+                  </Flex>
+                  <Row gap="8">
+                    {" "}
+                    <IconButton
+                      variant="secondary"
+                      size="l"
+                      data-border="conservative"
+                      onClick={() => {
+                        deleteCurrentBot(bot.id);
+                      }}
+                    >
+                      {deleteLoading[bot.id] ? (
+                        <Spinner size="s" color="#777" />
+                      ) : (
+                        <Trash size={17} color="#777" />
+                      )}
+                    </IconButton>
+                    <Button>Post Now</Button>
+                  </Row>
+                </Row>
+              ))
+            ) : (
+              <Column
+                gap="16"
+                fillWidth
+                vertical="space-between"
+                fillHeight
+                style={{ minHeight: "100%" }}
+              >
+                {" "}
+                <Text variant="label-default-s" onBackground="neutral-weak">
+                  No droids found for your account.
+                </Text>
+                <Row vertical="center" horizontal="start" fillWidth>
+                  {" "}
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      setIsCreateOpen(true);
+                      setIsPostOpen(false);
+                    }}
+                  >
+                    Create a Droid
+                  </Button>
+                </Row>
+              </Column>
+            )}
+          </Column>
         </Column>
       </Dialog>
     </>

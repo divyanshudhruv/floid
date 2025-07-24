@@ -31,6 +31,7 @@ import {
   useToast,
   StatusIndicator,
   AvatarGroup,
+  Kbar,
 } from "@once-ui-system/core";
 import { Outfit, Inter, DM_Sans } from "next/font/google";
 import "./../global.css";
@@ -110,6 +111,71 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
+const kbarItems = [
+  {
+    id: "home",
+    name: "Home",
+    section: "Navigation",
+    shortcut: ["H"],
+    keywords: "home main start",
+    href: "/",
+    icon: "home",
+  },
+  {
+    id: "docs",
+    name: "Documentation",
+    section: "Navigation",
+    shortcut: ["D"],
+    keywords: "docs guide help",
+    href: "/docs",
+    icon: "docs",
+  },
+  {
+    id: "create-droid",
+    name: "Create Droid",
+    section: "Actions",
+    shortcut: ["C"],
+    keywords: "create droid bot new",
+    icon: "bot",
+  },
+  {
+    id: "post",
+    name: "Post Something",
+    section: "Actions",
+    shortcut: ["P"],
+    keywords: "create post new",
+    href: "/create-post",
+    icon: "plus",
+  },
+
+  {
+    id: "explore",
+    name: "Explore Droids",
+    section: "Navigation",
+    shortcut: ["E"],
+    keywords: "explore droids bots",
+    href: "/explore",
+    icon: "feather",
+  },
+  {
+    id: "search",
+    name: "Search Droids",
+    section: "Navigation",
+    shortcut: ["S"],
+    keywords: "search droids bots",
+    href: "/search",
+    icon: "search",
+  },
+  {
+    id: "github",
+    name: "GitHub Repository",
+    section: "Links",
+    shortcut: ["G"],
+    keywords: "github repository code",
+    href: "https://github.com/divyanshudhruv/floid",
+    icon: "globe",
+  },
+];
 function formatRelativeTime(date: string): string {
   const now = new Date();
   const diffInMs = now.getTime() - new Date(date).getTime();
@@ -361,106 +427,110 @@ const Home: React.FC = () => {
     columns[idx % colCount].push(item);
   });
   return (
-    <Column
-      fillWidth
-      fillHeight
-      paddingY="xs"
-      style={{ minWidth: "100vw !important" }}
-      paddingX="xl"
-      horizontal="center"
-      vertical="start"
-      gap="20"
-    >
+    <>
+      {" "}
+      <Kbar items={kbarItems}>{""}</Kbar>
       <Column
+        fillWidth
         fillHeight
-        style={{ minHeight: "calc(100svh - 25px)" }}
+        paddingY="xs"
+        style={{ minWidth: "100vw !important" }}
+        paddingX="xl"
         horizontal="center"
         vertical="start"
         gap="20"
       >
-        <Navbar
-          userPfp={userPfp ?? ""}
-          isLoading={userPfp === null}
-          notification={notification}
-        />
+        <Column
+          fillHeight
+          style={{ minHeight: "calc(100svh - 25px)" }}
+          horizontal="center"
+          vertical="start"
+          gap="20"
+        >
+          <Navbar
+            userPfp={userPfp ?? ""}
+            isLoading={userPfp === null}
+            notification={notification}
+          />
 
-        <Hero />
+          <Hero />
 
-        <>
-          <Row
-            fillWidth
-            gap="16"
-            style={{
-              marginTop: "32px",
-              alignItems: "flex-start",
-              width: "100%",
-            }}
-          >
-            {postsData.length === 0 ? (
-              <Column fillHeight center fillWidth>
-                <Spinner size="xl" />
-              </Column>
-            ) : (
-              columns.map((col, colIdx) => (
-                <Column
-                  key={colIdx}
-                  gap="16"
-                  style={{
-                    flex: 1,
-                    minWidth: 0,
-                  }}
-                >
-                  {col.map((item, idx) => (
-                    <AnimatedContent
-                      delay={colIdx * 0.15 + idx * 0.08}
-                      initialOpacity={0}
-                      id={`animated-card-${colIdx}-${idx}-${item.post_id}-${item.uuid}`}
-                      distance={30} // <-- Set distance to 0 to avoid shifting
-                    >
-                      <Cards
-                        data={item}
-                        key={
-                          item.post_id
-                            ? `${item.post_id}-${colIdx}-${idx}`
-                            : `col-${colIdx}-idx-${idx}`
-                        }
-                      />
-                    </AnimatedContent>
-                  ))}
-                </Column>
-              ))
-            )}
-          </Row>
-          <Row center fillWidth>
-            <Button
-              variant="secondary"
-              weight="default"
-              data-border="conservative"
-              size="m"
-              onClick={loadMorePosts}
-              // disabled={postsData.length === 0}
+          <>
+            <Row
+              fillWidth
+              gap="20"
+              style={{
+                marginTop: "32px",
+                alignItems: "flex-start",
+                width: "100%",
+              }}
             >
-              <Text onBackground="neutral-medium">
-                <Row center>
-                  {isLoadingNewPosts ? (
-                    <>
-                      <Spinner size="s" />
-                      &nbsp; Loading...
-                    </>
-                  ) : (
-                    <>
-                      <DownloadIcon size={13} color="#555" />
-                      &nbsp;Load More
-                    </>
-                  )}
-                </Row>
-              </Text>
-            </Button>
-          </Row>
-        </>
-        <Footer />
+              {postsData.length === 0 ? (
+                <Column fillHeight center fillWidth>
+                  <Spinner size="xl" />
+                </Column>
+              ) : (
+                columns.map((col, colIdx) => (
+                  <Column
+                    key={colIdx}
+                    gap="20"
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                    }}
+                  >
+                    {col.map((item, idx) => (
+                      <AnimatedContent
+                        delay={colIdx * 0.15 + idx * 0.08}
+                        initialOpacity={0}
+                        id={`animated-card-${colIdx}-${idx}-${item.post_id}-${item.uuid}`}
+                        distance={30} // <-- Set distance to 0 to avoid shifting
+                      >
+                        <Cards
+                          data={item}
+                          key={
+                            item.post_id
+                              ? `${item.post_id}-${colIdx}-${idx}`
+                              : `col-${colIdx}-idx-${idx}+${item.post_id}-${item.uuid}`
+                          }
+                        />
+                      </AnimatedContent>
+                    ))}
+                  </Column>
+                ))
+              )}
+            </Row>
+            <Row center fillWidth>
+              <Button
+                variant="secondary"
+                weight="default"
+                data-border="conservative"
+                size="m"
+                onClick={loadMorePosts}
+                // disabled={postsData.length === 0}
+              >
+                <Text onBackground="neutral-medium">
+                  <Row center>
+                    {isLoadingNewPosts ? (
+                      <>
+                        <Spinner size="s" />
+                        &nbsp; Loading...
+                      </>
+                    ) : (
+                      <>
+                        <DownloadIcon size={13} color="#555" />
+                        &nbsp;Load More
+                      </>
+                    )}
+                  </Row>
+                </Text>
+              </Button>
+            </Row>
+          </>
+          <Footer />
+        </Column>
       </Column>
-    </Column>
+    </>
   );
 };
 
@@ -490,6 +560,12 @@ const Cards: React.FC<{ data: PostData }> = ({ data }) => (
       backgroundColor: "#EEEFF0",
       border: "1px solid #E0E0E0",
       transition: "all 0.3s ease-in-out",
+    }}
+    onMouseEnter={(e) => {
+      (e.currentTarget as HTMLElement).style.backgroundColor = "#e5e7e7";
+    }}
+    onMouseLeave={(e) => {
+      (e.currentTarget as HTMLElement).style.backgroundColor = "#EEEFF0";
     }}
   >
     <Column gap="4" fillWidth horizontal="start">
@@ -560,11 +636,11 @@ const Cards: React.FC<{ data: PostData }> = ({ data }) => (
           size="m"
           style={{ borderColor: "transparent" }}
         >
-          <MessageCircle color="#777" size={15} />
+          <MessageCircle color="#555" size={15} />
         </IconButton>
         <Text
           variant="label-default-s"
-          onBackground="neutral-weak"
+          onBackground="neutral-medium"
           className={outfit.className}
         >
           <CountUp
@@ -584,11 +660,11 @@ const Cards: React.FC<{ data: PostData }> = ({ data }) => (
           size="m"
           style={{ borderColor: "transparent" }}
         >
-          <Heart color="#777" size={15} />
+          <Heart color="#555" size={15} />
         </IconButton>
         <Text
           variant="label-default-s"
-          onBackground="neutral-weak"
+          onBackground="neutral-medium"
           className={outfit.className}
         >
           <CountUp
@@ -604,7 +680,7 @@ const Cards: React.FC<{ data: PostData }> = ({ data }) => (
           size="m"
           style={{ borderColor: "transparent" }}
         >
-          <Download color="#777" size={15} />
+          <Download color="#555" size={15} />
         </IconButton>
       </Row>
       <Row gap="2" center>
@@ -613,7 +689,7 @@ const Cards: React.FC<{ data: PostData }> = ({ data }) => (
           size="m"
           style={{ borderColor: "transparent" }}
         >
-          <ReplyAllIcon color="#777" size={15} />
+          <ReplyAllIcon color="#555" size={15} />
         </IconButton>
       </Row>
     </Row>
@@ -809,6 +885,30 @@ const Navbar: React.FC<{
     setNotificationNewPost(false);
   }
 
+  // State for user info
+  const [userInfo, setUserInfo] = useState<{
+    name: string;
+    email: string;
+  } | null>(null);
+
+  useEffect(() => {
+    async function fetchUserInfo() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        const { user } = session;
+        setUserInfo({
+          name: user.user_metadata?.name || "",
+          email: user.email || "",
+        });
+      } else {
+        setUserInfo(null);
+      }
+    }
+    fetchUserInfo();
+  }, []);
+
   return (
     <>
       <Row
@@ -819,9 +919,10 @@ const Navbar: React.FC<{
         fillWidth
         paddingX="m"
         width={47}
-        style={{ paddingBlock: "3px" }}
+        style={{ paddingBlock: "3px", zIndex: "999 !important" }}
         height={3.6}
         radius="m-4"
+        zIndex={5}
       >
         <Flex
           gap="8"
@@ -934,7 +1035,12 @@ const Navbar: React.FC<{
             <Bell color="#F8F9FA" size={15} fontWeight={3} />
           </IconButton>
           <UserMenu
-            style={{ borderColor: "transparent", borderRadius: "100%" }}
+            style={{
+              borderColor: "transparent",
+              borderRadius: "100%",
+              zIndex: "99999 !important",
+            }}
+            placement="top"
             avatarProps={{ src: userPfp }}
             loading={isLoading}
           />
@@ -1176,12 +1282,24 @@ function Hero() {
                 </Text>
               }
               hasSuffix={
-                <Text onBackground="neutral-weak" variant="label-default-m">
-                  <Row gap="2" center>
-                    {" "}
-                    <Command size={15} color="#777" />K
-                  </Row>
-                </Text>
+                <Button
+                  variant="tertiary"
+                  size="s"
+                  style={{
+                    maxWidth: "fit-content",
+                    paddingInline: "0 !important",
+                    paddingBlock: "0 !important",
+                  }}
+                >
+                  <Text onBackground="neutral-weak" variant="label-default-m">
+                    <Kbar items={kbarItems}>
+                      {" "}
+                      <Row gap="2" center>
+                        <Command size={15} color="#777" />K{" "}
+                      </Row>
+                    </Kbar>
+                  </Text>{" "}
+                </Button>
               }
             ></Input>
           </Flex>

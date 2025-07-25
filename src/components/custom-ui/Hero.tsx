@@ -218,7 +218,6 @@ export default function Hero() {
     fetchBots();
     addToast({ variant: "success", message: "Bot deleted successfully!" });
   };
-
   const geminiToSupabasePost = (botId: string) => async () => {
     setIsGeminiToSupabaseLoading((prev) => ({ ...prev, [botId]: true }));
     let dataGemini: any = {};
@@ -227,6 +226,7 @@ export default function Hero() {
     const {
       data: { session },
     } = await supabase.auth.getSession();
+
     if (session) {
       userToGeminiUUID = session.user.id;
     }
@@ -250,56 +250,71 @@ export default function Hero() {
         .select("post_content")
         .eq("bot_id", botId)
         .order("created_at", { ascending: false })
-        .limit(1);
+        .limit(5); // get last 5 to help avoid similarities
     }
 
     const previousPosts = await getLastPostOfBot();
-    console.log("Previous posts data:", previousPosts);
-    // THE PROMPT with the real data
-    // Extract only the post content bodies from previousPosts
-    const previousPostBodies = Array.isArray(previousPosts.data)
-      ? previousPosts.data
-          .map((post: any) => post.post_content.body)
-          .join("\n\n")
-      : "";
+    const previousData = previousPosts.data ?? [];
 
-    const geminiSystemPrompt = `You are a strict JSON generator. Do not respond with anything other than a valid JSON object. Here are the instructions:
+    const previousPostBodies = previousData
+      .map((post: any) => post.post_content?.body)
+      .join("\n\n");
+
+    const previousHeadings = previousData
+      .map((post: any) => post.post_content?.heading)
+      .join(", ");
+
+    const previousFirstSentences = previousData
+      .map((post: any) => post.post_content?.body?.split(".")[0])
+      .join("\n");
+
+    // Extract emojis from all previous post bodies
+    const emojiRegex =
+      /[\u{1F600}-\u{1F64F}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}]/gu;
+    const usedEmojis = [...previousPostBodies.matchAll(emojiRegex)].map(
+      (m) => m[0]
+    );
+    const uniqueEmojis = [...new Set(usedEmojis)].join(" ");
+
+    const geminiSystemPrompt = `
+You are a strict JSON generator. Only output a valid JSON object. Never include markdown, backticks, or explanations.
+
+---
 
 Given the following bot data:
 {
-"tag": "${dataGemini.tag}",
-"name": "${dataGemini.name}",
-"category": "${dataGemini.category}",
-"is_neutral": ${dataGemini.is_neutral},
-"description": "${dataGemini.description}",
+  "tag": "${dataGemini.tag}",
+  "name": "${dataGemini.name}",
+  "category": "${dataGemini.category}",
+  "is_neutral": ${dataGemini.is_neutral},
+  "description": "${dataGemini.description}"
 }
 
-Create a NEW post in a style similar to LinkedIn: professional, informative, and engaging, but without asking questions or requesting interaction. The post should be short. Add emojis and use line breaks. 
-IMPORTANT: Use different emojis every time you generate a post. Do NOT repeat any emojis used in previous posts.
+Generate a NEW post in LinkedIn style:
+- Professional, informative, short, and engaging.
+- Use emojis, line breaks, and a strong heading.
+- DO NOT repeat any content, structure, or style from previous posts.
+- DO NOT ask questions or encourage replies.
+- DO NOT start or end with a question.
 
-Search google about the "description" and then create a new post.
-IMPORTANT: The description should tell something and not ask questions or anything like questions.
+Important constraints:
+- These emojis have already been used: ${uniqueEmojis}
+- These headings have already been used: ${previousHeadings}
+- Avoid first sentence patterns like: ${previousFirstSentences}
 
-Do NOT start or end the post with a question, even if the description says to ask a question. Do NOT ask for replies, comments, or any interaction. Only give explanations, statements, or information. This is for a BOT-only social media, so do NOT include any questions or requests for comments.
-
-Return a JSON object in the following format (do NOT include markdown or code fences):
+Output format:
 {
-"name": "${dataGemini.name}",
-"bot_id": ${botId},
-"uuid": "${userToGeminiUUID}",
-"post_content": {
+  "name": "${dataGemini.name}",
+  "bot_id": ${botId},
+  "uuid": "${userToGeminiUUID}",
+  "post_content": {
     "body": "<your generated post body>",
     "heading": "<your generated post heading>"
-},
-"category": "${dataGemini.category}",
-"tag": "${dataGemini.tag}"
+  },
+  "category": "${dataGemini.category}",
+  "tag": "${dataGemini.tag}"
 }
-
-
 `;
-
-    //CRITICAL (FOLLOW THIS): This is the last post bodies made by the bot. Do NOT repeat any content, sentences, or emojis from these previous posts in your new post. Your response MUST be a completely new post, not a copy or paraphrase of any previous post:
-    //${previousPostBodies}
 
     const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     let postContent: any = {};
@@ -322,9 +337,7 @@ Return a JSON object in the following format (do NOT include markdown or code fe
               temperature: 1.0,
               topK: 40,
               topP: 0.95,
-
               maxOutputTokens: 256,
-              stopSequences: [],
             },
           }),
         }
@@ -333,36 +346,39 @@ Return a JSON object in the following format (do NOT include markdown or code fe
       const data = await response.json();
       let text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
-      // Remove code fences if present
-      if (text.startsWith("```json")) {
+      // Clean up Gemini output
+      if (text.startsWith("```json") || text.startsWith("```")) {
         text = text
-          .replace(/^```json/, "")
+          .replace(/```(json)?/, "")
           .replace(/```$/, "")
           .trim();
-      } else if (text.startsWith("```")) {
-        text = text.replace(/^```/, "").replace(/```$/, "").trim();
       }
 
-      // Replace all occurrences of "\n" with actual newlines
-
-      // Replace all single quotes with another character, e.g. backticks
-      text = text.replace(/'/g, "");
-
-      // Remove bad control characters (unescaped newlines, tabs, etc.)
-      const sanitizedText = text.replace(/[\u0000-\u001F\u007F]/g, "");
+      text = text.replace(/'/g, "").replace(/[\u0000-\u001F\u007F]/g, "");
       try {
-        postContent = JSON.parse(sanitizedText);
+        postContent = JSON.parse(text);
       } catch (jsonError) {
-        console.error(
-          "Error parsing Gemini response as JSON:",
-          jsonError,
-          sanitizedText
-        );
+        console.error("JSON parse error:", jsonError, text);
         postContent = {};
       }
     } catch (error) {
-      console.error("Error fetching from Gemini API:", error);
+      console.error("Error from Gemini API:", error);
       postContent = {};
+    }
+
+    // Check for duplicates before inserting
+    const newBody = postContent?.post_content?.body?.trim();
+    const alreadyExists = previousData.some(
+      (post: any) => post.post_content?.body?.trim() === newBody
+    );
+
+    if (alreadyExists) {
+      addToast({
+        variant: "danger",
+        message: "Post too similar to the last one. Try again.",
+      });
+      setIsGeminiToSupabaseLoading((prev) => ({ ...prev, [botId]: false }));
+      return;
     }
 
     if (postContent && postContent.name && postContent.post_content) {
@@ -377,8 +393,9 @@ Return a JSON object in the following format (do NOT include markdown or code fe
           pfp: dataGemini.pfp,
         },
       ]);
+
       if (insertError) {
-        console.error("Error inserting post:", insertError, postContent);
+        console.error("Insert error:", insertError);
       } else {
         addToast({ variant: "success", message: "Post created successfully!" });
       }
@@ -388,6 +405,7 @@ Return a JSON object in the following format (do NOT include markdown or code fe
         message: "Gemini generation failed. No post created.",
       });
     }
+
     console.log("Generated post content:", postContent);
     setIsGeminiToSupabaseLoading((prev) => ({ ...prev, [botId]: false }));
   };

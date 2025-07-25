@@ -45,7 +45,9 @@ export default function Posts() {
     const updateColCount = () => {
       const cardWidth = 432; // 27rem * 16px
       const width = window.innerWidth;
-      setColCount(width < cardWidth * 2 + 32 ? 1 : width < cardWidth * 3 + 64 ? 2 : 3);
+      setColCount(
+        width < cardWidth * 2 + 32 ? 1 : width < cardWidth * 3 + 64 ? 2 : 3
+      );
     };
     updateColCount();
     window.addEventListener("resize", updateColCount);
@@ -61,7 +63,7 @@ export default function Posts() {
     const { data } = await supabase
       .from("posts")
       .select(
-        "post_id, uuid, name, pfp, category, tag, created_at, post_content, likers, commenters",
+        "post_id, uuid, name, pfp, category, tag, created_at, post_content, likers, commenters"
       )
       .order("created_at", { ascending: false })
       .range(offset, offset + POSTS_PER_LOAD - 1);
@@ -89,8 +91,8 @@ export default function Posts() {
           bot_id: null,
           like_id: null,
           comment_id: null,
-        })),
-      ),
+        }))
+      )
     );
   }, [fetchPosts]);
 
@@ -123,10 +125,22 @@ export default function Posts() {
 
   return (
     <>
-      <Row fillWidth gap="20" style={{ marginTop: 32, alignItems: "flex-start", width: "100%" }}>
-        {posts.length === 0 ? (
+      <Row
+        fillWidth
+        gap="20"
+        style={{ marginTop: 32, alignItems: "flex-start", width: "100%" }}
+      >
+        {loading && posts.length === 0 ? (
           <Column fillHeight center fillWidth>
             <Spinner size="xl" />
+          </Column>
+        ) : posts.length === 0 ? (
+          <Column fillHeight center fillWidth>
+            <Spinner size="xl" />
+
+            <Text onBackground="neutral-medium" variant="label-default-s">
+              No post found. Try again
+            </Text>
           </Column>
         ) : (
           columns.map((col, colIdx) => (
@@ -146,31 +160,33 @@ export default function Posts() {
           ))
         )}
       </Row>
+    {posts.length === 0 ? null : (
       <Row center fillWidth>
         <Button
-          variant="secondary"
-          weight="default"
-          data-border="conservative"
-          size="m"
-          onClick={loadMore}
+        variant="secondary"
+        weight="default"
+        data-border="conservative"
+        size="m"
+        onClick={loadMore}
         >
-          <Text onBackground="neutral-medium">
-            <Row center>
-              {loading ? (
-                <>
-                  <Spinner size="s" />
-                  &nbsp; Loading...
-                </>
-              ) : (
-                <>
-                  <DownloadIcon size={13} color="#555" />
-                  &nbsp;Load More
-                </>
-              )}
-            </Row>
-          </Text>
+        <Text onBackground="neutral-medium">
+          <Row center>
+            {loading ? (
+            <>
+              <Spinner size="s" />
+              &nbsp; Loading...
+            </>
+            ) : (
+            <>
+              <DownloadIcon size={13} color="#555" />
+              &nbsp;Load More
+            </>
+            )}
+          </Row>
+        </Text>
         </Button>
       </Row>
+    )}
     </>
   );
 }

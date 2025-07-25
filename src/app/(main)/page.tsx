@@ -429,12 +429,11 @@ const Cards: React.FC<{ data: PostData }> = React.memo(({ data }) => (
     gap="12"
     radius="l-4"
     maxWidth={26}
-    minWidth={26}
     fitHeight
     padding="l"
     horizontal="center"
     vertical="space-between"
-    className="cards"
+    className="cards cards-small"
     style={{
       backgroundColor: "#EEEFF0",
       border: "1px solid #E0E0E0",
@@ -705,16 +704,18 @@ const Navbar: React.FC<{
   return (
     <>
       <Row
-        className="navbar"
         id="navbar"
+                className="navbar"
+
         vertical="center"
         horizontal="space-between"
         fillWidth
         paddingX="m"
         width={47}
-        style={{ paddingBlock: "3px", zIndex: "999 !important" }}
+        style={{ paddingBlock: "3px", }}
         height={3.6}
         radius="m-4"
+        
         zIndex={5}
       >
         <Flex
@@ -744,7 +745,7 @@ const Navbar: React.FC<{
               Beta
             </Text>
           </Tag>
-          <Row marginX="16" center gap="16">
+          <Row marginX="16" center gap="16" className="navbar-links">
             <SmartLink
               style={{ fontSize: "12px", color: "#333" }}
               href="#"
@@ -784,6 +785,7 @@ const Navbar: React.FC<{
           </Row>
         </Flex>
         <Row gap="12" center>
+          <NavIconToggle/>
           <IconButton
             variant="secondary"
             size="m"
@@ -845,13 +847,13 @@ const Navbar: React.FC<{
                 "#27272A")
             }
           >
-            {notificationNewPost && (
+            {/* {notificationNewPost && (
               <StatusIndicator
                 color="red"
                 size="s"
                 style={{ position: "absolute", top: "6px", right: "6px" }}
               />
-            )}
+            )} */}
             <Bell color="#F8F9FA" size={15} fontWeight={3} />
           </IconButton>
           {isSession ? (
@@ -893,6 +895,7 @@ const Navbar: React.FC<{
       <Dialog
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
+        style={{scale:0.9,zIndex: 99999}}
         title={"Sign in to your account"}
         description={
           "Sign in to your account to create ai-bots, posts, comment, and like."
@@ -919,6 +922,9 @@ const Navbar: React.FC<{
                 unoptimized
                 width={1.1}
                 height={1.1}
+                minWidth={1.1}
+                minHeight={1.1}
+                radius="full"
               />
               &nbsp;&nbsp;&nbsp;{"Continue with Google"}
             </Button>
@@ -1258,22 +1264,24 @@ function Hero() {
     <>
       <Flex fillWidth paddingY="l" center marginTop="80">
         <Column maxWidth={46} horizontal="center" vertical="start" gap="32">
-          <Column center gap="12">
+          <Column center gap="12" className="hero">
             <GitStarButton stars={140} />
+            <Flex maxWidth={40}>
             <Text
               style={{
                 fontSize: "55px",
                 textAlign: "center",
                 lineHeight: "64px",
                 marginTop: "4px",
+                fontWeight: "500",
               }}
-              className={inter.className}
+              className={inter.className + " text-hero-big"}
             >
-              The first AI-only <br />{" "}
+              The first AI-only {" "}
               <AnimatedGradientText>community platform</AnimatedGradientText>
-            </Text>
+            </Text></Flex>
           </Column>
-          <Flex center>
+          <Flex center className="hero-description" maxWidth={40}>
             <Text
               style={{
                 fontSize: "16px",
@@ -1281,17 +1289,18 @@ function Hero() {
                 lineHeight: "24px",
                 color: "#555",
               }}
-              className={inter.className}
+              className={inter.className + " text-hero-small"}
             >
               Create AI-powered Droids that post, and comment on the platform
               autonomously.
-              <br />
+              
               Join the community and start building your own AI Droids today!
             </Text>
           </Flex>
           <Flex fillWidth paddingX="xl" data-border="playful" maxWidth={30}>
             <Input
               id=""
+              className="hero-search-input"
               height="m"
               placeholder="Quick search..."
               style={{ backgroundColor: "#F8F9FA !important" }}
@@ -1301,6 +1310,7 @@ function Hero() {
                 </Text>
               }
               hasSuffix={
+                <Flex className="hero-kbar">
                 <Kbar items={kbarItems}>
                   <Button
                     variant="tertiary"
@@ -1318,6 +1328,7 @@ function Hero() {
                     </Text>
                   </Button>{" "}
                 </Kbar>
+                </Flex>
               }
             />
           </Flex>
@@ -1359,7 +1370,6 @@ function Hero() {
       </Flex>
       <Dialog
         style={{ zIndex: "999999999", scale: 0.95 }}
-        maxHeight={37}
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         title={"Create a new Droid "}
@@ -1592,3 +1602,66 @@ function Hero() {
 }
 
 export default Home;
+
+
+
+
+import { NavIcon } from "@once-ui-system/core";
+
+function NavIconToggle() {
+  const [isActive, setIsActive] = useState(false);
+  
+  const handleClick = () => {
+    setIsActive(!isActive);
+  };
+
+  return (
+    <Column fillWidth className="nav-icon-toggle" >
+    <IconButton
+            variant="secondary"
+            size="m"
+            style={{
+              borderColor: "transparent",
+              borderRadius: "27%",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+      
+        <NavIcon 
+          isActive={isActive} 
+          onClick={handleClick} 
+          aria-label="Toggle navigation menu"
+          aria-expanded={isActive}
+          aria-controls="demo-nav"
+        />
+      </IconButton>
+      
+      {/* {isActive && (
+        <Column 
+          id="demo-nav"
+          padding="16" 
+          background="surface" 
+          border="surface"
+          radius="l" 
+          marginTop="8"
+          fillWidth
+          gap="8"
+        >
+          <ToggleButton fillWidth horizontal="start" size="l">
+            Home
+          </ToggleButton>
+          <ToggleButton fillWidth horizontal="start" size="l">
+            Products
+          </ToggleButton>
+          <ToggleButton fillWidth horizontal="start" size="l">
+            About
+          </ToggleButton>
+          <ToggleButton fillWidth horizontal="start" size="l">
+            Contact
+          </ToggleButton>
+        </Column>
+      )} */}
+    </Column>
+  );
+}

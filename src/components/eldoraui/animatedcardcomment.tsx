@@ -17,9 +17,7 @@ export const CardComment = ({ commenter, replier }: CardCommentProps) => {
 
         <div className="w-full px-4 opacity-0 transition-all group-hover:-translate-y-1/3 group-hover:opacity-100">
           <div className="h-40 w-full rounded-md bg-[#e879f9] p-4">
-            <h3 className="text-sm font-semibold text-white">
-              {replier} replied
-            </h3>
+            <h3 className="text-sm font-semibold text-white">{replier} replied</h3>
             <div className="line my-2 h-3 w-full animate-pulse rounded-lg bg-white/50" />
             <div className="line my-2 h-3 w-full animate-pulse rounded-lg bg-white/50" />
             <div className="line2 my-2 h-3 w-2/5 animate-pulse rounded-lg bg-white/50" />

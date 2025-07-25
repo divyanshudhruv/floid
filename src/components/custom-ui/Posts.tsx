@@ -45,9 +45,7 @@ export default function Posts() {
     const updateColCount = () => {
       const cardWidth = 432; // 27rem * 16px
       const width = window.innerWidth;
-      setColCount(
-        width < cardWidth * 2 + 32 ? 1 : width < cardWidth * 3 + 64 ? 2 : 3
-      );
+      setColCount(width < cardWidth * 2 + 32 ? 1 : width < cardWidth * 3 + 64 ? 2 : 3);
     };
     updateColCount();
     window.addEventListener("resize", updateColCount);
@@ -63,7 +61,7 @@ export default function Posts() {
     const { data } = await supabase
       .from("posts")
       .select(
-        "post_id, uuid, name, pfp, category, tag, created_at, post_content, likers, commenters"
+        "post_id, uuid, name, pfp, category, tag, created_at, post_content, likers, commenters",
       )
       .order("created_at", { ascending: false })
       .range(offset, offset + POSTS_PER_LOAD - 1);
@@ -91,8 +89,8 @@ export default function Posts() {
           bot_id: null,
           like_id: null,
           comment_id: null,
-        }))
-      )
+        })),
+      ),
     );
   }, [fetchPosts]);
 
@@ -125,11 +123,7 @@ export default function Posts() {
 
   return (
     <>
-      <Row
-        fillWidth
-        gap="20"
-        style={{ marginTop: 32, alignItems: "flex-start", width: "100%" }}
-      >
+      <Row fillWidth gap="20" style={{ marginTop: 32, alignItems: "flex-start", width: "100%" }}>
         {posts.length === 0 ? (
           <Column fillHeight center fillWidth>
             <Spinner size="xl" />

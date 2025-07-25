@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { 
-  Row, 
-  Column, 
+import {
+  Row,
+  Column,
   Text,
   IconButton,
   SmartLink,
@@ -13,7 +13,7 @@ import {
   Dialog,
   Button,
   useToast,
-  Avatar
+  Avatar,
 } from "@once-ui-system/core";
 import { formatShortRelativeTime } from "../utils/date-formatter";
 
@@ -39,45 +39,42 @@ export function Comment({ comment }: CommentProps) {
   const [reactionCount, setReactionCount] = useState(comment.reactions.hearts);
   const [hasReacted, setHasReacted] = useState(false);
   const { addToast } = useToast();
-  
+
   const handleDeleteComment = async () => {
     setIsDeleting(true);
-    
+
     try {
       addToast({
-        message: 'Comment deleted successfully',
-        variant: 'success',
+        message: "Comment deleted successfully",
+        variant: "success",
       });
     } catch (error: any) {
       addToast({
-        message: 'Failed to delete comment',
-        variant: 'danger',
+        message: "Failed to delete comment",
+        variant: "danger",
       });
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
     }
   };
-  
+
   const toggleReaction = (e: React.MouseEvent) => {
     e.preventDefault();
     setHasReacted(!hasReacted);
     setReactionCount(reactionCount + (!hasReacted ? 1 : -1));
   };
-  
+
   return (
     <Row gap="16" vertical="start" fillWidth paddingLeft="4">
       <Row paddingY="8">
         <SmartLink unstyled href="#">
           <Text onBackground="neutral-strong">
-            <Avatar
-              src={comment.user.avatar}
-              size="m"
-            />
+            <Avatar src={comment.user.avatar} size="m" />
           </Text>
         </SmartLink>
       </Row>
-      
+
       <Column gap="4" fillWidth>
         <Row gap="8" vertical="center" marginBottom="4">
           <SmartLink unstyled href="#">
@@ -89,11 +86,9 @@ export function Comment({ comment }: CommentProps) {
             {formatShortRelativeTime(new Date(comment.createdAt))}
           </Text>
         </Row>
-        
-        <Text variant="body-default-s">
-          {comment.content}
-        </Text>
-        
+
+        <Text variant="body-default-s">{comment.content}</Text>
+
         <Row gap="2" vertical="center">
           <Button
             variant="tertiary"
@@ -104,7 +99,11 @@ export function Comment({ comment }: CommentProps) {
             style={{ marginLeft: "-0.75rem" }}
           >
             {reactionCount > 0 && (
-              <Text marginRight="4" variant="body-default-s" onBackground={hasReacted ? "danger-weak" : "neutral-weak"}>
+              <Text
+                marginRight="4"
+                variant="body-default-s"
+                onBackground={hasReacted ? "danger-weak" : "neutral-weak"}
+              >
                 {reactionCount.toString()}
               </Text>
             )}
@@ -137,7 +136,7 @@ export function Comment({ comment }: CommentProps) {
               />
             }
           />
-          
+
           <Dialog
             isOpen={showDeleteDialog}
             onClose={() => setShowDeleteDialog(false)}
@@ -145,24 +144,19 @@ export function Comment({ comment }: CommentProps) {
             description="Are you sure you want to delete this comment? This action cannot be undone."
             footer={
               <Row gap="8" horizontal="end" fillWidth>
-                <Button 
-                  variant="secondary" 
+                <Button
+                  variant="secondary"
                   onClick={() => setShowDeleteDialog(false)}
                   disabled={isDeleting}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  variant="danger" 
-                  onClick={handleDeleteComment}
-                  loading={isDeleting}
-                >
+                <Button variant="danger" onClick={handleDeleteComment} loading={isDeleting}>
                   Delete
                 </Button>
               </Row>
             }
-          >
-          </Dialog>
+          ></Dialog>
         </Row>
       </Column>
     </Row>

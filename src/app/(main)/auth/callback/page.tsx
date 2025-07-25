@@ -52,12 +52,7 @@ export default function AuthCallbackPage() {
     handleAuthCallback();
   }, [router]);
   return (
-    <Flex
-      center
-      fillWidth
-      fillHeight
-      style={{ minWidth: "100vw", minHeight: "100svh" }}
-    >
+    <Flex center fillWidth fillHeight style={{ minWidth: "100vw", minHeight: "100svh" }}>
       <Spinner size="xl" />
     </Flex>
   );

@@ -71,8 +71,7 @@ const TextPressure: React.FC<TextPressureProps> = ({
     window.addEventListener("touchmove", handleTouchMove, { passive: false });
 
     if (containerRef.current) {
-      const { left, top, width, height } =
-        containerRef.current.getBoundingClientRect();
+      const { left, top, width, height } = containerRef.current.getBoundingClientRect();
       mouseRef.current.x = left + width / 2;
       mouseRef.current.y = top + height / 2;
       cursorRef.current.x = mouseRef.current.x;
@@ -88,8 +87,7 @@ const TextPressure: React.FC<TextPressureProps> = ({
   const setSize = () => {
     if (!containerRef.current || !titleRef.current) return;
 
-    const { width: containerW, height: containerH } =
-      containerRef.current.getBoundingClientRect();
+    const { width: containerW, height: containerH } = containerRef.current.getBoundingClientRect();
 
     let newFontSize = containerW / (chars.length / 2);
     newFontSize = Math.max(newFontSize, minFontSize);
@@ -137,11 +135,7 @@ const TextPressure: React.FC<TextPressureProps> = ({
 
           const d = dist(mouseRef.current, charCenter);
 
-          const getAttr = (
-            distance: number,
-            minVal: number,
-            maxVal: number,
-          ) => {
+          const getAttr = (distance: number, minVal: number, maxVal: number) => {
             const val = maxVal - Math.abs((maxVal * distance) / maxDist);
             return Math.max(minVal, val + minVal);
           };
@@ -163,11 +157,7 @@ const TextPressure: React.FC<TextPressureProps> = ({
     return () => cancelAnimationFrame(rafId);
   }, [width, weight, italic, alpha, chars.length]);
 
-  const dynamicClassName = [
-    className,
-    flex ? "flex" : "",
-    stroke ? "stroke" : "",
-  ]
+  const dynamicClassName = [className, flex ? "flex" : "", stroke ? "stroke" : ""]
     .filter(Boolean)
     .join(" ");
 
@@ -234,7 +224,9 @@ const TextPressure: React.FC<TextPressureProps> = ({
         {chars.map((char, i) => (
           <span
             key={i}
-            ref={(el) => { spansRef.current[i] = el; }}
+            ref={(el) => {
+              spansRef.current[i] = el;
+            }}
             data-char={char}
             style={{
               display: "inline-block",

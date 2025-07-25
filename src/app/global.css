@@ -116,11 +116,9 @@
   }
 
   body {
-    background-color: #F8F9FA !important;
+    background-color: #f8f9fa !important;
   }
 }
-
-
 
 .navbar {
   position: fixed;
@@ -137,9 +135,6 @@
   border: 1px solid rgb(45, 44, 54, 0.09);
 }
 
-
-
-
 .cards {
   border: 1px solid #efeef0;
   background-color: #efeef0;
@@ -151,7 +146,6 @@
   background-color: #fff;
   border: 1px solid #d3d3d366;
 }
-
 
 @media (max-width: 800px) {
   .text-hero-big {
@@ -176,10 +170,9 @@
 
   .navbar {
     max-width: 90vw !important;
-    
   }
 
-  .navbar-links{
+  .navbar-links {
     display: none !important;
   }
 
@@ -187,16 +180,16 @@
     display: flex !important;
   }
 
-  .cards-small{
+  .cards-small {
     max-width: 80vw !important;
     padding: 32px !important;
   }
 
-  .hero-kbar{
+  .hero-kbar {
     max-width: 80vw !important;
   }
 }
 
-.nav-icon-toggle{
+.nav-icon-toggle {
   display: none;
 }

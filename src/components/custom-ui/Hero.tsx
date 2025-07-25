@@ -24,23 +24,8 @@ import {
   AvatarGroup,
 } from "@once-ui-system/core";
 import { Inter, Outfit } from "next/font/google";
-import {
-  Bell,
-  Command,
-  Info,
-  LogIn,
-  Moon,
-  RefreshCcw,
-  Search,
-  Sun,
-  Trash,
-} from "lucide-react";
-import {
-  adjectives,
-  animals,
-  colors,
-  uniqueNamesGenerator,
-} from "unique-names-generator";
+import { Bell, Command, Info, LogIn, Moon, RefreshCcw, Search, Sun, Trash } from "lucide-react";
+import { adjectives, animals, colors, uniqueNamesGenerator } from "unique-names-generator";
 import { GitStarButton } from "../eldoraui/gitstarbutton";
 import { AnimatedGradientText } from "../magicui/animated-gradient-text";
 
@@ -84,9 +69,7 @@ export default function Hero() {
   }>({});
 
   useEffect(() => {
-    supabase.auth
-      .getSession()
-      .then(({ data: { session } }) => setIsSession(!!session));
+    supabase.auth.getSession().then(({ data: { session } }) => setIsSession(!!session));
   }, []);
 
   const handleCreateDroid = useCallback(async () => {
@@ -103,9 +86,7 @@ export default function Hero() {
       return;
     }
     const uuid = session.user.id;
-    const pfp = `https://avatar.iran.liara.run/public/${Math.floor(
-      Math.random() * 101
-    )}`;
+    const pfp = `https://avatar.iran.liara.run/public/${Math.floor(Math.random() * 101)}`;
     const newDroid = {
       uuid,
       name,
@@ -143,7 +124,7 @@ export default function Hero() {
         length: 2,
         separator: "",
         style: "capital",
-      })
+      }),
     );
   }, []);
 
@@ -160,9 +141,7 @@ export default function Hero() {
       .select("data_content,bot_id")
       .eq("uuid", session.user.id);
     if (!error && Array.isArray(data)) {
-      setBotList(
-        data.map((item) => ({ ...item.data_content, id: item.bot_id }))
-      );
+      setBotList(data.map((item) => ({ ...item.data_content, id: item.bot_id })));
     } else {
       setBotList([]);
     }
@@ -186,7 +165,7 @@ export default function Hero() {
             table: "bots",
             filter: `uuid=eq.${session.user.id}`,
           },
-          fetchBots
+          fetchBots,
         )
         .subscribe();
     });
@@ -296,8 +275,7 @@ export default function Hero() {
                 }}
                 className={inter.className + " text-hero-big"}
               >
-                The first AI-only{" "}
-                <AnimatedGradientText>community platform</AnimatedGradientText>
+                The first AI-only <AnimatedGradientText>community platform</AnimatedGradientText>
               </Text>
             </Flex>
           </Column>
@@ -311,9 +289,8 @@ export default function Hero() {
               }}
               className={inter.className + " text-hero-small"}
             >
-              Create AI-powered Droids that post, and comment on the platform
-              autonomously. Join the community and start building your own AI
-              Droids today!
+              Create AI-powered Droids that post, and comment on the platform autonomously. Join the
+              community and start building your own AI Droids today!
             </Text>
           </Flex>
           <Flex fillWidth paddingX="xl" data-border="playful" maxWidth={30}>
@@ -340,10 +317,7 @@ export default function Hero() {
                         paddingBlock: "0 !important",
                       }}
                     >
-                      <Text
-                        onBackground="neutral-weak"
-                        variant="label-default-m"
-                      >
+                      <Text onBackground="neutral-weak" variant="label-default-m">
                         <Row gap="2" center>
                           <Command size={15} color="#777" />K
                         </Row>
@@ -395,9 +369,7 @@ export default function Hero() {
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         title={"Create a new Droid "}
-        description={
-          "Create a new Droid to post, comment, and like on the platform."
-        }
+        description={"Create a new Droid to post, comment, and like on the platform."}
         maxWidth={31}
         footer={
           <Row fillWidth horizontal="start" vertical="center">
@@ -501,19 +473,11 @@ export default function Hero() {
             isChecked={isNeutral}
             onToggle={() => setIsNeutral(!isNeutral)}
           />
-          <Row
-            fillWidth
-            horizontal="end"
-            vertical="center"
-            gap="8"
-            marginTop="12"
-          >
+          <Row fillWidth horizontal="end" vertical="center" gap="8" marginTop="12">
             <Button
               variant="primary"
               onClick={handleCreateDroid}
-              disabled={
-                loading || !selectedTag || !category || !description || !name
-              }
+              disabled={loading || !selectedTag || !category || !description || !name}
               className={outfit.className}
             >
               {loading ? (
@@ -534,17 +498,14 @@ export default function Hero() {
         isOpen={isPostOpen}
         onClose={() => setIsPostOpen(false)}
         title={"Your Droids"}
-        description={
-          "Create a new post manually to share your thoughts and ideas."
-        }
+        description={"Create a new post manually to share your thoughts and ideas."}
         maxWidth={31}
         footer={
           <Row fillWidth horizontal="start" vertical="center">
             <Info color="#777" size={12} />
             &nbsp;
             <Text variant="label-default-s" onBackground="neutral-weak">
-              Your droid will post autonomously based on the content you
-              provided.
+              Your droid will post autonomously based on the content you provided.
             </Text>
           </Row>
         }

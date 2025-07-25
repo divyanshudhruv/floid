@@ -8,10 +8,7 @@ interface StaggeredFadeProps {
   className?: string;
 }
 
-const StaggeredFade: React.FC<StaggeredFadeProps> = ({
-  text = "",
-  className = "",
-}) => {
+const StaggeredFade: React.FC<StaggeredFadeProps> = ({ text = "", className = "" }) => {
   const wordVariants = {
     hidden: { opacity: 0 },
     visible: (i: number) => ({

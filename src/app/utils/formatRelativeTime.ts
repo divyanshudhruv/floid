@@ -1,4 +1,3 @@
-
 // Utils
 const formatRelativeTime = (date: string): string => {
   const now = new Date();

@@ -108,9 +108,7 @@ const SplitText: React.FC<SplitTextProps> = ({
     const marginValue = marginMatch ? parseFloat(marginMatch[1]) : 0;
     const marginUnit = marginMatch ? marginMatch[2] || "px" : "px";
     const sign =
-      marginValue < 0
-        ? `-=${Math.abs(marginValue)}${marginUnit}`
-        : `+=${marginValue}${marginUnit}`;
+      marginValue < 0 ? `-=${Math.abs(marginValue)}${marginUnit}` : `+=${marginValue}${marginUnit}`;
     const start = `top ${startPct}%${sign}`;
 
     const tl = gsap.timeline({

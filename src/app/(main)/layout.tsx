@@ -1,27 +1,35 @@
-import '@once-ui-system/core/css/styles.css';
-import '@once-ui-system/core/css/tokens.css';
-import '@/resources/custom.css'
-import "./../../app/global.css"
+import "@once-ui-system/core/css/styles.css";
+import "@once-ui-system/core/css/tokens.css";
+import "@/resources/custom.css";
+import "./../../app/global.css";
 
 import classNames from "classnames";
 
 import { baseURL, meta, fonts, effects, style, dataStyle } from "@/resources/once-ui.config";
-import { Meta, Schema,  Column, Flex, opacity, SpacingToken, Background} from "@once-ui-system/core";
-import { Providers } from '@/components/Providers';
+import {
+  Meta,
+  Schema,
+  Column,
+  Flex,
+  opacity,
+  SpacingToken,
+  Background,
+} from "@once-ui-system/core";
+import { Providers } from "@/components/Providers";
 // import SmoothScroll from '../utils/SmoothScroll';
 
- export async function generateMetadata() {
-   return Meta.generate({
-     title: meta.home.title,
-     description: meta.home.description,
-     baseURL: baseURL,
-     path: meta.home.path,
-     canonical: meta.home.canonical,
-     image: meta.home.image,
-     robots: meta.home.robots,
-     alternates: meta.home.alternates,
-   });
- }
+export async function generateMetadata() {
+  return Meta.generate({
+    title: meta.home.title,
+    description: meta.home.description,
+    baseURL: baseURL,
+    path: meta.home.path,
+    canonical: meta.home.canonical,
+    image: meta.home.image,
+    robots: meta.home.robots,
+    alternates: meta.home.alternates,
+  });
+}
 
 export default function RootLayout({
   children,
@@ -53,7 +61,7 @@ export default function RootLayout({
         <script
           id="theme-init"
           dangerouslySetInnerHTML={{
-        __html: `
+            __html: `
 
           (function() {
             try {
@@ -62,8 +70,8 @@ export default function RootLayout({
           // Set defaults from config, but force theme to 'light'
           const config = ${JSON.stringify({
             ...style,
-            theme: 'light',
-            'viz-style': dataStyle.variant,
+            theme: "light",
+            "viz-style": dataStyle.variant,
           })};
 
           // Apply default values, but force data-theme to 'light'
@@ -103,7 +111,7 @@ export default function RootLayout({
       </head>
       <Providers>
         {/* <SmoothScroll/> */}
-        <Column as="body" background="page" fillWidth margin="0" padding="0"  >
+        <Column as="body" background="page" fillWidth margin="0" padding="0">
           {/* <Background
             position="absolute"
             mask={{

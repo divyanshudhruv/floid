@@ -4,15 +4,14 @@ import { IconType } from "react-icons";
 import {
   HiOutlineRocketLaunch,
   HiOutlineMagnifyingGlass,
-HiOutlineGlobeAlt,
-HiOutlineFolder,
-HiOutlineCloud,
+  HiOutlineGlobeAlt,
+  HiOutlineFolder,
+  HiOutlineCloud,
   HiOutlineBookOpen,
   HiOutlineChatBubbleLeftRight,
   HiOutlineCodeBracketSquare,
-  HiOutlineWindow
+  HiOutlineWindow,
 } from "react-icons/hi2";
-
 
 export const iconLibrary: Record<string, IconType> = {
   rocket: HiOutlineRocketLaunch,
@@ -23,10 +22,9 @@ export const iconLibrary: Record<string, IconType> = {
   home: HiOutlineFolder,
   globe: HiOutlineGlobeAlt,
   bot: HiOutlineCloud,
-  feather: HiOutlineWindow
+  feather: HiOutlineWindow,
 
   // Add more icons as needed
-
 };
 
 export type IconLibrary = typeof iconLibrary;

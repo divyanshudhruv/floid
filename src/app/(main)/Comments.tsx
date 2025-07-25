@@ -1,16 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-  Row, 
-  Column, 
-  Text, 
-  Textarea, 
+import {
+  Row,
+  Column,
+  Text,
+  Textarea,
   Heading,
   IconButton,
   EmojiPickerDropdown,
   Spinner,
-  Avatar
+  Avatar,
 } from "@once-ui-system/core";
 import { Comment } from "./Comment";
 
@@ -35,7 +35,7 @@ export function Comments() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [comments, setComments] = useState<CommentProps[]>([]);
-  
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setComments([
@@ -44,23 +44,23 @@ export function Comments() {
           content: "Finally something fresh, something new. I love it my friend. You're coookin'!",
           user: {
             name: "Jony Ive",
-            avatar: "/images/avatars/jony-ive.jpg"
+            avatar: "/images/avatars/jony-ive.jpg",
           },
           createdAt: "2025-07-07T15:30:00Z",
           reactions: {
-            hearts: 7
-          }
+            hearts: 7,
+          },
         },
         {
           id: "2",
           content: "@Jony buddy, will you migrate to Once UI finally or what...",
           user: {
             name: "Lorant One",
-            avatar: "/images/creators/lorant.jpg"
+            avatar: "/images/creators/lorant.jpg",
           },
           createdAt: "2025-07-06T10:15:00Z",
           reactions: {
-            hearts: 3
+            hearts: 3,
           },
           replies: [
             {
@@ -68,45 +68,45 @@ export function Comments() {
               content: "Dude yes, Sammy was so stoked to see this stuff!",
               user: {
                 name: "Jony Ive",
-                avatar: "/images/avatars/jony-ive.jpg"
+                avatar: "/images/avatars/jony-ive.jpg",
               },
               createdAt: "2025-07-06T11:20:00Z",
               reactions: {
-                hearts: 5
-              }
-            }
-          ]
-        }
+                hearts: 5,
+              },
+            },
+          ],
+        },
       ]);
       setIsLoading(false);
     }, 2000);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
   const handleSubmitComment = async () => {
     if (!comment.trim()) return;
-    
+
     setIsSubmitting(true);
     setSubmitError(null);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       const newComment: CommentProps = {
         id: `new-${Date.now()}`,
         content: comment,
         user: {
           name: "Lorant",
-          avatar: "/images/creators/lorant.jpg"
+          avatar: "/images/creators/lorant.jpg",
         },
         createdAt: new Date().toISOString(),
         reactions: {
-          hearts: 0
-        }
+          hearts: 0,
+        },
       };
-      
-      setComments(prevComments => [newComment, ...prevComments]);
+
+      setComments((prevComments) => [newComment, ...prevComments]);
       setComment("");
     } catch (err: any) {
       setSubmitError(err.message || "An error occurred while submitting your comment");
@@ -120,15 +120,12 @@ export function Comments() {
       <Heading marginLeft="64" variant="heading-strong-l">
         {comments.length > 0 ? "Join" : "Start"} the discussion!
       </Heading>
-      
+
       <Row gap="4" fillWidth>
         <Row padding="8" fitHeight marginTop="4">
-          <Avatar 
-            src="/images/creators/lorant.jpg"
-            size="m"
-          />
+          <Avatar src="/images/creators/lorant.jpg" size="m" />
         </Row>
-        
+
         <Column gap="8" fillWidth>
           <Textarea
             id="comment-input"
@@ -139,10 +136,8 @@ export function Comments() {
             disabled={isSubmitting}
             error={!!submitError}
             errorMessage={submitError}
-            hasSuffix={ 
-              <Row
-                style={{ opacity: comment.length > 0 ? 1 : 0 }}
-                transition="micro-medium">
+            hasSuffix={
+              <Row style={{ opacity: comment.length > 0 ? 1 : 0 }} transition="micro-medium">
                 <IconButton
                   style={{
                     marginRight: "-0.25rem",
@@ -183,17 +178,11 @@ export function Comments() {
         ) : comments.length > 0 ? (
           comments.map((comment) => (
             <Column key={comment.id} gap="16" fillWidth>
-              <Comment
-                key={comment.id}
-                comment={comment}
-              />
+              <Comment key={comment.id} comment={comment} />
               {comment.replies && comment.replies.length > 0 && (
                 <Column gap="16" fillWidth paddingLeft="64">
                   {comment.replies.map((reply) => (
-                    <Comment
-                      key={reply.id}
-                      comment={reply}
-                    />
+                    <Comment key={reply.id} comment={reply} />
                   ))}
                 </Column>
               )}

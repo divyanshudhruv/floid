@@ -1,15 +1,22 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { AnimatePresence, Easing, motion, useMotionValue, useSpring, useTransform } from 'motion/react';
-import { cn } from '@/lib/utils';
+import * as React from "react";
+import {
+  AnimatePresence,
+  Easing,
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "motion/react";
+import { cn } from "@/lib/utils";
 
-type AnimationVariantType = 'spring' | 'tween' | 'inertia' | 'decay' | 'keyframes';
-type AnimationType = 'default' | 'flip' | 'reveal';
+type AnimationVariantType = "spring" | "tween" | "inertia" | "decay" | "keyframes";
+type AnimationType = "default" | "flip" | "reveal";
 
 interface AvatarGroupContextValue {
   tooltipClassName?: string;
-  animation?: 'default' | 'flip' | 'reveal';
+  animation?: "default" | "flip" | "reveal";
 }
 
 const AvatarGroupContext = React.createContext<AvatarGroupContextValue | null>(null);
@@ -49,8 +56,8 @@ const StaggeredContent = ({ content }: { content: React.ReactNode }) => {
           key={i}
           variants={{
             initial: { opacity: 0, y: 20 },
-            animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } },
-            exit: { opacity: 0, y: -20, transition: { duration: 0.2, ease: 'easeIn' } },
+            animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } },
+            exit: { opacity: 0, y: -20, transition: { duration: 0.2, ease: "easeIn" } },
           }}
         >
           {child}
@@ -60,7 +67,12 @@ const StaggeredContent = ({ content }: { content: React.ReactNode }) => {
   );
 };
 
-export function AvatarGroup({ children, className, tooltipClassName, animation = 'default' }: AvatarGroupProps) {
+export function AvatarGroup({
+  children,
+  className,
+  tooltipClassName,
+  animation = "default",
+}: AvatarGroupProps) {
   const contextValue: AvatarGroupContextValue = {
     tooltipClassName,
     animation,
@@ -68,7 +80,7 @@ export function AvatarGroup({ children, className, tooltipClassName, animation =
 
   return (
     <AvatarGroupContext.Provider value={contextValue}>
-      <div className={cn('flex -space-x-2.5', className)}>{children}</div>
+      <div className={cn("flex -space-x-2.5", className)}>{children}</div>
     </AvatarGroupContext.Provider>
   );
 }
@@ -84,7 +96,7 @@ export function AvatarGroupItem({
   const springConfig = { stiffness: 100, damping: 5 };
   const x = useMotionValue(0);
 
-  const animation = itemAnimation || context?.animation || 'default';
+  const animation = itemAnimation || context?.animation || "default";
   const finalTooltipClassName = tooltipClassName || context?.tooltipClassName;
 
   // rotate the tooltip
@@ -119,7 +131,7 @@ export function AvatarGroupItem({
         y: 0,
         scale: 1,
         transition: {
-          type: 'spring' as AnimationVariantType,
+          type: "spring" as AnimationVariantType,
           stiffness: 260,
           damping: 10,
         },
@@ -130,7 +142,7 @@ export function AvatarGroupItem({
         scale: 0.6,
         transition: {
           duration: 0.2,
-          ease: 'easeInOut' as Easing,
+          ease: "easeInOut" as Easing,
         },
       },
     },
@@ -140,7 +152,7 @@ export function AvatarGroupItem({
         opacity: 1,
         rotateX: 0,
         transition: {
-          type: 'spring' as AnimationVariantType,
+          type: "spring" as AnimationVariantType,
           stiffness: 180,
           damping: 25,
         },
@@ -150,14 +162,14 @@ export function AvatarGroupItem({
         rotateX: -90,
         transition: {
           duration: 0.3,
-          ease: 'easeInOut' as Easing,
+          ease: "easeInOut" as Easing,
         },
       },
     },
     reveal: {
       initial: { opacity: 0, scale: 0.95 },
-      animate: { opacity: 1, scale: 1, transition: { duration: 0.15, ease: 'easeOut' as Easing } },
-      exit: { opacity: 0, scale: 0.95, transition: { duration: 0.1, ease: 'easeIn' as Easing } },
+      animate: { opacity: 1, scale: 1, transition: { duration: 0.15, ease: "easeOut" as Easing } },
+      exit: { opacity: 0, scale: 0.95, transition: { duration: 0.1, ease: "easeIn" as Easing } },
     },
   };
 
@@ -165,7 +177,7 @@ export function AvatarGroupItem({
 
   return (
     <div
-      className={cn('group relative', className)}
+      className={cn("group relative", className)}
       onMouseEnter={() => setHoveredIndex(true)}
       onMouseLeave={() => setHoveredIndex(false)}
     >
@@ -176,13 +188,13 @@ export function AvatarGroupItem({
             animate={selectedVariant.animate}
             exit={selectedVariant.exit}
             style={{
-              translateX: animation === 'reveal' ? 0 : translateX,
-              rotate: animation === 'reveal' ? 0 : rotate,
-              whiteSpace: 'nowrap',
-              transformOrigin: 'center',
+              translateX: animation === "reveal" ? 0 : translateX,
+              rotate: animation === "reveal" ? 0 : rotate,
+              whiteSpace: "nowrap",
+              transformOrigin: "center",
             }}
             className={cn(
-              'absolute -top-16 left-1/2 z-50 flex -translate-x-1/2 flex-col items-center justify-center rounded-md bg-black px-4 py-2 text-xs font-medium text-white shadow-xl',
+              "absolute -top-16 left-1/2 z-50 flex -translate-x-1/2 flex-col items-center justify-center rounded-md bg-black px-4 py-2 text-xs font-medium text-white shadow-xl",
               finalTooltipClassName,
             )}
           >
@@ -200,7 +212,11 @@ export function AvatarGroupItem({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
             />
-            {animation === 'reveal' ? <StaggeredContent content={tooltipContent} /> : tooltipContent}
+            {animation === "reveal" ? (
+              <StaggeredContent content={tooltipContent} />
+            ) : (
+              tooltipContent
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -229,7 +245,7 @@ export function AvatarGroupTooltip({ children, className }: AvatarGroupTooltipPr
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.15 }}
-      className={cn('hidden relative z-30', className)}
+      className={cn("hidden relative z-30", className)}
     >
       {children}
     </motion.div>

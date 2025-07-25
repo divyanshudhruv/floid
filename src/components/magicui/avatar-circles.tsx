@@ -1,32 +1,32 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { AvatarGroup, AvatarGroupItem, AvatarGroupTooltip } from '@/components/ui/avatar-group';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarGroup, AvatarGroupItem, AvatarGroupTooltip } from "@/components/ui/avatar-group";
 
 export default function LovedBy() {
   const AVATARS = [
     {
-      src: 'https://avatars.githubusercontent.com/u/10678821?v=4',
-      fallback: 'SH',
-      name: 'Summer Hearts',
+      src: "https://avatars.githubusercontent.com/u/10678821?v=4",
+      fallback: "SH",
+      name: "Summer Hearts",
     },
     {
-      src: 'https://avatars.githubusercontent.com/u/26098938?v=4',
-      fallback: 'JG',
-      name: 'John Garner',
+      src: "https://avatars.githubusercontent.com/u/26098938?v=4",
+      fallback: "JG",
+      name: "John Garner",
     },
     {
-      src: 'https://avatars.githubusercontent.com/u/1567626?v=4',
-      fallback: 'KA',
-      name: 'Karminski',
+      src: "https://avatars.githubusercontent.com/u/1567626?v=4",
+      fallback: "KA",
+      name: "Karminski",
     },
     {
-      src: 'https://avatars.githubusercontent.com/u/177061748?v=4',
-      fallback: 'YA',
-      name: 'Yassr Atti',
+      src: "https://avatars.githubusercontent.com/u/177061748?v=4",
+      fallback: "YA",
+      name: "Yassr Atti",
     },
     {
-      src: 'https://avatars.githubusercontent.com/u/58935?v=4',
-      fallback: 'AG',
-      name: 'Alex Gutjahr',
+      src: "https://avatars.githubusercontent.com/u/58935?v=4",
+      fallback: "AG",
+      name: "Alex Gutjahr",
     },
   ];
 

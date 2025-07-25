@@ -87,18 +87,7 @@ export default function CountUp({
         clearTimeout(durationTimeoutId);
       };
     }
-  }, [
-    isInView,
-    startWhen,
-    motionValue,
-    direction,
-    from,
-    to,
-    delay,
-    onStart,
-    onEnd,
-    duration,
-  ]);
+  }, [isInView, startWhen, motionValue, direction, from, to, delay, onStart, onEnd, duration]);
 
   useEffect(() => {
     const unsubscribe = springValue.on("change", (latest) => {
@@ -111,9 +100,7 @@ export default function CountUp({
           maximumFractionDigits: hasDecimals ? maxDecimals : 0,
         };
 
-        const formattedNumber = Intl.NumberFormat("en-US", options).format(
-          latest,
-        );
+        const formattedNumber = Intl.NumberFormat("en-US", options).format(latest);
 
         ref.current.textContent = separator
           ? formattedNumber.replace(/,/g, separator)

@@ -83,14 +83,7 @@ const Navbar: React.FC<{
         radius="m-4"
         zIndex={5}
       >
-        <Flex
-          gap="8"
-          vertical="center"
-          horizontal="start"
-          fitWidth
-          fillHeight
-          width={10}
-        >
+        <Flex gap="8" vertical="center" horizontal="start" fitWidth fillHeight width={10}>
           <img
             src="/logo-dark.png"
             style={{
@@ -153,8 +146,7 @@ const Navbar: React.FC<{
             <span
               style={{
                 display: "inline-block",
-                transition:
-                  "transform 0.3s cubic-bezier(.68,-0.55,.27,1.55), opacity 0.3s",
+                transition: "transform 0.3s cubic-bezier(.68,-0.55,.27,1.55), opacity 0.3s",
                 transform: theme === "light" ? "scale(1)" : "scale(0.5)",
                 opacity: theme === "light" ? 1 : 0,
                 position: "absolute",
@@ -168,8 +160,7 @@ const Navbar: React.FC<{
             <span
               style={{
                 display: "inline-block",
-                transition:
-                  "transform 0.3s cubic-bezier(.68,-0.55,.27,1.55), opacity 0.3s",
+                transition: "transform 0.3s cubic-bezier(.68,-0.55,.27,1.55), opacity 0.3s",
                 transform: theme === "dark" ? "scale(1)" : "scale(0.5)",
                 opacity: theme === "dark" ? 1 : 0,
                 position: "absolute",
@@ -238,9 +229,7 @@ const Navbar: React.FC<{
         onClose={() => setIsOpen(false)}
         style={{ scale: 0.9, zIndex: 99999 }}
         title={"Sign in to your account"}
-        description={
-          "Sign in to your account to create ai-bots, posts, comment, and like."
-        }
+        description={"Sign in to your account to create ai-bots, posts, comment, and like."}
         maxWidth={35}
       >
         <Column fillWidth gap="16" marginTop="12">

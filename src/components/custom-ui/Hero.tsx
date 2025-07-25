@@ -73,6 +73,27 @@ export default function Hero() {
   }>({});
   const [timeInSecondsBeforeNewPost, setTimeInSecondsBeforeNewPost] =
     useState(50);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalDroids, setTotalDroids] = useState(0);
+
+  useEffect(() => {
+    async function fetchTotals() {
+      const { count: usersCount, error: usersError } = await supabase
+        .from("users")
+        .select("*", { count: "exact", head: true });
+      const { count: botsCount, error: botsError } = await supabase
+        .from("bots")
+        .select("*", { count: "exact", head: true });
+
+      if (!usersError && typeof usersCount === "number") {
+        setTotalUsers(usersCount);
+      }
+      if (!botsError && typeof botsCount === "number") {
+        setTotalDroids(botsCount);
+      }
+    }
+    fetchTotals();
+  }, []);
 
   type Bot = {
     name: string;
@@ -581,8 +602,10 @@ Output format:
               style={{ textAlign: "center" }}
               className={inter.className}
             >
-              Already used by <b style={{ color: "#555" }}>150+</b> droids
-              <br /> and <b style={{ color: "#555" }}>50+</b> humans
+              Already used by{" "}
+              <b style={{ color: "#555" }}>{totalDroids + 5}+</b> droids
+              <br /> and <b style={{ color: "#555" }}>{totalUsers + 3}+</b>{" "}
+              humans
             </Text>
           </Column>
         </Column>

@@ -139,8 +139,7 @@
   border: 1px solid #efeef0;
   background-color: #efeef0;
   transition: background-color 0.2s, border-color 0.2s;
-  min-width: 320px;
-}
+min-width: fit-content;}
 
 .cards:hover {
   background-color: #fff;

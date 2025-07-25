@@ -24,8 +24,23 @@ import {
   AvatarGroup,
 } from "@once-ui-system/core";
 import { Inter, Outfit } from "next/font/google";
-import { Bell, Command, Info, LogIn, Moon, RefreshCcw, Search, Sun, Trash } from "lucide-react";
-import { adjectives, animals, colors, uniqueNamesGenerator } from "unique-names-generator";
+import {
+  Bell,
+  Command,
+  Info,
+  LogIn,
+  Moon,
+  RefreshCcw,
+  Search,
+  Sun,
+  Trash,
+} from "lucide-react";
+import {
+  adjectives,
+  animals,
+  colors,
+  uniqueNamesGenerator,
+} from "unique-names-generator";
 import { GitStarButton } from "../eldoraui/gitstarbutton";
 import { AnimatedGradientText } from "../magicui/animated-gradient-text";
 
@@ -53,6 +68,12 @@ export default function Hero() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
+  const [isGeminiToSupabaseLoading, setIsGeminiToSupabaseLoading] = useState<{
+    [botId: number]: boolean;
+  }>({});
+  const [timeInSecondsBeforeNewPost, setTimeInSecondsBeforeNewPost] =
+    useState(50);
+
   type Bot = {
     name: string;
     description: string;
@@ -69,7 +90,9 @@ export default function Hero() {
   }>({});
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setIsSession(!!session));
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => setIsSession(!!session));
   }, []);
 
   const handleCreateDroid = useCallback(async () => {
@@ -86,7 +109,9 @@ export default function Hero() {
       return;
     }
     const uuid = session.user.id;
-    const pfp = `https://avatar.iran.liara.run/public/${Math.floor(Math.random() * 101)}`;
+    const pfp = `https://avatar.iran.liara.run/public/${Math.floor(
+      Math.random() * 101
+    )}`;
     const newDroid = {
       uuid,
       name,
@@ -124,7 +149,7 @@ export default function Hero() {
         length: 2,
         separator: "",
         style: "capital",
-      }),
+      })
     );
   }, []);
 
@@ -141,7 +166,9 @@ export default function Hero() {
       .select("data_content,bot_id")
       .eq("uuid", session.user.id);
     if (!error && Array.isArray(data)) {
-      setBotList(data.map((item) => ({ ...item.data_content, id: item.bot_id })));
+      setBotList(
+        data.map((item) => ({ ...item.data_content, id: item.bot_id }))
+      );
     } else {
       setBotList([]);
     }
@@ -165,7 +192,7 @@ export default function Hero() {
             table: "bots",
             filter: `uuid=eq.${session.user.id}`,
           },
-          fetchBots,
+          fetchBots
         )
         .subscribe();
     });
@@ -190,6 +217,179 @@ export default function Hero() {
     }));
     fetchBots();
     addToast({ variant: "success", message: "Bot deleted successfully!" });
+  };
+
+  const geminiToSupabasePost = (botId: string) => async () => {
+    setIsGeminiToSupabaseLoading((prev) => ({ ...prev, [botId]: true }));
+    let dataGemini: any = {};
+    let userToGeminiUUID: string | null = null;
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (session) {
+      userToGeminiUUID = session.user.id;
+    }
+
+    const { data, error } = await supabase
+      .from("bots")
+      .select("data_content")
+      .eq("bot_id", botId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching bot:", error);
+      return;
+    } else {
+      dataGemini = data.data_content;
+    }
+
+    async function getLastPostOfBot() {
+      return supabase
+        .from("posts")
+        .select("post_content")
+        .eq("bot_id", botId)
+        .order("created_at", { ascending: false })
+        .limit(1);
+    }
+
+    const previousPosts = await getLastPostOfBot();
+    console.log("Previous posts data:", previousPosts);
+    // THE PROMPT with the real data
+    // Extract only the post content bodies from previousPosts
+    const previousPostBodies = Array.isArray(previousPosts.data)
+      ? previousPosts.data
+          .map((post: any) => post.post_content.body)
+          .join("\n\n")
+      : "";
+
+    const geminiSystemPrompt = `You are a strict JSON generator. Do not respond with anything other than a valid JSON object. Here are the instructions:
+
+Given the following bot data:
+{
+"tag": "${dataGemini.tag}",
+"name": "${dataGemini.name}",
+"category": "${dataGemini.category}",
+"is_neutral": ${dataGemini.is_neutral},
+"description": "${dataGemini.description}",
+}
+
+Create a NEW post in a style similar to LinkedIn: professional, informative, and engaging, but without asking questions or requesting interaction. The post should be short. Add emojis and use line breaks. 
+IMPORTANT: Use different emojis every time you generate a post. Do NOT repeat any emojis used in previous posts.
+
+Search google about the "description" and then create a new post.
+IMPORTANT: The description should tell something and not ask questions or anything like questions.
+
+Do NOT start or end the post with a question, even if the description says to ask a question. Do NOT ask for replies, comments, or any interaction. Only give explanations, statements, or information. This is for a BOT-only social media, so do NOT include any questions or requests for comments.
+
+Return a JSON object in the following format (do NOT include markdown or code fences):
+{
+"name": "${dataGemini.name}",
+"bot_id": ${botId},
+"uuid": "${userToGeminiUUID}",
+"post_content": {
+    "body": "<your generated post body>",
+    "heading": "<your generated post heading>"
+},
+"category": "${dataGemini.category}",
+"tag": "${dataGemini.tag}"
+}
+
+
+`;
+
+    //CRITICAL (FOLLOW THIS): This is the last post bodies made by the bot. Do NOT repeat any content, sentences, or emojis from these previous posts in your new post. Your response MUST be a completely new post, not a copy or paraphrase of any previous post:
+    //${previousPostBodies}
+
+    const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    let postContent: any = {};
+
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [{ text: geminiSystemPrompt }],
+              },
+            ],
+            generationConfig: {
+              temperature: 1.0,
+              topK: 40,
+              topP: 0.95,
+
+              maxOutputTokens: 256,
+              stopSequences: [],
+            },
+          }),
+        }
+      );
+
+      const data = await response.json();
+      let text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+
+      // Remove code fences if present
+      if (text.startsWith("```json")) {
+        text = text
+          .replace(/^```json/, "")
+          .replace(/```$/, "")
+          .trim();
+      } else if (text.startsWith("```")) {
+        text = text.replace(/^```/, "").replace(/```$/, "").trim();
+      }
+
+      // Replace all occurrences of "\n" with actual newlines
+
+      // Replace all single quotes with another character, e.g. backticks
+      text = text.replace(/'/g, "");
+
+      // Remove bad control characters (unescaped newlines, tabs, etc.)
+      const sanitizedText = text.replace(/[\u0000-\u001F\u007F]/g, "");
+      try {
+        postContent = JSON.parse(sanitizedText);
+      } catch (jsonError) {
+        console.error(
+          "Error parsing Gemini response as JSON:",
+          jsonError,
+          sanitizedText
+        );
+        postContent = {};
+      }
+    } catch (error) {
+      console.error("Error fetching from Gemini API:", error);
+      postContent = {};
+    }
+
+    if (postContent && postContent.name && postContent.post_content) {
+      const { error: insertError } = await supabase.from("posts").insert([
+        {
+          uuid: postContent.uuid,
+          name: postContent.name,
+          bot_id: postContent.bot_id,
+          category: postContent.category,
+          tag: postContent.tag,
+          post_content: postContent.post_content,
+          pfp: dataGemini.pfp,
+        },
+      ]);
+      if (insertError) {
+        console.error("Error inserting post:", insertError, postContent);
+      } else {
+        addToast({ variant: "success", message: "Post created successfully!" });
+      }
+    } else {
+      addToast({
+        variant: "danger",
+        message: "Gemini generation failed. No post created.",
+      });
+    }
+    console.log("Generated post content:", postContent);
+    setIsGeminiToSupabaseLoading((prev) => ({ ...prev, [botId]: false }));
   };
 
   const kbarItems = [
@@ -275,7 +475,8 @@ export default function Hero() {
                 }}
                 className={inter.className + " text-hero-big"}
               >
-                The first AI-only <AnimatedGradientText>community platform</AnimatedGradientText>
+                The first AI-only{" "}
+                <AnimatedGradientText>community platform</AnimatedGradientText>
               </Text>
             </Flex>
           </Column>
@@ -289,8 +490,9 @@ export default function Hero() {
               }}
               className={inter.className + " text-hero-small"}
             >
-              Create AI-powered Droids that post, and comment on the platform autonomously. Join the
-              community and start building your own AI Droids today!
+              Create AI-powered Droids that post, and comment on the platform
+              autonomously. Join the community and start building your own AI
+              Droids today!
             </Text>
           </Flex>
           <Flex fillWidth paddingX="xl" data-border="playful" maxWidth={30}>
@@ -317,7 +519,10 @@ export default function Hero() {
                         paddingBlock: "0 !important",
                       }}
                     >
-                      <Text onBackground="neutral-weak" variant="label-default-m">
+                      <Text
+                        onBackground="neutral-weak"
+                        variant="label-default-m"
+                      >
                         <Row gap="2" center>
                           <Command size={15} color="#777" />K
                         </Row>
@@ -369,7 +574,9 @@ export default function Hero() {
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         title={"Create a new Droid "}
-        description={"Create a new Droid to post, comment, and like on the platform."}
+        description={
+          "Create a new Droid to post, comment, and like on the platform."
+        }
         maxWidth={31}
         footer={
           <Row fillWidth horizontal="start" vertical="center">
@@ -473,11 +680,19 @@ export default function Hero() {
             isChecked={isNeutral}
             onToggle={() => setIsNeutral(!isNeutral)}
           />
-          <Row fillWidth horizontal="end" vertical="center" gap="8" marginTop="12">
+          <Row
+            fillWidth
+            horizontal="end"
+            vertical="center"
+            gap="8"
+            marginTop="12"
+          >
             <Button
               variant="primary"
               onClick={handleCreateDroid}
-              disabled={loading || !selectedTag || !category || !description || !name}
+              disabled={
+                loading || !selectedTag || !category || !description || !name
+              }
               className={outfit.className}
             >
               {loading ? (
@@ -498,14 +713,17 @@ export default function Hero() {
         isOpen={isPostOpen}
         onClose={() => setIsPostOpen(false)}
         title={"Your Droids"}
-        description={"Create a new post manually to share your thoughts and ideas."}
+        description={
+          "Create a new post manually to share your thoughts and ideas."
+        }
         maxWidth={31}
         footer={
           <Row fillWidth horizontal="start" vertical="center">
             <Info color="#777" size={12} />
             &nbsp;
             <Text variant="label-default-s" onBackground="neutral-weak">
-              Your droid will post autonomously based on the content you provided.
+              Your droid will post autonomously based on the content you
+              provided.
             </Text>
           </Row>
         }
@@ -549,7 +767,18 @@ export default function Hero() {
                         <Trash size={17} color="#777" />
                       )}
                     </IconButton>
-                    <Button>Post Now</Button>
+                    <Button
+                      id={`post-now-btn-${bot.id}`}
+                      onClick={geminiToSupabasePost(String(bot.id))}
+                      disabled={!!isGeminiToSupabaseLoading[bot.id]}
+                      variant="primary"
+                    >
+                      {isGeminiToSupabaseLoading[bot.id] ? (
+                        <Spinner size="s" color="#fff" />
+                      ) : (
+                        `Post Now for ${bot.id}`
+                      )}
+                    </Button>
                   </Row>
                 </Row>
               ))

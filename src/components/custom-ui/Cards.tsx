@@ -165,7 +165,7 @@ export default function Cards({ data }: { data: PostData }) {
             }}
           >
             <StaggeredFade
-              text={data.post_content?.body || ""}
+              text={(data.post_content?.body || "").replace(/\\n/g, "\n")}
               className={dmSans.className}
             />
           </Text>
@@ -207,7 +207,11 @@ export default function Cards({ data }: { data: PostData }) {
           >
             <CountUp
               from={0}
-              to={Array.isArray(data.likers) ? data.likers.length : 0}
+              to={
+                Array.isArray(data.likers) && data.likers
+                  ? data.likers.length
+                  : 0
+              }
               duration={2}
             />
           </Text>
@@ -235,64 +239,98 @@ export default function Cards({ data }: { data: PostData }) {
     </Card>
   );
 }
-
-const Comment: React.FC<{ data: CommentData }> = React.memo(({ data }) => (
-  <Row horizontal="center" gap="8" fillHeight vertical="start">
-    <Media
-      src={data.user.avatar}
-      unoptimized
-      width={1.5}
-      height={1.5}
-      minHeight={1.5}
-      minWidth={1.5}
-      radius="full"
-    />
-    <Column vertical="start">
-      <Row gap="4">
-        <Text className={outfit.className} variant="label-default-s">
-          {data.user.name}
-        </Text>
-        <Row height={1} gap="4" vertical="end">
-          <Text
-            variant="label-default-s"
-            onBackground="neutral-weak"
-            style={{ fontSize: "10px" }}
-          >
-            •
+const Comment: React.FC<{ data: CommentData }> = React.memo(({ data }) => {
+  if (
+    !data ||
+    !data.user ||
+    !data.user.name ||
+    !data.user.avatar ||
+    !data.date ||
+    !data.text
+  ) {
+    return null;
+  }
+  return (
+    <Row horizontal="center" gap="8" fillHeight vertical="start">
+      <Media
+        src={data.user.avatar}
+        unoptimized
+        width={1.5}
+        height={1.5}
+        minHeight={1.5}
+        minWidth={1.5}
+        radius="full"
+      />
+      <Column vertical="start">
+        <Row gap="4">
+          <Text className={outfit.className} variant="label-default-s">
+            {data.user.name}
           </Text>
-          <Text
-            variant="label-default-s"
-            onBackground="neutral-weak"
-            style={{ fontSize: "10px" }}
-          >
-            {formatRelativeTime(data.date)}
-          </Text>
+          <Row height={1} gap="4" vertical="end">
+            <Text
+              variant="label-default-s"
+              onBackground="neutral-weak"
+              style={{ fontSize: "10px" }}
+            >
+              •
+            </Text>
+            <Text
+              variant="label-default-s"
+              onBackground="neutral-weak"
+              style={{ fontSize: "10px" }}
+            >
+              {formatRelativeTime(data.date)}
+            </Text>
+          </Row>
         </Row>
-      </Row>
-      <Text
-        variant="label-default-s"
-        onBackground="neutral-weak"
-        style={{ fontSize: "10px" }}
-      >
-        {data.text}
-      </Text>
-    </Column>
-  </Row>
-));
-
+        <Text
+          variant="label-default-s"
+          onBackground="neutral-weak"
+          style={{ fontSize: "10px" }}
+        >
+          {data.text}
+        </Text>
+      </Column>
+    </Row>
+  );
+});
 const Comments: React.FC<{ comments: CommentData[] }> = React.memo(
-  ({ comments }) => (
-    <Column fillWidth horizontal="start" vertical="start" paddingY="8" gap="20">
-      {comments.map((comment, idx) => (
-        <Comment
-          key={
-            comment.user && comment.user.name
-              ? `${comment.user.name}-${comment.date}-${idx}`
-              : `comment-${idx}`
-          }
-          data={comment}
-        />
-      ))}
-    </Column>
-  )
+  ({ comments }) => {
+    if (
+      !comments ||
+      !Array.isArray(comments) ||
+      comments.length === 0 ||
+      comments.some(
+        (comment) =>
+          !comment ||
+          !comment.user ||
+          !comment.user.name ||
+          !comment.user.avatar ||
+          !comment.date ||
+          !comment.text
+      )
+    ) {
+      return null;
+    }
+    return (
+      <Column
+        fillWidth
+        horizontal="start"
+        vertical="start"
+        paddingY="8"
+        gap="20"
+      >
+        {comments.map((comment, idx) => (
+          <Comment
+            key={
+              comment.user && comment.user.name
+                ? `${comment.user.name}-${comment.date}-${idx}`
+                : `comment-${idx}`
+            }
+            data={comment}
+          />
+        ))}
+      </Column>
+    );
+  }
 );

@@ -18,7 +18,7 @@ import {
   NavIcon,
 } from "@once-ui-system/core";
 import { Inter, Outfit } from "next/font/google";
-import { Bell, LogIn, Moon, Sun } from "lucide-react";
+import { Bell, LogIn, Moon, Plus, Sun } from "lucide-react";
 
 // Fonts
 const outfit = Outfit({
@@ -34,14 +34,34 @@ const inter = Inter({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 });
 
-const Navbar: React.FC<{
-  userPfp: string;
-  isLoading: boolean;
-}> = ({ userPfp, isLoading }) => {
+const Navbar: React.FC<{}> = ({}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSession, setIsSession] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+const [isLoading, setIsLoading] = useState(true);
+  const [userPfp, setUserPfp] = useState<string | null>(null);
 
+  useEffect(() => {
+
+    const fetchUserProfile = async () => {
+      setIsLoading(true);
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        const uuid = session.user.id;
+        const { data, error } = await supabase
+          .from("users")
+          .select("pfp")
+          .eq("uuid", uuid)
+          .single();
+        setUserPfp(!error && data && data.pfp ? data.pfp : "");
+        setIsLoading(false);
+      }
+    };
+    fetchUserProfile();
+  }, []);
+  const router = useRouter();
   // Navbar scroll effect
   useEffect(() => {
     const navbar = document.getElementById("navbar");
@@ -83,7 +103,14 @@ const Navbar: React.FC<{
         radius="m-4"
         zIndex={5}
       >
-        <Flex gap="8" vertical="center" horizontal="start" fitWidth fillHeight width={10}>
+        <Flex
+          gap="8"
+          vertical="center"
+          horizontal="start"
+          fitWidth
+          fillHeight
+          width={10}
+        >
           <img
             src="/logo-dark.png"
             style={{
@@ -146,7 +173,8 @@ const Navbar: React.FC<{
             <span
               style={{
                 display: "inline-block",
-                transition: "transform 0.3s cubic-bezier(.68,-0.55,.27,1.55), opacity 0.3s",
+                transition:
+                  "transform 0.3s cubic-bezier(.68,-0.55,.27,1.55), opacity 0.3s",
                 transform: theme === "light" ? "scale(1)" : "scale(0.5)",
                 opacity: theme === "light" ? 1 : 0,
                 position: "absolute",
@@ -160,7 +188,8 @@ const Navbar: React.FC<{
             <span
               style={{
                 display: "inline-block",
-                transition: "transform 0.3s cubic-bezier(.68,-0.55,.27,1.55), opacity 0.3s",
+                transition:
+                  "transform 0.3s cubic-bezier(.68,-0.55,.27,1.55), opacity 0.3s",
                 transform: theme === "dark" ? "scale(1)" : "scale(0.5)",
                 opacity: theme === "dark" ? 1 : 0,
                 position: "absolute",
@@ -172,24 +201,28 @@ const Navbar: React.FC<{
               <Moon color="#555" size={17} fontWeight={3} />
             </span>
           </IconButton>
-          <IconButton
-            variant="primary"
-            size="m"
-            style={{
-              borderColor: "transparent",
-              borderRadius: "27%",
-              backgroundColor: "#27272A !important",
-              transition: "background 0.15s",
-            }}
-            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) =>
-              (e.currentTarget.style.backgroundColor = "#18181B")
-            }
-            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) =>
-              (e.currentTarget.style.backgroundColor = "#27272A")
-            }
-          >
-            <Bell color="#F8F9FA" size={15} fontWeight={3} />
-          </IconButton>
+          {isSession && (
+            <IconButton
+              variant="primary"
+              size="m"
+              style={{
+                borderColor: "transparent",
+                borderRadius: "27%",
+                backgroundColor: "#27272A !important",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) =>
+                (e.currentTarget.style.backgroundColor = "#18181B")
+              }
+              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) =>
+                (e.currentTarget.style.backgroundColor = "#27272A")
+              }
+              onClick={() => router.push("/add-prompt")}
+            >
+              <Plus color="#F8F9FA" size={15} fontWeight={3} />
+            </IconButton>
+          )}
+
           {isSession ? (
             <UserMenu
               style={{
@@ -198,7 +231,7 @@ const Navbar: React.FC<{
                 zIndex: "99999 !important",
               }}
               placement="top"
-              avatarProps={{ src: userPfp }}
+              avatarProps={{ src: userPfp ?? undefined }}
               loading={isLoading}
             />
           ) : (
@@ -229,7 +262,9 @@ const Navbar: React.FC<{
         onClose={() => setIsOpen(false)}
         style={{ scale: 0.9, zIndex: 99999 }}
         title={"Sign in to your account"}
-        description={"Sign in to your account to create ai-bots, posts, comment, and like."}
+        description={
+          "Sign in to your account to create ai-bots, posts, comment, and like."
+        }
         maxWidth={35}
       >
         <Column fillWidth gap="16" marginTop="12">

@@ -78,7 +78,13 @@ import AnimatedContent from "@/blocks/Animations/AnimatedContent/AnimatedContent
 import { supabase } from "../utils/Supabase";
 import Lenis from "lenis";
 import { useRouter } from "next/navigation";
-import { uniqueNamesGenerator, Config, adjectives, colors, animals } from "unique-names-generator";
+import {
+  uniqueNamesGenerator,
+  Config,
+  adjectives,
+  colors,
+  animals,
+} from "unique-names-generator";
 import { GitStarButton } from "@/components/eldoraui/gitstarbutton";
 import StaggeredFade from "@/components/eldoraui/fadein";
 import { AnimatedGradientText } from "@/components/magicui/animated-gradient-text";
@@ -133,7 +139,11 @@ const Home: React.FC = () => {
   useEffect(() => {
     const channel = supabase
       .channel("realtime-navbar")
-      .on("postgres_changes", { event: "*", schema: "public", table: "users" }, () => {})
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "users" },
+        () => {}
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -179,7 +189,7 @@ const Home: React.FC = () => {
           vertical="start"
           gap="20"
         >
-          <NavBar userPfp={userPfp ?? ""} isLoading={userPfp === null} />
+          <NavBar />
           <Hero />
           <>
             <Posts />

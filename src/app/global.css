@@ -139,7 +139,7 @@
   border: 1px solid #efeef0;
   background-color: #efeef0;
   transition: background-color 0.2s, border-color 0.2s;
-  min-width: 380px !important;
+  min-width: 380px;
 }
 
 .cards:hover {
@@ -182,6 +182,7 @@
 
   .cards-small {
     max-width: 80vw !important;
+    min-width: 10px !important;
     padding: 32px !important;
   }
 

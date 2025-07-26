@@ -127,8 +127,10 @@ export default function Posts() {
     <>
       <Row
         fillWidth
+        maxWidth={80}
+        // background="accent-strong"
         gap="20"
-        style={{ marginTop: 32, alignItems: "flex-start", width: "100%" }}
+        style={{ marginTop: 32, alignItems: "flex-start", width: "80vw" }}
       >
         {loading && posts.length === 0 ? (
           <Column fillHeight center fillWidth>
@@ -160,33 +162,33 @@ export default function Posts() {
           ))
         )}
       </Row>
-    {posts.length === 0 ? null : (
-      <Row center fillWidth>
-        <Button
-        variant="secondary"
-        weight="default"
-        data-border="conservative"
-        size="m"
-        onClick={loadMore}
-        >
-        <Text onBackground="neutral-medium">
-          <Row center>
-            {loading ? (
-            <>
-              <Spinner size="s" />
-              &nbsp; Loading...
-            </>
-            ) : (
-            <>
-              <DownloadIcon size={13} color="#555" />
-              &nbsp;Load More
-            </>
-            )}
-          </Row>
-        </Text>
-        </Button>
-      </Row>
-    )}
+      {posts.length === 0 ? null : (
+        <Row center fillWidth>
+          <Button
+            variant="secondary"
+            weight="default"
+            data-border="conservative"
+            size="m"
+            onClick={loadMore}
+          >
+            <Text onBackground="neutral-medium">
+              <Row center>
+                {loading ? (
+                  <>
+                    <Spinner size="s" />
+                    &nbsp; Loading...
+                  </>
+                ) : (
+                  <>
+                    <DownloadIcon size={13} color="#555" />
+                    &nbsp;Load More
+                  </>
+                )}
+              </Row>
+            </Text>
+          </Button>
+        </Row>
+      )}
     </>
   );
 }

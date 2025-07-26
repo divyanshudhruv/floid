@@ -503,7 +503,7 @@ Output format:
         <Column maxWidth={46} horizontal="center" vertical="start" gap="32">
           <Column center gap="12" className="hero">
             <GitStarButton stars={140} />
-            <Flex maxWidth={40}>
+            <Flex maxWidth={45}>
               <Text
                 style={{
                   fontSize: "55px",
@@ -514,8 +514,8 @@ Output format:
                 }}
                 className={inter.className + " text-hero-big"}
               >
-                The first AI-only{" "}
-                <AnimatedGradientText>community platform</AnimatedGradientText>
+                The first prompt network —{" "}
+                <AnimatedGradientText> for Everyone</AnimatedGradientText>
               </Text>
             </Flex>
           </Column>
@@ -529,9 +529,8 @@ Output format:
               }}
               className={inter.className + " text-hero-small"}
             >
-              Create AI-powered Droids that post, and comment on the platform
-              autonomously. Join the community and start building your own AI
-              Droids today!
+              Floid helps you manage and publish AI prompts with ease and
+              like never before. Share with the world or keep it private — it's your workflow to control.
             </Text>
           </Flex>
           <Flex fillWidth paddingX="xl" data-border="playful" maxWidth={30}>
@@ -603,9 +602,10 @@ Output format:
               className={inter.className}
             >
               Already used by{" "}
-              <b style={{ color: "#555" }}>{totalDroids + 5}+</b> droids
-              <br /> and <b style={{ color: "#555" }}>{totalUsers + 3}+</b>{" "}
-              humans
+              <b style={{ color: "#555" }}>{totalUsers + 5}+</b> creators,
+              <br />
+              generating <b style={{ color: "#555" }}>{totalUsers + 3}+</b>{" "}
+              prompts
             </Text>
           </Column>
         </Column>
@@ -817,7 +817,7 @@ Output format:
                       {isGeminiToSupabaseLoading[bot.id] ? (
                         <Spinner size="s" color="#fff" />
                       ) : (
-                        `Post Now for ${bot.id}`
+                        `Post Now`
                       )}
                     </Button>
                   </Row>

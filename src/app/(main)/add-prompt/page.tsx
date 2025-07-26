@@ -9,13 +9,21 @@ import {
   IconButton,
   Button,
   UserMenu,
+  Card,
+  Scroller,
+  Feedback,
+  BarChart,
+  LineBarChart,
 } from "@once-ui-system/core";
 import { useEffect, useState } from "react";
 import { supabase } from "@/app/utils/Supabase";
 import Sidebar from "@/components/custom-ui/Sidebar";
 import { Inter, Outfit } from "next/font/google";
-import { Bell, Plus } from "lucide-react";
+import { Bell, Plus, SidebarCloseIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import BreadcrumbComponent from "@/components/comp-449";
+import Component from "@/components/comp-311";
+import FileUploader from "@/components/comp-548";
 
 const inter = Inter({ subsets: ["latin"] });
 const outfit = Outfit({ subsets: ["latin"] });
@@ -233,7 +241,7 @@ export default function AddPromptPage() {
             </div>
           </Flex>
         </Column>
-        <Flex
+        <Column
           fillWidth
           fillHeight
           paddingX="xs"
@@ -242,8 +250,257 @@ export default function AddPromptPage() {
           border="neutral-medium"
           style={{ backgroundColor: "#fff" }}
         >
-          k
-        </Flex>
+          <Column
+            gap="4"
+            fillWidth
+            fitHeight
+            vertical="center"
+            horizontal="start"
+          >
+            <IconButton variant="secondary" size="m">
+              <SidebarCloseIcon color="#555" size={17}></SidebarCloseIcon>
+            </IconButton>
+            <Row gap="0" fillWidth vertical="center" horizontal="space-between">
+              <Column>
+                <Text
+                  variant="heading-strong-xl"
+                  style={{ fontSize: "24px" }}
+                  className={inter.className}
+                  onBackground="neutral-strong"
+                >
+                  Dashboard
+                </Text>
+                <Text
+                  style={{ fontSize: "15px" }}
+                  className={inter.className}
+                  onBackground="neutral-medium"
+                >
+                  Welcome back, {userInfoFromSession?.name || "Guest"} 👋
+                </Text>
+              </Column>
+              <Row vertical="center" horizontal="center" gap="16">
+                <Tag background="neutral-strong" fitHeight fitWidth>
+                  Free
+                </Tag>
+                <Button weight="default" size="m">
+                  <Text className={outfit.className} variant="label-default-m">Upgrade to pro</Text>
+                </Button>
+              </Row>
+            </Row>
+          </Column>
+
+          <Row
+            id="stats-container"
+            height={4}
+            marginTop="40"
+            fillWidth
+            horizontal="start"
+            gap="12"
+            wrap={true}
+          >
+            <Scroller direction="row">
+              {" "}
+              <Flex>
+                {" "}
+                <Card
+                  direction="row"
+                  padding="s"
+                  fillHeight
+                  minWidth={16}
+                  radius="s"
+                  vertical="center"
+                  horizontal="space-between"
+                  as={Flex}
+                  marginRight="12"
+                >
+                  <Text variant="body-default-s" className={inter.className}>
+                    Total prompts
+                  </Text>
+                  <Text variant="body-default-s" className={inter.className}>
+                    54
+                  </Text>
+                </Card>
+              </Flex>
+              <Flex>
+                <Card
+                  direction="row"
+                  padding="s"
+                  fillHeight
+                  minWidth={16}
+                  radius="s"
+                  vertical="center"
+                  as={Flex}
+                  horizontal="space-between"
+                  marginRight="12"
+                >
+                  <Text variant="body-default-s" className={inter.className}>
+                    Total likes
+                  </Text>
+                  <Text variant="body-default-s" className={inter.className}>
+                    456
+                  </Text>
+                </Card>
+              </Flex>
+              <Flex>
+                <Card
+                  direction="row"
+                  padding="s"
+                  fillHeight
+                  minWidth={16}
+                  radius="s"
+                  vertical="center"
+                  as={Flex}
+                  marginRight="12"
+                  horizontal="space-between"
+                >
+                  <Text variant="body-default-s" className={inter.className}>
+                    Total downloads
+                  </Text>
+                  <Text variant="body-default-s" className={inter.className}>
+                    123
+                  </Text>
+                </Card>
+              </Flex>
+              <Flex>
+                <Card
+                  direction="row"
+                  padding="s"
+                  fillHeight
+                  minWidth={16}
+                  radius="s"
+                  vertical="center"
+                  as={Flex}
+                  marginRight="12"
+                  horizontal="space-between"
+                >
+                  <Text variant="body-default-s" className={inter.className}>
+                    Total shares
+                  </Text>
+                  <Text variant="body-default-s" className={inter.className}>
+                    23
+                  </Text>
+                </Card>
+              </Flex>
+              <Flex>
+                <Card
+                  direction="row"
+                  padding="s"
+                  fillHeight
+                  minWidth={16}
+                  radius="s"
+                  vertical="center"
+                  as={Flex}
+                  marginRight="12"
+                  horizontal="space-between"
+                >
+                  <Text variant="body-default-s" className={inter.className}>
+                    Subscription
+                  </Text>
+                  <Tag variant="neutral" size="s">
+                    <Text
+                      onBackground="neutral-weak"
+                      style={{ fontSize: "12px" }}
+                      className={inter.className}
+                    >
+                      Beta
+                    </Text>
+                  </Tag>
+                </Card>
+              </Flex>
+            </Scroller>
+          </Row>
+
+          <Row marginTop="40" height={20} gap="12" fillWidth>
+            {" "}
+            <Column fillWidth flex={6} radius="s" fillHeight gap="8">
+              <Component />
+              {/* <Text
+                variant="heading-strong-xl"
+                style={{ fontSize: "24px" }}
+                className={inter.className}
+                onBackground="neutral-strong"
+              >
+                Your prompts
+              </Text> */}
+
+              <Row
+                fillWidth
+                fillHeight
+                minHeight={25}
+                maxHeight={25}
+
+                // background="brand-strong"
+              >
+                <LineBarChart
+                  marginTop="16"
+                  title="CEO vs Employee Paycheck"
+                  fillHeight
+                  axis="both"
+                  date={{
+                    format: "yyyy",
+                    start: new Date("2000-01-01"),
+                    end: new Date("2020-01-01"),
+                    selector: true,
+                    presets: {
+                      display: true,
+                      granularity: "week",
+                    },
+                    dual: true,
+                  }}
+                  series={[
+                    { key: "Screen Time (hrs)", color: "moss" },
+                    { key: "Physical Activity (hrs)", color: "yellow" },
+                  ]}
+                  data={[
+                    {
+                      date: new Date("2000-01-01"),
+                      "Screen Time (hrs)": 2.5,
+                      "Physical Activity (hrs)": 1.8,
+                    },
+                    {
+                      date: new Date("2005-01-01"),
+                      "Screen Time (hrs)": 3.0,
+                      "Physical Activity (hrs)": 1.6,
+                    },
+                    {
+                      date: new Date("2010-01-01"),
+                      "Screen Time (hrs)": 4.0,
+                      "Physical Activity (hrs)": 1.3,
+                    },
+                    {
+                      date: new Date("2015-01-01"),
+                      "Screen Time (hrs)": 5.5,
+                      "Physical Activity (hrs)": 1.0,
+                    },
+                    {
+                      date: new Date("2020-01-01"),
+                      "Screen Time (hrs)": 7.0,
+                      "Physical Activity (hrs)": 0.8,
+                    },
+                  ]}
+                />
+              </Row>
+            </Column>
+            <Column
+              fillWidth
+              maxWidth={25}
+              height={25 + 10}
+              maxHeight={25+3.25}
+                
+              fillHeight
+            //   background="accent-medium"
+              //   radius="l-4"
+              //   border="neutral-medium"
+              horizontal="center"
+              vertical="center"
+              //   paddingX="s"
+              //   paddingY="s"
+            >
+              {" "}
+              <FileUploader />
+            </Column>
+          </Row>
+        </Column>
       </Row>
     </>
   );

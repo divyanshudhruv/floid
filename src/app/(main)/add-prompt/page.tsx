@@ -19,7 +19,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/app/utils/Supabase";
 import Sidebar from "@/components/custom-ui/Sidebar";
 import { Inter, Outfit } from "next/font/google";
-import { Bell, Plus, SidebarCloseIcon } from "lucide-react";
+import {
+  Bell,
+  ChartLineIcon,
+  ChartNoAxesColumnDecreasing,
+  ChartNoAxesColumnIncreasingIcon,
+  Plus,
+  SidebarCloseIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import BreadcrumbComponent from "@/components/comp-449";
 import Component from "@/components/comp-311";
@@ -76,6 +83,7 @@ export default function AddPromptPage() {
           email,
           name: user_metadata?.name || "",
           pfp: user_metadata?.pfp || "",
+          avatar: user_metadata?.avatar_url || "",
         });
       } else {
         setUserInfoFromSession(null);
@@ -235,7 +243,9 @@ export default function AddPromptPage() {
                   return shown;
                 })()}
                 placement="right-end"
-                avatarProps={{ src: userInfoFromSession?.pfp }}
+                avatarProps={{
+                  src: userInfoFromSession?.pfp || userInfoFromSession?.avatar,
+                }}
                 dropdown={<Column width={10} height={20}></Column>}
               />
             </div>
@@ -283,7 +293,9 @@ export default function AddPromptPage() {
                   Free
                 </Tag>
                 <Button weight="default" size="m">
-                  <Text className={outfit.className} variant="label-default-m">Upgrade to pro</Text>
+                  <Text className={outfit.className} variant="label-default-m">
+                    Upgrade to pro
+                  </Text>
                 </Button>
               </Row>
             </Row>
@@ -317,7 +329,24 @@ export default function AddPromptPage() {
                     Total prompts
                   </Text>
                   <Text variant="body-default-s" className={inter.className}>
-                    54
+                    <Row>
+                      74&nbsp;&nbsp;
+                      <Text
+                        style={{
+                          color: "#277665",
+                          fontSize: "12px",
+                        }}
+                      >
+                        <Row>
+                          {" "}
+                          <ChartNoAxesColumnIncreasingIcon
+                            size={17}
+                            color="#277665"
+                          />
+                          +200%
+                        </Row>
+                      </Text>
+                    </Row>
                   </Text>
                 </Card>
               </Flex>
@@ -337,7 +366,24 @@ export default function AddPromptPage() {
                     Total likes
                   </Text>
                   <Text variant="body-default-s" className={inter.className}>
-                    456
+                    <Row>
+                      456&nbsp;&nbsp;
+                      <Text
+                        style={{
+                          color: "#277665",
+                          fontSize: "12px",
+                        }}
+                      >
+                        <Row>
+                          {" "}
+                          <ChartNoAxesColumnIncreasingIcon
+                            size={17}
+                            color="#277665"
+                          />
+                          +5%
+                        </Row>
+                      </Text>
+                    </Row>
                   </Text>
                 </Card>
               </Flex>
@@ -357,7 +403,25 @@ export default function AddPromptPage() {
                     Total downloads
                   </Text>
                   <Text variant="body-default-s" className={inter.className}>
-                    123
+                    <Row>
+                      456&nbsp;&nbsp;
+                      <Text
+                        style={{
+                          color: "#AD2A08",
+
+                          fontSize: "12px",
+                        }}
+                      >
+                        <Row>
+                          {" "}
+                          <ChartNoAxesColumnDecreasing
+                            size={17}
+                            color="#AD2A08"
+                          />
+                          -13%
+                        </Row>
+                      </Text>
+                    </Row>
                   </Text>
                 </Card>
               </Flex>
@@ -377,7 +441,21 @@ export default function AddPromptPage() {
                     Total shares
                   </Text>
                   <Text variant="body-default-s" className={inter.className}>
-                    23
+                    <Row>
+                      456&nbsp;&nbsp;
+                      <Text
+                        style={{
+                          color: "gray",
+                          fontSize: "12px",
+                        }}
+                      >
+                        <Row>
+                          {" "}
+                          <ChartLineIcon size={17} color="gray" />
+                          +0%
+                        </Row>
+                      </Text>
+                    </Row>
                   </Text>
                 </Card>
               </Flex>
@@ -428,14 +506,14 @@ export default function AddPromptPage() {
                 fillHeight
                 minHeight={25}
                 maxHeight={25}
-
-                // background="brand-strong"
+                wrap={true}
               >
                 <LineBarChart
                   marginTop="16"
-                  title="CEO vs Employee Paycheck"
+                  title="Actions vs Time"
                   fillHeight
                   axis="both"
+                  legend={{ display: true, position: "top-left" }}
                   date={{
                     format: "yyyy",
                     start: new Date("2000-01-01"),
@@ -443,39 +521,45 @@ export default function AddPromptPage() {
                     selector: true,
                     presets: {
                       display: true,
-                      granularity: "week",
+                      granularity: "year",
                     },
                     dual: true,
                   }}
                   series={[
-                    { key: "Screen Time (hrs)", color: "moss" },
-                    { key: "Physical Activity (hrs)", color: "yellow" },
+                    { key: "Likes", color: "emerald" },
+
+                    { key: "Total Prompts", color: "orange" },
                   ]}
                   data={[
                     {
                       date: new Date("2000-01-01"),
-                      "Screen Time (hrs)": 2.5,
-                      "Physical Activity (hrs)": 1.8,
+                      Likes: 10,
+
+                      "Total Prompts": 8,
                     },
                     {
                       date: new Date("2005-01-01"),
-                      "Screen Time (hrs)": 3.0,
-                      "Physical Activity (hrs)": 1.6,
+                      Likes: 50,
+
+                      "Total Prompts": 15,
                     },
                     {
                       date: new Date("2010-01-01"),
-                      "Screen Time (hrs)": 4.0,
-                      "Physical Activity (hrs)": 1.3,
+                      Likes: 120,
+
+                      "Total Prompts": 65,
                     },
                     {
                       date: new Date("2015-01-01"),
-                      "Screen Time (hrs)": 5.5,
-                      "Physical Activity (hrs)": 1.0,
+                      Likes: 100,
+
+                      "Total Prompts": 80,
                     },
                     {
                       date: new Date("2020-01-01"),
-                      "Screen Time (hrs)": 7.0,
-                      "Physical Activity (hrs)": 0.8,
+                      Likes: 256,
+
+                      "Total Prompts": 44,
                     },
                   ]}
                 />
@@ -485,10 +569,9 @@ export default function AddPromptPage() {
               fillWidth
               maxWidth={25}
               height={25 + 10}
-              maxHeight={25+3.25}
-                
+              maxHeight={25 + 3.25}
               fillHeight
-            //   background="accent-medium"
+              //   background="accent-medium"
               //   radius="l-4"
               //   border="neutral-medium"
               horizontal="center"

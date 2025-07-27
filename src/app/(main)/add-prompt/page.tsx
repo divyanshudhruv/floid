@@ -21,6 +21,9 @@ import {
   Input,
   Icon,
   Checkbox,
+  LineChart,
+  CodeBlock,
+  CursorCard,
 } from "@once-ui-system/core";
 import Avvvatars from "avvvatars-react";
 
@@ -83,7 +86,7 @@ const items: Record<string, Item> = {
   dashboard: { name: "Dashboard" },
   frontend: {
     name: "Your vault",
-    children: ["backend", "design-system"],
+    children: ["backend", "private"],
   },
   "design-system": {
     name: "Active",
@@ -100,6 +103,7 @@ const items: Record<string, Item> = {
   guidelines: { name: "Public" },
   // "web-platform": { name: "Web Platform" },
   backend: { name: "All Prompts" },
+  private: { name: "Private" },
   apis: { name: "All Prompts" },
   infrastructure: { name: "Infrastructure" },
   marketing: { name: "Marketing", children: ["content", "seo"] },
@@ -446,6 +450,7 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
                 onBackground="neutral-strong"
               >
                 All prompts
+            <AlertComponent/>
               </Text>
               <Text
                 style={{ fontSize: "15px" }}
@@ -473,7 +478,7 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
         </Column>
 
         <Column marginTop="20">
-          <Column maxWidth={68} fillWidth>
+          <Column fillWidth>
             <Row fillWidth gap="8">
               <Input
                 id="input-1"
@@ -552,7 +557,7 @@ function SharedCard({
       <Card
         fillWidth
         padding="s"
-        radius="m"
+        radius="s-4"
         border="neutral-medium"
         direction="row"
         vertical="center"
@@ -591,11 +596,6 @@ function SharedCard({
             paddingY="4"
             gap="4"
           >
-            {is_featured && (
-              <Tag size="s" variant="gradient">
-                <Text style={{ fontSize: "12px" }}>Featured</Text>
-              </Tag>
-            )}
             {id_published ? (
               <Tag
                 size="s"
@@ -625,6 +625,11 @@ function SharedCard({
                 >
                   Draft
                 </Text>
+              </Tag>
+            )}{" "}
+            {is_featured && (
+              <Tag size="s" variant="gradient">
+                <Text style={{ fontSize: "12px" }}>Featured</Text>
               </Tag>
             )}
           </Row>
@@ -710,6 +715,14 @@ function PromptCard({
             </Column>
           </Row>
           <Row center gap="8">
+            {" "}
+            <IconButton
+              variant="secondary"
+              size="s"
+              onClick={() => router.push("/add-prompt")}
+            >
+              <LucideTrash2 color="#555" size={14} />
+            </IconButton>{" "}
             <IconButton variant="secondary" size="s">
               <ArrowUpRight color="#555" size={14} />
             </IconButton>
@@ -760,6 +773,146 @@ function PromptCard({
             </Tag>
           )}
         </Row>
+        <Row
+          fillWidth
+          horizontal="end"
+          style={{
+            position: "absolute",
+            bottom: "0",
+            left: "0",
+            right: "0",
+            margin: "auto",
+            width: "100%",
+            padding: "16px 16px",
+          }}
+        >
+          <Checkbox />
+        </Row>
+      </Card>
+    </Flex>
+  );
+}
+
+function PrivateCard({
+  title,
+  description,
+  card_id,
+  pfp,
+  id_published = false,
+  is_featured = false,
+}: {
+  title: string;
+  description: string;
+  pfp: string;
+  card_id: string;
+  id_published?: boolean;
+  is_featured?: boolean;
+}) {
+  const router = useRouter();
+  return (
+    <Flex>
+      {" "}
+      <Card
+        fillWidth
+        padding="s"
+        radius="s"
+        border="neutral-medium"
+        maxWidth={22}
+        minWidth={22}
+        as={Flex}
+        direction="column"
+        vertical="start"
+        horizontal="start"
+        gap="8"
+      >
+        <Row vertical="center" horizontal="space-between" fillWidth>
+          <Row gap="8">
+            <Avvvatars value={pfp} style="shape" />
+            <Column gap="4" vertical="center" horizontal="start">
+              <Text
+                variant="label-default-s"
+                onBackground="neutral-strong"
+                className={inter.className}
+                style={{ lineHeight: "1", fontSize: "13px" }}
+              >
+                {title}
+              </Text>
+              <SmartLink href="#">
+                <Text
+                  variant="label-default-s"
+                  onBackground="neutral-weak"
+                  className={inter.className}
+                  style={{ fontSize: "13px", lineHeight: "1" }}
+                >
+                  {card_id}
+                </Text>
+              </SmartLink>
+            </Column>
+          </Row>
+          <Row center gap="8">
+            {" "}
+            <IconButton
+              variant="secondary"
+              size="s"
+              onClick={() => router.push("/add-prompt")}
+            >
+              <LucideTrash2 color="#555" size={14} />
+            </IconButton>{" "}
+            <IconButton variant="secondary" size="s">
+              <ArrowUpRight color="#555" size={14} />
+            </IconButton>
+            <IconButton
+              variant="secondary"
+              size="s"
+              onClick={() => router.push("/add-prompt")}
+            >
+              <Clipboard color="#555" size={14} />
+            </IconButton>
+          </Row>{" "}
+        </Row>
+        <Row
+          fillWidth
+          vertical="center"
+          horizontal="start"
+          paddingY="4"
+          gap="4"
+        >
+          <Tag size="s" variant="brand">
+            <Text style={{ fontSize: "12px" }}>Private</Text>
+          </Tag>
+        </Row>
+        <CodeBlock
+          marginBottom="40"
+          reloadButton={true}
+          copyButton={false}
+          title="Prompt"
+          codes={[
+            {
+              code:
+                description.length > 80
+                  ? description.slice(0, 80).replace(/(.{33})/g, "$1\n") + "..."
+                  : description.replace(/(.{33})/g, "$1\n"),
+              language: "js",
+              label: "Line numbers",
+            },
+          ]}
+        />
+
+        <Row
+          fillWidth
+          horizontal="end"
+          style={{
+            position: "absolute",
+            bottom: "0",
+            left: "0",
+            right: "0",
+            margin: "auto",
+            width: "100%",
+            padding: "16px 16px",
+          }}
+        >
+          <Checkbox checked={true} defaultChecked={true} />
+        </Row>
       </Card>
     </Flex>
   );
@@ -778,6 +931,7 @@ function Dashboard({
     <>
       {" "}
       <Column
+        overflow="hidden"
         fillWidth
         fillHeight
         paddingX="xs"
@@ -1030,64 +1184,127 @@ function Dashboard({
               >
                 Your prompts
               </Text> */}
-
-            <Row fillWidth fillHeight minHeight={25} maxHeight={25} wrap={true}>
-              <LineBarChart
-                marginTop="16"
-                title="Actions vs Time"
-                fillHeight
-                axis="both"
-                legend={{ display: true, position: "top-left" }}
-                date={{
-                  format: "yyyy",
-                  start: new Date("2000-01-01"),
-                  end: new Date("2020-01-01"),
-                  selector: true,
-                  presets: {
-                    display: true,
-                    granularity: "year",
-                  },
-                  dual: true,
-                }}
-                series={[
-                  { key: "Likes", color: "emerald" },
-
-                  { key: "Total Prompts", color: "orange" },
-                ]}
-                data={[
-                  {
-                    date: new Date("2000-01-01"),
-                    Likes: 10,
-
-                    "Total Prompts": 8,
-                  },
-                  {
-                    date: new Date("2005-01-01"),
-                    Likes: 50,
-
-                    "Total Prompts": 15,
-                  },
-                  {
-                    date: new Date("2010-01-01"),
-                    Likes: 120,
-
-                    "Total Prompts": 65,
-                  },
-                  {
-                    date: new Date("2015-01-01"),
-                    Likes: 100,
-
-                    "Total Prompts": 80,
-                  },
-                  {
-                    date: new Date("2020-01-01"),
-                    Likes: 256,
-
-                    "Total Prompts": 44,
-                  },
-                ]}
-              />
-            </Row>
+            <Scroller
+              direction="column"
+              fadeColor="transparent"
+              fillWidth
+              fillHeight
+              minHeight={27}
+              paddingBottom="32"
+            >
+              <Column gap="16">
+                <BarChart
+                  minHeight={25}
+                  // title="Wealth distribution"
+                  description="Global share of wealth held by Top 1% vs Bottom 99%"
+                  axis="none"
+                  legend={{
+                    position: "bottom-center",
+                  }}
+                  series={[
+                    { key: "Top 1%", color: "yello" },
+                    { key: "Bottom 99%" },
+                  ]}
+                  data={[
+                    {
+                      label: "2025 (est.)",
+                      "Top 1%": 52.5,
+                      "Bottom 99%": 47.5,
+                    },
+                  ]}
+                />
+                <LineBarChart
+                  // title="Actions vs Time"
+                  fillHeight
+                  minHeight={25}
+                  axis="both"
+                  description="Global share of wealth held by Top 1% vs Bottom 99%"
+                  legend={{ display: true, position: "top-left" }}
+                  date={{
+                    format: "yyyy",
+                    start: new Date("2000-01-01"),
+                    end: new Date("2020-01-01"),
+                    selector: true,
+                    presets: {
+                      display: true,
+                      granularity: "year",
+                    },
+                    dual: true,
+                  }}
+                  series={[
+                    { key: "Likes", color: "emerald" },
+                    { key: "Total Prompts", color: "orange" },
+                  ]}
+                  data={[
+                    {
+                      date: new Date("2000-01-01"),
+                      Likes: 10,
+                      "Total Prompts": 8,
+                    },
+                    {
+                      date: new Date("2005-01-01"),
+                      Likes: 50,
+                      "Total Prompts": 15,
+                    },
+                    {
+                      date: new Date("2010-01-01"),
+                      Likes: 120,
+                      "Total Prompts": 65,
+                    },
+                    {
+                      date: new Date("2015-01-01"),
+                      Likes: 100,
+                      "Total Prompts": 80,
+                    },
+                    {
+                      date: new Date("2020-01-01"),
+                      Likes: 256,
+                      "Total Prompts": 44,
+                    },
+                  ]}
+                />
+                <LineChart
+                  // title="CEO vs Employee Paycheck"
+                  axis="both"
+                  description="Global share of wealth held by Top 1% vs Bottom 99%"
+                  minHeight={25}
+                  date={{
+                    format: "yyyy",
+                  }}
+                  series={[
+                    { key: "Employee Paycheck", color: "green" },
+                    { key: "CEO Paycheck", color: "red" },
+                  ]}
+                  data={[
+                    {
+                      date: new Date("1980-01-01"),
+                      "CEO Paycheck": 500000,
+                      "Employee Paycheck": 25000,
+                    },
+                    {
+                      date: new Date("1990-01-01"),
+                      "CEO Paycheck": 800000,
+                      "Employee Paycheck": 30000,
+                    },
+                    {
+                      date: new Date("2000-01-01"),
+                      "CEO Paycheck": 1200000,
+                      "Employee Paycheck": 33000,
+                    },
+                    {
+                      date: new Date("2010-01-01"),
+                      "CEO Paycheck": 1600000,
+                      "Employee Paycheck": 35000,
+                    },
+                    {
+                      date: new Date("2020-01-01"),
+                      "CEO Paycheck": 3000000,
+                      "Employee Paycheck": 40000,
+                    },
+                  ]}
+                />
+              </Column>
+            </Scroller>
           </Column>
           <Column
             fillWidth
@@ -1122,6 +1339,8 @@ import {
   TreeItem,
   TreeItemLabel,
 } from "../../../components/originui/tree";
+import ToolTipComponent from "@/components/comp-354";
+import AlertComponent from "@/components/comp-313";
 
 interface Item {
   name: string;
@@ -1243,83 +1462,103 @@ function ActiveTab({
   const [prompts, setPrompts] = useState([
     {
       title: "Summarize Article",
-      description: "Summarize the given article in 3 sentences.",
+      description:
+        "Summarize the given article in 3 sentences. The summary should capture the main points and be concise, clear, and easy to understand for a general audience. Avoid copying sentences verbatim from the article.",
       card_id: "prompt-001",
       pfp: "user1@example.com",
       id_published: true,
       is_featured: true,
+      is_private: false,
     },
     {
       title: "Translate to French",
-      description: "Translate the following text to French.",
+      description:
+        "Translate the following text to French. Ensure that the translation is accurate, natural-sounding, and preserves the original meaning and tone. Pay attention to idiomatic expressions and context.",
       card_id: "prompt-002",
       pfp: "user2@example.com",
       id_published: false,
       is_featured: false,
+      is_private: false,
     },
     {
       title: "Generate Blog Ideas",
-      description: "Suggest 5 blog post ideas about AI.",
+      description:
+        "Suggest 5 blog post ideas about AI. The ideas should be original, engaging, and suitable for a tech-savvy audience. Each idea should include a brief explanation of the topic and its relevance.",
       card_id: "prompt-003",
       pfp: "user3@example.com",
       id_published: true,
       is_featured: false,
+      is_private: false,
     },
     {
       title: "Code Review",
-      description: "Review this TypeScript code for best practices.",
+      description:
+        "Review this TypeScript code for best practices. Identify any potential bugs, suggest improvements for readability and maintainability, and recommend optimizations where appropriate. Provide clear explanations for each suggestion.",
       card_id: "prompt-004",
       pfp: "user4@example.com",
       id_published: false,
       is_featured: false,
+      is_private: true,
     },
     {
       title: "Write Email Reply",
-      description: "Draft a polite reply to this customer email.",
+      description:
+        "Draft a polite reply to this customer email. Address the customer's concerns, provide helpful information, and maintain a friendly and professional tone throughout the response.",
       card_id: "prompt-005",
       pfp: "user5@example.com",
       id_published: true,
       is_featured: false,
+      is_private: true,
     },
     {
       title: "Fix Grammar",
-      description: "Correct the grammar in this paragraph.",
+      description:
+        "Correct the grammar in this paragraph. Ensure that the revised text is free of grammatical errors, flows smoothly, and maintains the original meaning. Highlight any significant changes made.",
       card_id: "prompt-006",
       pfp: "user6@example.com",
       id_published: true,
       is_featured: true,
+      is_private: false,
     },
     {
       title: "Explain Concept",
-      description: "Explain quantum computing in simple terms.",
+      description:
+        "Explain quantum computing in simple terms. Use analogies and examples to make the concept accessible to someone with no technical background. Avoid jargon and keep the explanation concise.",
       card_id: "prompt-007",
       pfp: "user7@example.com",
       id_published: false,
       is_featured: false,
+      is_private: false,
     },
     {
       title: "Summarize Meeting",
-      description: "Summarize the key points from this meeting transcript.",
+      description:
+        "Summarize the key points from this meeting transcript. Focus on decisions made, action items, and any important discussions. Present the summary in a clear and organized format.",
       card_id: "prompt-008",
       pfp: "user8@example.com",
       id_published: true,
       is_featured: false,
+      is_private: true,
     },
     {
       title: "Generate Tweet",
-      description: "Write a tweet about the latest tech trends.",
+      description:
+        "Write a tweet about the latest tech trends. The tweet should be catchy, informative, and suitable for a broad audience. Use relevant hashtags and keep it within the character limit.",
       card_id: "prompt-009",
       pfp: "user9@example.com",
       id_published: false,
       is_featured: true,
+      is_private: false,
     },
     {
       title: "Create To-Do List",
-      description: "Make a to-do list for launching a new product.",
+      description:
+        "Make a to-do list for launching a new product. Include all major steps from initial planning to post-launch activities. Each item should be actionable and clearly described.",
       card_id: "prompt-010",
       pfp: "user10@example.com",
       id_published: true,
       is_featured: false,
+      is_private: true,
     },
   ]);
   const [searchValue, setSearchValue] = useState<string>("");
@@ -1363,14 +1602,14 @@ function ActiveTab({
                 className={inter.className}
                 onBackground="neutral-strong"
               >
-                Active Prompts
+                Private Prompts
               </Text>
               <Text
                 style={{ fontSize: "15px" }}
                 className={inter.className}
                 onBackground="neutral-medium"
               >
-                Manage your active prompts
+                Manage your private prompts
               </Text>
             </Column>
             <Row vertical="center" horizontal="center" gap="16">
@@ -1396,16 +1635,16 @@ function ActiveTab({
             fillWidth={false}
             selected={activeTab.toLowerCase()}
             buttons={[
-              { value: "shared", label: "Shared" },
+              { value: "shared", label: "Shared", disabled: true },
               { value: "private", label: "Private" },
-              { value: "public", label: "Public" },
+              { value: "public", label: "Public", disabled: true },
             ]}
             onToggle={(value) => {
               setSegmentedControlValue(value);
               setActiveTab(value.charAt(0).toUpperCase() + value.slice(1));
             }}
           />
-          <Column maxWidth={70} fillWidth>
+          <Column fillWidth>
             {activeTab.toLowerCase() === "shared" && (
               <>
                 <Row fillWidth gap="8">
@@ -1464,13 +1703,62 @@ function ActiveTab({
             )}
 
             {activeTab.toLowerCase() === "private" && (
-              <Text
-                variant="body-default-s"
-                className={inter.className}
-                onBackground="neutral-medium"
-              >
-                Private prompts are not yet implemented.
-              </Text>
+              <>
+                {" "}
+                <Column marginTop="20">
+                  <Column fillWidth>
+                    <Row fillWidth gap="8">
+                      <Input
+                        id="input-1"
+                        label="Search"
+                        height="s"
+                        value={searchValue}
+                        onChange={handleChange}
+                        hasPrefix={<Icon name="search" size="xs" />}
+                        hasSuffix={
+                          searchValue.length > 0 ? (
+                            <IconButton
+                              variant="ghost"
+                              icon="close"
+                              size="s"
+                              onClick={handleClear}
+                              aria-label="Clear search"
+                            />
+                          ) : null
+                        }
+                      />
+                    </Row>
+                    <Scroller
+                      direction="column"
+                      fadeColor="transparent"
+                      fillWidth
+                      style={{ maxHeight: "calc(100vh - 270px)" }}
+                    >
+                      <Row
+                        marginTop="20"
+                        fillWidth
+                        fitHeight
+                        gap="12"
+                        vertical="start"
+                        horizontal="start"
+                        wrap={true}
+                      >
+                        {prompts.map((prompt, index) => (
+                          <PrivateCard
+                            key={index}
+                            title={prompt.title}
+                            description={prompt.description}
+                            card_id={prompt.card_id}
+                            pfp={prompt.pfp}
+                            id_published={prompt.id_published}
+                            is_featured={prompt.is_featured}
+                          />
+                        ))}
+                      </Row>
+                    </Scroller>{" "}
+                  </Column>
+                </Column>
+              </>
             )}
 
             {activeTab.toLowerCase() === "public" && (

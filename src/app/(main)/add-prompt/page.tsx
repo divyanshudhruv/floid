@@ -17,6 +17,10 @@ import {
   Media,
   SmartLink,
   InlineCode,
+  SegmentedControl,
+  Input,
+  Icon,
+  Checkbox,
 } from "@once-ui-system/core";
 import Avvvatars from "avvvatars-react";
 
@@ -41,8 +45,11 @@ import {
   Copy,
   Delete,
   LucideMenu,
+  LucideTrash2,
   Plus,
   SidebarCloseIcon,
+  Trash,
+  Trash2Icon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import BreadcrumbComponent from "@/components/comp-449";
@@ -153,7 +160,14 @@ export default function AddPromptPage() {
           vertical="space-between"
         >
           <Column>
-            <Flex gap="8" vertical="center" horizontal="start" fitWidth>
+            <Flex
+              gap="8"
+              vertical="center"
+              horizontal="start"
+              fitWidth
+              onClick={() => router.push("/")}
+              cursor="pointer"
+            >
               <img
                 src="/logo-dark.png"
                 style={{
@@ -286,6 +300,16 @@ export default function AddPromptPage() {
         {section === "All Prompts" && (
           <AllPrompts userInfoFromSession={userInfoFromSession} />
         )}
+
+        {(section === "Shared" ||
+          section === "Private" ||
+          section === "Public") && (
+          <ActiveTab
+            userInfoFromSession={userInfoFromSession}
+            activeTab={section}
+            setActiveTab={setSection}
+          />
+        )}
       </Row>
     </>
   );
@@ -381,6 +405,15 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
       is_featured: false,
     },
   ]);
+  const [searchValue, setSearchValue] = useState<string>("");
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
+  };
+
+  const handleClear = () => {
+    setSearchValue("");
+  };
 
   return (
     <>
@@ -419,7 +452,7 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
                 className={inter.className}
                 onBackground="neutral-medium"
               >
-                Explore and manage your prompts collection 
+                Explore and manage your prompts collection
               </Text>
             </Column>
             <Row vertical="center" horizontal="center" gap="16">
@@ -427,43 +460,196 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
                 Free
               </Tag>
               <Button weight="default" size="m">
-                <Text className={inter.className} style={{ fontSize: "14px" }} variant="label-default-m">
+                <Text
+                  className={inter.className}
+                  style={{ fontSize: "14px" }}
+                  variant="label-default-m"
+                >
                   Upgrade to pro
                 </Text>
               </Button>
             </Row>
           </Row>
         </Column>
-        <Scroller
-          direction="column"
-          fadeColor="transparent"
-          fillWidth
-          style={{ maxHeight: "calc(100vh - 150px)" }}
-        >
-          <Row
-            marginTop="40"
-            fillWidth
-            fitHeight
-            gap="20"
-            vertical="start"
-            horizontal="start"
-            wrap={true}
-          >
-            {prompts.map((prompt, index) => (
-              <PromptCard
-                key={index}
-                title={prompt.title}
-                description={prompt.description}
-                card_id={prompt.card_id}
-                pfp={prompt.pfp}
-                id_published={prompt.id_published}
-                is_featured={prompt.is_featured}
+
+        <Column marginTop="20">
+          <Column maxWidth={68} fillWidth>
+            <Row fillWidth gap="8">
+              <Input
+                id="input-1"
+                label="Search"
+                height="s"
+                value={searchValue}
+                onChange={handleChange}
+                hasPrefix={<Icon name="search" size="xs" />}
+                hasSuffix={
+                  searchValue.length > 0 ? (
+                    <IconButton
+                      variant="ghost"
+                      icon="close"
+                      size="s"
+                      onClick={handleClear}
+                      aria-label="Clear search"
+                    />
+                  ) : null
+                }
               />
-            ))}
-          </Row>
-        </Scroller>
+            </Row>
+            <Scroller
+              direction="column"
+              fadeColor="transparent"
+              fillWidth
+              style={{ maxHeight: "calc(100vh - 270px)" }}
+            >
+              <Row
+                marginTop="20"
+                fillWidth
+                fitHeight
+                gap="12"
+                vertical="start"
+                horizontal="start"
+                wrap={true}
+              >
+                {prompts.map((prompt, index) => (
+                  <PromptCard
+                    key={index}
+                    title={prompt.title}
+                    description={prompt.description}
+                    card_id={prompt.card_id}
+                    pfp={prompt.pfp}
+                    id_published={prompt.id_published}
+                    is_featured={prompt.is_featured}
+                  />
+                ))}
+              </Row>
+            </Scroller>{" "}
+          </Column>
+        </Column>
       </Column>
     </>
+  );
+}
+
+function SharedCard({
+  title,
+  description,
+  card_id,
+  pfp,
+  id_published = false,
+  is_featured = false,
+}: {
+  title: string;
+  description: string;
+  pfp: string;
+  card_id: string;
+  id_published?: boolean;
+  is_featured?: boolean;
+}) {
+  const router = useRouter();
+  return (
+    <Flex fillWidth>
+      {" "}
+      <Card
+        fillWidth
+        padding="s"
+        radius="m"
+        border="neutral-medium"
+        direction="row"
+        vertical="center"
+        horizontal="start"
+        gap="8"
+      >
+        <Row vertical="center" horizontal="start" fillWidth>
+          <Row gap="8" fillWidth>
+            {" "}
+            <Checkbox /> <Avvvatars value={pfp} style="shape" />
+            <Row gap="4" vertical="center" horizontal="start">
+              <Text
+                variant="label-default-s"
+                onBackground="neutral-strong"
+                className={inter.className}
+                style={{ lineHeight: "1", fontSize: "13px" }}
+              >
+                {title}
+              </Text>
+              <SmartLink href="#">
+                <Text
+                  variant="label-default-s"
+                  onBackground="neutral-weak"
+                  className={inter.className}
+                  style={{ fontSize: "13px", lineHeight: "1" }}
+                >
+                  <InlineCode> {card_id}</InlineCode>
+                </Text>
+              </SmartLink>
+            </Row>
+          </Row>
+          <Row
+            fillWidth
+            vertical="center"
+            horizontal="start"
+            paddingY="4"
+            gap="4"
+          >
+            {is_featured && (
+              <Tag size="s" variant="gradient">
+                <Text style={{ fontSize: "12px" }}>Featured</Text>
+              </Tag>
+            )}
+            {id_published ? (
+              <Tag
+                size="s"
+                style={{
+                  backgroundColor: "#f0f0f0",
+                  borderColor: "transparent",
+                }}
+              >
+                <Text
+                  style={{ fontSize: "12px" }}
+                  onBackground="neutral-medium"
+                >
+                  Published
+                </Text>
+              </Tag>
+            ) : (
+              <Tag
+                size="s"
+                style={{
+                  backgroundColor: "#dadada",
+                  borderColor: "transparent",
+                }}
+              >
+                <Text
+                  style={{ fontSize: "12px" }}
+                  onBackground="neutral-medium"
+                >
+                  Draft
+                </Text>
+              </Tag>
+            )}
+          </Row>
+        </Row>
+        <Row center gap="8">
+          <IconButton variant="secondary" size="m">
+            <ArrowUpRight color="#555" size={14} />
+          </IconButton>
+          <IconButton
+            variant="secondary"
+            size="m"
+            onClick={() => router.push("/add-prompt")}
+          >
+            <Clipboard color="#555" size={14} />
+          </IconButton>{" "}
+          <IconButton
+            variant="secondary"
+            size="m"
+            onClick={() => router.push("/add-prompt")}
+          >
+            <LucideTrash2 color="#555" size={14} />
+          </IconButton>{" "}
+        </Row>{" "}
+      </Card>
+    </Flex>
   );
 }
 
@@ -536,7 +722,13 @@ function PromptCard({
             </IconButton>
           </Row>{" "}
         </Row>
-        <Row fillWidth vertical="center" horizontal="start" paddingY="4" gap="4">
+        <Row
+          fillWidth
+          vertical="center"
+          horizontal="start"
+          paddingY="4"
+          gap="4"
+        >
           {is_featured && (
             <Tag size="s" variant="gradient">
               <Text style={{ fontSize: "12px" }}>Featured</Text>
@@ -627,7 +819,11 @@ function Dashboard({
                 Free
               </Tag>
               <Button weight="default" size="m">
-                <Text className={inter.className} style={{ fontSize: "14px" }} variant="label-default-m">
+                <Text
+                  className={inter.className}
+                  style={{ fontSize: "14px" }}
+                  variant="label-default-m"
+                >
                   Upgrade to pro
                 </Text>
               </Button>
@@ -1030,5 +1226,265 @@ function Sidebar({ items, setSection }: SidebarProps) {
         </a>
       </p> */}
     </div>
+  );
+}
+
+function ActiveTab({
+  userInfoFromSession,
+  activeTab = "shared",
+  setActiveTab = () => {},
+}: {
+  userInfoFromSession: any;
+  activeTab?: string;
+  setActiveTab?: (tab: string) => void;
+}) {
+  const router = useRouter();
+
+  const [prompts, setPrompts] = useState([
+    {
+      title: "Summarize Article",
+      description: "Summarize the given article in 3 sentences.",
+      card_id: "prompt-001",
+      pfp: "user1@example.com",
+      id_published: true,
+      is_featured: true,
+    },
+    {
+      title: "Translate to French",
+      description: "Translate the following text to French.",
+      card_id: "prompt-002",
+      pfp: "user2@example.com",
+      id_published: false,
+      is_featured: false,
+    },
+    {
+      title: "Generate Blog Ideas",
+      description: "Suggest 5 blog post ideas about AI.",
+      card_id: "prompt-003",
+      pfp: "user3@example.com",
+      id_published: true,
+      is_featured: false,
+    },
+    {
+      title: "Code Review",
+      description: "Review this TypeScript code for best practices.",
+      card_id: "prompt-004",
+      pfp: "user4@example.com",
+      id_published: false,
+      is_featured: false,
+    },
+    {
+      title: "Write Email Reply",
+      description: "Draft a polite reply to this customer email.",
+      card_id: "prompt-005",
+      pfp: "user5@example.com",
+      id_published: true,
+      is_featured: false,
+    },
+    {
+      title: "Fix Grammar",
+      description: "Correct the grammar in this paragraph.",
+      card_id: "prompt-006",
+      pfp: "user6@example.com",
+      id_published: true,
+      is_featured: true,
+    },
+    {
+      title: "Explain Concept",
+      description: "Explain quantum computing in simple terms.",
+      card_id: "prompt-007",
+      pfp: "user7@example.com",
+      id_published: false,
+      is_featured: false,
+    },
+    {
+      title: "Summarize Meeting",
+      description: "Summarize the key points from this meeting transcript.",
+      card_id: "prompt-008",
+      pfp: "user8@example.com",
+      id_published: true,
+      is_featured: false,
+    },
+    {
+      title: "Generate Tweet",
+      description: "Write a tweet about the latest tech trends.",
+      card_id: "prompt-009",
+      pfp: "user9@example.com",
+      id_published: false,
+      is_featured: true,
+    },
+    {
+      title: "Create To-Do List",
+      description: "Make a to-do list for launching a new product.",
+      card_id: "prompt-010",
+      pfp: "user10@example.com",
+      id_published: true,
+      is_featured: false,
+    },
+  ]);
+  const [searchValue, setSearchValue] = useState<string>("");
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
+  };
+
+  const handleClear = () => {
+    setSearchValue("");
+  };
+
+  const [segmentedControlValue, setSegmentedControlValue] = useState("shared");
+
+  return (
+    <>
+      <Column
+        fillWidth
+        fillHeight
+        paddingX="xs"
+        paddingY="xs"
+        radius="s-4"
+        border="neutral-medium"
+        style={{ backgroundColor: "#fff" }}
+      >
+        <Column
+          gap="4"
+          fillWidth
+          fitHeight
+          vertical="center"
+          horizontal="start"
+        >
+          <IconButton variant="secondary" size="m">
+            <SidebarCloseIcon color="#555" size={17}></SidebarCloseIcon>
+          </IconButton>
+          <Row gap="0" fillWidth vertical="center" horizontal="space-between">
+            <Column>
+              <Text
+                variant="heading-strong-xl"
+                style={{ fontSize: "24px" }}
+                className={inter.className}
+                onBackground="neutral-strong"
+              >
+                Active Prompts
+              </Text>
+              <Text
+                style={{ fontSize: "15px" }}
+                className={inter.className}
+                onBackground="neutral-medium"
+              >
+                Manage your active prompts
+              </Text>
+            </Column>
+            <Row vertical="center" horizontal="center" gap="16">
+              <Tag background="neutral-strong" fitHeight fitWidth>
+                Free
+              </Tag>
+              <Button weight="default" size="m">
+                <Text
+                  className={inter.className}
+                  style={{ fontSize: "14px" }}
+                  variant="label-default-m"
+                >
+                  Upgrade to pro
+                </Text>
+              </Button>
+            </Row>
+          </Row>
+        </Column>
+        <Column gap="20">
+          {" "}
+          <SegmentedControl
+            marginTop="20"
+            fillWidth={false}
+            selected={activeTab.toLowerCase()}
+            buttons={[
+              { value: "shared", label: "Shared" },
+              { value: "private", label: "Private" },
+              { value: "public", label: "Public" },
+            ]}
+            onToggle={(value) => {
+              setSegmentedControlValue(value);
+              setActiveTab(value.charAt(0).toUpperCase() + value.slice(1));
+            }}
+          />
+          <Column maxWidth={70} fillWidth>
+            {activeTab.toLowerCase() === "shared" && (
+              <>
+                <Row fillWidth gap="8">
+                  <Input
+                    id="input-1"
+                    label="Search"
+                    height="s"
+                    value={searchValue}
+                    onChange={handleChange}
+                    hasPrefix={<Icon name="search" size="xs" />}
+                    hasSuffix={
+                      searchValue.length > 0 ? (
+                        <IconButton
+                          variant="ghost"
+                          icon="close"
+                          size="s"
+                          onClick={handleClear}
+                          aria-label="Clear search"
+                        />
+                      ) : null
+                    }
+                  />
+                  <Button size="l" className={inter.className}>
+                    <Text className={inter.className}>Share</Text>
+                  </Button>
+                </Row>
+                <Scroller
+                  direction="column"
+                  fadeColor="transparent"
+                  fillWidth
+                  style={{ maxHeight: "calc(100vh - 270px)" }}
+                >
+                  <Column
+                    marginTop="20"
+                    fillWidth
+                    fitHeight
+                    gap="12"
+                    vertical="center"
+                    horizontal="center"
+                    wrap={true}
+                  >
+                    {prompts.map((prompt, index) => (
+                      <SharedCard
+                        key={index}
+                        title={prompt.title}
+                        description={prompt.description}
+                        card_id={prompt.card_id}
+                        pfp={prompt.pfp}
+                        id_published={prompt.id_published}
+                        is_featured={prompt.is_featured}
+                      />
+                    ))}
+                  </Column>
+                </Scroller>{" "}
+              </>
+            )}
+
+            {activeTab.toLowerCase() === "private" && (
+              <Text
+                variant="body-default-s"
+                className={inter.className}
+                onBackground="neutral-medium"
+              >
+                Private prompts are not yet implemented.
+              </Text>
+            )}
+
+            {activeTab.toLowerCase() === "public" && (
+              <Text
+                variant="body-default-s"
+                className={inter.className}
+                onBackground="neutral-medium"
+              >
+                Public prompts are not yet implemented.
+              </Text>
+            )}
+          </Column>{" "}
+        </Column>
+      </Column>
+    </>
   );
 }

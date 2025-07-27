@@ -291,8 +291,96 @@ export default function AddPromptPage() {
   );
 }
 
+/**
+ * Example prompts data for PromptCard component.
+ * Save this as prompts.json in your project.
+ */
+
 function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
   const router = useRouter();
+
+  const [prompts, setPrompts] = useState([
+    {
+      title: "Summarize Article",
+      description: "Summarize the given article in 3 sentences.",
+      card_id: "prompt-001",
+      pfp: "user1@example.com",
+      id_published: true,
+      is_featured: true,
+    },
+    {
+      title: "Translate to French",
+      description: "Translate the following text to French.",
+      card_id: "prompt-002",
+      pfp: "user2@example.com",
+      id_published: false,
+      is_featured: false,
+    },
+    {
+      title: "Generate Blog Ideas",
+      description: "Suggest 5 blog post ideas about AI.",
+      card_id: "prompt-003",
+      pfp: "user3@example.com",
+      id_published: true,
+      is_featured: false,
+    },
+    {
+      title: "Code Review",
+      description: "Review this TypeScript code for best practices.",
+      card_id: "prompt-004",
+      pfp: "user4@example.com",
+      id_published: false,
+      is_featured: false,
+    },
+    {
+      title: "Write Email Reply",
+      description: "Draft a polite reply to this customer email.",
+      card_id: "prompt-005",
+      pfp: "user5@example.com",
+      id_published: true,
+      is_featured: false,
+    },
+    {
+      title: "Fix Grammar",
+      description: "Correct the grammar in this paragraph.",
+      card_id: "prompt-006",
+      pfp: "user6@example.com",
+      id_published: true,
+      is_featured: true,
+    },
+    {
+      title: "Explain Concept",
+      description: "Explain quantum computing in simple terms.",
+      card_id: "prompt-007",
+      pfp: "user7@example.com",
+      id_published: false,
+      is_featured: false,
+    },
+    {
+      title: "Summarize Meeting",
+      description: "Summarize the key points from this meeting transcript.",
+      card_id: "prompt-008",
+      pfp: "user8@example.com",
+      id_published: true,
+      is_featured: false,
+    },
+    {
+      title: "Generate Tweet",
+      description: "Write a tweet about the latest tech trends.",
+      card_id: "prompt-009",
+      pfp: "user9@example.com",
+      id_published: false,
+      is_featured: true,
+    },
+    {
+      title: "Create To-Do List",
+      description: "Make a to-do list for launching a new product.",
+      card_id: "prompt-010",
+      pfp: "user10@example.com",
+      id_published: true,
+      is_featured: false,
+    },
+  ]);
 
   return (
     <>
@@ -331,7 +419,7 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
                 className={inter.className}
                 onBackground="neutral-medium"
               >
-                Here you can find all the prompts created by you. 🔨
+                Explore and manage your prompts collection 
               </Text>
             </Column>
             <Row vertical="center" horizontal="center" gap="16">
@@ -339,7 +427,7 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
                 Free
               </Tag>
               <Button weight="default" size="m">
-                <Text className={outfit.className} variant="label-default-m">
+                <Text className={inter.className} style={{ fontSize: "14px" }} variant="label-default-m">
                   Upgrade to pro
                 </Text>
               </Button>
@@ -361,1090 +449,130 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
             horizontal="start"
             wrap={true}
           >
-            <Flex>
-              {" "}
-              <Card
-                fillWidth
-                padding="s"
-                radius="s"
-                border="neutral-medium"
-                maxWidth={25}
-                as={Flex}
-                direction="column"
-                vertical="start"
-                horizontal="start"
-                gap="8"
-              >
-                <Row vertical="center" horizontal="space-between" fillWidth>
-                  <Row gap="8">
-                    <Avvvatars value={"vhibojnkljjsdgwer"} style="shape" />
-                    <Column gap="4" vertical="center" horizontal="start">
-                      <Text
-                        variant="label-default-s"
-                        onBackground="neutral-strong"
-                        className={inter.className}
-                        style={{ lineHeight: "1", fontSize: "13px" }}
-                      >
-                        Image prompt
-                      </Text>
-                      <SmartLink href="#">
-                        <Text
-                          variant="label-default-s"
-                          onBackground="neutral-weak"
-                          className={inter.className}
-                          style={{ fontSize: "13px", lineHeight: "1" }}
-                        >
-                          asdf-asf3fasf-qi9304-sjot
-                        </Text>
-                      </SmartLink>
-                    </Column>
-                  </Row>
-                  <Row center gap="8">
-                    <IconButton variant="secondary" size="s">
-                      <ArrowUpRight color="#555" size={14} />
-                    </IconButton>
-                    <IconButton
-                      variant="secondary"
-                      size="s"
-                      onClick={() => router.push("/add-prompt")}
-                    >
-                      <Clipboard color="#555" size={14} />
-                    </IconButton>
-                  </Row>{" "}
-                </Row>
-                <Row
-                  fillWidth
-                  vertical="center"
-                  horizontal="start"
-                  paddingY="4"
-                >
-                  <Tag
-                    size="s"
-                    style={{
-                      backgroundColor: "#F0F0F0",
-                      borderColor: "transparent",
-                    }}
-                  >
-                    <Text
-                      style={{ fontSize: "12px" }}
-                      onBackground="neutral-medium"
-                    >
-                      Published
-                    </Text>
-                  </Tag>
-                </Row>
-                <InlineCode
-                  padding="0"
-                  style={{
-                    padding: "10px",
-                    backgroundColor: "#F0F0F0",
-                    borderColor: "transparent",
-                  }}
-                >
-                  <Text
-                    onBackground="neutral-strong"
-                    style={{ letterSpacing: "0.2px", whiteSpace: "pre-line" }}
-                  >
-                    {`You are a strict and professional prompt engineer. Your task isto create a prompt for a text-to-image model that generates animage of a futuristic cityscape at night, with neon lights andflying cars.
-
-                And you will provide the prompt in a code block format, like this:
-
-
-                prompt: "Create an image of a futuristic cityscape at night, with neon lights and flying cars."
-                                
-                tags: ["futuristic", "cityscape", "night", "neon lights", "flying cars"]
-
-                `}
-                  </Text>
-                </InlineCode>
-              </Card>
-            </Flex>
-            <Flex>
-              {" "}
-              <Card
-                fillWidth
-                padding="s"
-                radius="s"
-                border="neutral-medium"
-                maxWidth={25}
-                as={Flex}
-                direction="column"
-                vertical="start"
-                horizontal="start"
-                gap="8"
-              >
-                <Row vertical="center" horizontal="space-between" fillWidth>
-                  <Row gap="8">
-                    <Avvvatars value={"vhibojnkljjsdgwer"} style="shape" />
-                    <Column gap="4" vertical="center" horizontal="start">
-                      <Text
-                        variant="label-default-s"
-                        onBackground="neutral-strong"
-                        className={inter.className}
-                        style={{ lineHeight: "1", fontSize: "13px" }}
-                      >
-                        Image prompt
-                      </Text>
-                      <SmartLink href="#">
-                        <Text
-                          variant="label-default-s"
-                          onBackground="neutral-weak"
-                          className={inter.className}
-                          style={{ fontSize: "13px", lineHeight: "1" }}
-                        >
-                          asdf-asf3fasf-qi9304-sjot
-                        </Text>
-                      </SmartLink>
-                    </Column>
-                  </Row>
-                  <Row center gap="8">
-                    <IconButton variant="secondary" size="s">
-                      <ArrowUpRight color="#555" size={14} />
-                    </IconButton>
-                    <IconButton
-                      variant="secondary"
-                      size="s"
-                      onClick={() => router.push("/add-prompt")}
-                    >
-                      <Clipboard color="#555" size={14} />
-                    </IconButton>
-                  </Row>{" "}
-                </Row>
-                <Row
-                  fillWidth
-                  vertical="center"
-                  horizontal="start"
-                  paddingY="4"
-                >
-                  <Tag
-                    size="s"
-                    style={{
-                      backgroundColor: "#F0F0F0",
-                      borderColor: "transparent",
-                    }}
-                  >
-                    <Text
-                      style={{ fontSize: "12px" }}
-                      onBackground="neutral-medium"
-                    >
-                      Published
-                    </Text>
-                  </Tag>
-                </Row>
-                <InlineCode
-                  padding="0"
-                  style={{
-                    padding: "10px",
-                    backgroundColor: "#F0F0F0",
-                    borderColor: "transparent",
-                  }}
-                >
-                  <Text
-                    onBackground="neutral-strong"
-                    style={{ letterSpacing: "0.2px", whiteSpace: "pre-line" }}
-                  >
-                    {`You are a strict and professional prompt engineer. Your task isto create a prompt for a text-to-image model that generates animage of a futuristic cityscape at night, with neon lights andflying cars.
-
-                And you will provide the prompt in a code block format, like this:
-
-
-                prompt: "Create an image of a futuristic cityscape at night, with neon lights and flying cars."
-                                
-                tags: ["futuristic", "cityscape", "night", "neon lights", "flying cars"]
-
-                `}
-                  </Text>
-                </InlineCode>
-              </Card>
-            </Flex>
-            <Flex>
-              {" "}
-              <Card
-                fillWidth
-                padding="s"
-                radius="s"
-                border="neutral-medium"
-                maxWidth={25}
-                as={Flex}
-                direction="column"
-                vertical="start"
-                horizontal="start"
-                gap="8"
-              >
-                <Row vertical="center" horizontal="space-between" fillWidth>
-                  <Row gap="8">
-                    <Avvvatars value={"vhibojnkljjsdgwer"} style="shape" />
-                    <Column gap="4" vertical="center" horizontal="start">
-                      <Text
-                        variant="label-default-s"
-                        onBackground="neutral-strong"
-                        className={inter.className}
-                        style={{ lineHeight: "1", fontSize: "13px" }}
-                      >
-                        Image prompt
-                      </Text>
-                      <SmartLink href="#">
-                        <Text
-                          variant="label-default-s"
-                          onBackground="neutral-weak"
-                          className={inter.className}
-                          style={{ fontSize: "13px", lineHeight: "1" }}
-                        >
-                          asdf-asf3fasf-qi9304-sjot
-                        </Text>
-                      </SmartLink>
-                    </Column>
-                  </Row>
-                  <Row center gap="8">
-                    <IconButton variant="secondary" size="s">
-                      <ArrowUpRight color="#555" size={14} />
-                    </IconButton>
-                    <IconButton
-                      variant="secondary"
-                      size="s"
-                      onClick={() => router.push("/add-prompt")}
-                    >
-                      <Clipboard color="#555" size={14} />
-                    </IconButton>
-                  </Row>{" "}
-                </Row>
-                <Row
-                  fillWidth
-                  vertical="center"
-                  horizontal="start"
-                  paddingY="4"
-                >
-                  <Tag
-                    size="s"
-                    style={{
-                      backgroundColor: "#F0F0F0",
-                      borderColor: "transparent",
-                    }}
-                  >
-                    <Text
-                      style={{ fontSize: "12px" }}
-                      onBackground="neutral-medium"
-                    >
-                      Published
-                    </Text>
-                  </Tag>
-                </Row>
-                <InlineCode
-                  padding="0"
-                  style={{
-                    padding: "10px",
-                    backgroundColor: "#F0F0F0",
-                    borderColor: "transparent",
-                  }}
-                >
-                  <Text
-                    onBackground="neutral-strong"
-                    style={{ letterSpacing: "0.2px", whiteSpace: "pre-line" }}
-                  >
-                    {`You are a strict and professional prompt engineer. Your task isto create a prompt for a text-to-image model that generates animage of a futuristic cityscape at night, with neon lights andflying cars.
-
-                And you will provide the prompt in a code block format, like this:
-
-
-                prompt: "Create an image of a futuristic cityscape at night, with neon lights and flying cars."
-                                
-                tags: ["futuristic", "cityscape", "night", "neon lights", "flying cars"]
-
-                `}
-                  </Text>
-                </InlineCode>
-              </Card>
-            </Flex>
-            <Flex>
-              {" "}
-              <Card
-                fillWidth
-                padding="s"
-                radius="s"
-                border="neutral-medium"
-                maxWidth={25}
-                as={Flex}
-                direction="column"
-                vertical="start"
-                horizontal="start"
-                gap="8"
-              >
-                <Row vertical="center" horizontal="space-between" fillWidth>
-                  <Row gap="8">
-                    <Avvvatars value={"vhibojnkljjsdgwer"} style="shape" />
-                    <Column gap="4" vertical="center" horizontal="start">
-                      <Text
-                        variant="label-default-s"
-                        onBackground="neutral-strong"
-                        className={inter.className}
-                        style={{ lineHeight: "1", fontSize: "13px" }}
-                      >
-                        Image prompt
-                      </Text>
-                      <SmartLink href="#">
-                        <Text
-                          variant="label-default-s"
-                          onBackground="neutral-weak"
-                          className={inter.className}
-                          style={{ fontSize: "13px", lineHeight: "1" }}
-                        >
-                          asdf-asf3fasf-qi9304-sjot
-                        </Text>
-                      </SmartLink>
-                    </Column>
-                  </Row>
-                  <Row center gap="8">
-                    <IconButton variant="secondary" size="s">
-                      <ArrowUpRight color="#555" size={14} />
-                    </IconButton>
-                    <IconButton
-                      variant="secondary"
-                      size="s"
-                      onClick={() => router.push("/add-prompt")}
-                    >
-                      <Clipboard color="#555" size={14} />
-                    </IconButton>
-                  </Row>{" "}
-                </Row>
-                <Row
-                  fillWidth
-                  vertical="center"
-                  horizontal="start"
-                  paddingY="4"
-                >
-                  <Tag
-                    size="s"
-                    style={{
-                      backgroundColor: "#F0F0F0",
-                      borderColor: "transparent",
-                    }}
-                  >
-                    <Text
-                      style={{ fontSize: "12px" }}
-                      onBackground="neutral-medium"
-                    >
-                      Published
-                    </Text>
-                  </Tag>
-                </Row>
-                <InlineCode
-                  padding="0"
-                  style={{
-                    padding: "10px",
-                    backgroundColor: "#F0F0F0",
-                    borderColor: "transparent",
-                  }}
-                >
-                  <Text
-                    onBackground="neutral-strong"
-                    style={{ letterSpacing: "0.2px", whiteSpace: "pre-line" }}
-                  >
-                    {`You are a strict and professional prompt engineer. Your task isto create a prompt for a text-to-image model that generates animage of a futuristic cityscape at night, with neon lights andflying cars.
-
-                And you will provide the prompt in a code block format, like this:
-
-
-                prompt: "Create an image of a futuristic cityscape at night, with neon lights and flying cars."
-                                
-                tags: ["futuristic", "cityscape", "night", "neon lights", "flying cars"]
-
-                `}
-                  </Text>
-                </InlineCode>
-              </Card>
-            </Flex>
-            <Flex>
-              {" "}
-              <Card
-                fillWidth
-                padding="s"
-                radius="s"
-                border="neutral-medium"
-                maxWidth={25}
-                as={Flex}
-                direction="column"
-                vertical="start"
-                horizontal="start"
-                gap="8"
-              >
-                <Row vertical="center" horizontal="space-between" fillWidth>
-                  <Row gap="8">
-                    <Avvvatars value={"vhibojnkljjsdgwer"} style="shape" />
-                    <Column gap="4" vertical="center" horizontal="start">
-                      <Text
-                        variant="label-default-s"
-                        onBackground="neutral-strong"
-                        className={inter.className}
-                        style={{ lineHeight: "1", fontSize: "13px" }}
-                      >
-                        Image prompt
-                      </Text>
-                      <SmartLink href="#">
-                        <Text
-                          variant="label-default-s"
-                          onBackground="neutral-weak"
-                          className={inter.className}
-                          style={{ fontSize: "13px", lineHeight: "1" }}
-                        >
-                          asdf-asf3fasf-qi9304-sjot
-                        </Text>
-                      </SmartLink>
-                    </Column>
-                  </Row>
-                  <Row center gap="8">
-                    <IconButton variant="secondary" size="s">
-                      <ArrowUpRight color="#555" size={14} />
-                    </IconButton>
-                    <IconButton
-                      variant="secondary"
-                      size="s"
-                      onClick={() => router.push("/add-prompt")}
-                    >
-                      <Clipboard color="#555" size={14} />
-                    </IconButton>
-                  </Row>{" "}
-                </Row>
-                <Row
-                  fillWidth
-                  vertical="center"
-                  horizontal="start"
-                  paddingY="4"
-                >
-                  <Tag
-                    size="s"
-                    style={{
-                      backgroundColor: "#F0F0F0",
-                      borderColor: "transparent",
-                    }}
-                  >
-                    <Text
-                      style={{ fontSize: "12px" }}
-                      onBackground="neutral-medium"
-                    >
-                      Published
-                    </Text>
-                  </Tag>
-                </Row>
-                <InlineCode
-                  padding="0"
-                  style={{
-                    padding: "10px",
-                    backgroundColor: "#F0F0F0",
-                    borderColor: "transparent",
-                  }}
-                >
-                  <Text
-                    onBackground="neutral-strong"
-                    style={{ letterSpacing: "0.2px", whiteSpace: "pre-line" }}
-                  >
-                    {`You are a strict and professional prompt engineer. Your task isto create a prompt for a text-to-image model that generates animage of a futuristic cityscape at night, with neon lights andflying cars.
-
-                And you will provide the prompt in a code block format, like this:
-
-
-                prompt: "Create an image of a futuristic cityscape at night, with neon lights and flying cars."
-                                
-                tags: ["futuristic", "cityscape", "night", "neon lights", "flying cars"]
-
-                `}
-                  </Text>
-                </InlineCode>
-              </Card>
-            </Flex>
-            <Flex>
-              {" "}
-              <Card
-                fillWidth
-                padding="s"
-                radius="s"
-                border="neutral-medium"
-                maxWidth={25}
-                as={Flex}
-                direction="column"
-                vertical="start"
-                horizontal="start"
-                gap="8"
-              >
-                <Row vertical="center" horizontal="space-between" fillWidth>
-                  <Row gap="8">
-                    <Avvvatars value={"vhibojnkljjsdgwer"} style="shape" />
-                    <Column gap="4" vertical="center" horizontal="start">
-                      <Text
-                        variant="label-default-s"
-                        onBackground="neutral-strong"
-                        className={inter.className}
-                        style={{ lineHeight: "1", fontSize: "13px" }}
-                      >
-                        Image prompt
-                      </Text>
-                      <SmartLink href="#">
-                        <Text
-                          variant="label-default-s"
-                          onBackground="neutral-weak"
-                          className={inter.className}
-                          style={{ fontSize: "13px", lineHeight: "1" }}
-                        >
-                          asdf-asf3fasf-qi9304-sjot
-                        </Text>
-                      </SmartLink>
-                    </Column>
-                  </Row>
-                  <Row center gap="8">
-                    <IconButton variant="secondary" size="s">
-                      <ArrowUpRight color="#555" size={14} />
-                    </IconButton>
-                    <IconButton
-                      variant="secondary"
-                      size="s"
-                      onClick={() => router.push("/add-prompt")}
-                    >
-                      <Clipboard color="#555" size={14} />
-                    </IconButton>
-                  </Row>{" "}
-                </Row>
-                <Row
-                  fillWidth
-                  vertical="center"
-                  horizontal="start"
-                  paddingY="4"
-                >
-                  <Tag
-                    size="s"
-                    style={{
-                      backgroundColor: "#F0F0F0",
-                      borderColor: "transparent",
-                    }}
-                  >
-                    <Text
-                      style={{ fontSize: "12px" }}
-                      onBackground="neutral-medium"
-                    >
-                      Published
-                    </Text>
-                  </Tag>
-                </Row>
-                <InlineCode
-                  padding="0"
-                  style={{
-                    padding: "10px",
-                    backgroundColor: "#F0F0F0",
-                    borderColor: "transparent",
-                  }}
-                >
-                  <Text
-                    onBackground="neutral-strong"
-                    style={{ letterSpacing: "0.2px", whiteSpace: "pre-line" }}
-                  >
-                    {`You are a strict and professional prompt engineer. Your task isto create a prompt for a text-to-image model that generates animage of a futuristic cityscape at night, with neon lights andflying cars.
-
-                And you will provide the prompt in a code block format, like this:
-
-
-                prompt: "Create an image of a futuristic cityscape at night, with neon lights and flying cars."
-                                
-                tags: ["futuristic", "cityscape", "night", "neon lights", "flying cars"]
-
-                `}
-                  </Text>
-                </InlineCode>
-              </Card>
-            </Flex>{" "}
-            <Flex>
-              {" "}
-              <Card
-                fillWidth
-                padding="s"
-                radius="s"
-                border="neutral-medium"
-                maxWidth={25}
-                as={Flex}
-                direction="column"
-                vertical="start"
-                horizontal="start"
-                gap="8"
-              >
-                <Row vertical="center" horizontal="space-between" fillWidth>
-                  <Row gap="8">
-                    <Avvvatars value={"vhibojnkljjsdgwer"} style="shape" />
-                    <Column gap="4" vertical="center" horizontal="start">
-                      <Text
-                        variant="label-default-s"
-                        onBackground="neutral-strong"
-                        className={inter.className}
-                        style={{ lineHeight: "1", fontSize: "13px" }}
-                      >
-                        Image prompt
-                      </Text>
-                      <SmartLink href="#">
-                        <Text
-                          variant="label-default-s"
-                          onBackground="neutral-weak"
-                          className={inter.className}
-                          style={{ fontSize: "13px", lineHeight: "1" }}
-                        >
-                          asdf-asf3fasf-qi9304-sjot
-                        </Text>
-                      </SmartLink>
-                    </Column>
-                  </Row>
-                  <Row center gap="8">
-                    <IconButton variant="secondary" size="s">
-                      <ArrowUpRight color="#555" size={14} />
-                    </IconButton>
-                    <IconButton
-                      variant="secondary"
-                      size="s"
-                      onClick={() => router.push("/add-prompt")}
-                    >
-                      <Clipboard color="#555" size={14} />
-                    </IconButton>
-                  </Row>{" "}
-                </Row>
-                <Row
-                  fillWidth
-                  vertical="center"
-                  horizontal="start"
-                  paddingY="4"
-                >
-                  <Tag
-                    size="s"
-                    style={{
-                      backgroundColor: "#F0F0F0",
-                      borderColor: "transparent",
-                    }}
-                  >
-                    <Text
-                      style={{ fontSize: "12px" }}
-                      onBackground="neutral-medium"
-                    >
-                      Published
-                    </Text>
-                  </Tag>
-                </Row>
-                <InlineCode
-                  padding="0"
-                  style={{
-                    padding: "10px",
-                    backgroundColor: "#F0F0F0",
-                    borderColor: "transparent",
-                  }}
-                >
-                  <Text
-                    onBackground="neutral-strong"
-                    style={{ letterSpacing: "0.2px", whiteSpace: "pre-line" }}
-                  >
-                    {`You are a strict and professional prompt engineer. Your task isto create a prompt for a text-to-image model that generates animage of a futuristic cityscape at night, with neon lights andflying cars.
-
-                And you will provide the prompt in a code block format, like this:
-
-
-                prompt: "Create an image of a futuristic cityscape at night, with neon lights and flying cars."
-                                
-                tags: ["futuristic", "cityscape", "night", "neon lights", "flying cars"]
-
-                `}
-                  </Text>
-                </InlineCode>
-              </Card>
-            </Flex>{" "}
-            <Flex>
-              {" "}
-              <Card
-                fillWidth
-                padding="s"
-                radius="s"
-                border="neutral-medium"
-                maxWidth={25}
-                as={Flex}
-                direction="column"
-                vertical="start"
-                horizontal="start"
-                gap="8"
-              >
-                <Row vertical="center" horizontal="space-between" fillWidth>
-                  <Row gap="8">
-                    <Avvvatars value={"vhibojnkljjsdgwer"} style="shape" />
-                    <Column gap="4" vertical="center" horizontal="start">
-                      <Text
-                        variant="label-default-s"
-                        onBackground="neutral-strong"
-                        className={inter.className}
-                        style={{ lineHeight: "1", fontSize: "13px" }}
-                      >
-                        Image prompt
-                      </Text>
-                      <SmartLink href="#">
-                        <Text
-                          variant="label-default-s"
-                          onBackground="neutral-weak"
-                          className={inter.className}
-                          style={{ fontSize: "13px", lineHeight: "1" }}
-                        >
-                          asdf-asf3fasf-qi9304-sjot
-                        </Text>
-                      </SmartLink>
-                    </Column>
-                  </Row>
-                  <Row center gap="8">
-                    <IconButton variant="secondary" size="s">
-                      <ArrowUpRight color="#555" size={14} />
-                    </IconButton>
-                    <IconButton
-                      variant="secondary"
-                      size="s"
-                      onClick={() => router.push("/add-prompt")}
-                    >
-                      <Clipboard color="#555" size={14} />
-                    </IconButton>
-                  </Row>{" "}
-                </Row>
-                <Row
-                  fillWidth
-                  vertical="center"
-                  horizontal="start"
-                  paddingY="4"
-                >
-                  <Tag
-                    size="s"
-                    style={{
-                      backgroundColor: "#F0F0F0",
-                      borderColor: "transparent",
-                    }}
-                  >
-                    <Text
-                      style={{ fontSize: "12px" }}
-                      onBackground="neutral-medium"
-                    >
-                      Published
-                    </Text>
-                  </Tag>
-                </Row>
-                <InlineCode
-                  padding="0"
-                  style={{
-                    padding: "10px",
-                    backgroundColor: "#F0F0F0",
-                    borderColor: "transparent",
-                  }}
-                >
-                  <Text
-                    onBackground="neutral-strong"
-                    style={{ letterSpacing: "0.2px", whiteSpace: "pre-line" }}
-                  >
-                    {`You are a strict and professional prompt engineer. Your task isto create a prompt for a text-to-image model that generates animage of a futuristic cityscape at night, with neon lights andflying cars.
-
-                And you will provide the prompt in a code block format, like this:
-
-
-                prompt: "Create an image of a futuristic cityscape at night, with neon lights and flying cars."
-                                
-                tags: ["futuristic", "cityscape", "night", "neon lights", "flying cars"]
-
-                `}
-                  </Text>
-                </InlineCode>
-              </Card>
-            </Flex>{" "}
-            <Flex>
-              {" "}
-              <Card
-                fillWidth
-                padding="s"
-                radius="s"
-                border="neutral-medium"
-                maxWidth={25}
-                as={Flex}
-                direction="column"
-                vertical="start"
-                horizontal="start"
-                gap="8"
-              >
-                <Row vertical="center" horizontal="space-between" fillWidth>
-                  <Row gap="8">
-                    <Avvvatars value={"vhibojnkljjsdgwer"} style="shape" />
-                    <Column gap="4" vertical="center" horizontal="start">
-                      <Text
-                        variant="label-default-s"
-                        onBackground="neutral-strong"
-                        className={inter.className}
-                        style={{ lineHeight: "1", fontSize: "13px" }}
-                      >
-                        Image prompt
-                      </Text>
-                      <SmartLink href="#">
-                        <Text
-                          variant="label-default-s"
-                          onBackground="neutral-weak"
-                          className={inter.className}
-                          style={{ fontSize: "13px", lineHeight: "1" }}
-                        >
-                          asdf-asf3fasf-qi9304-sjot
-                        </Text>
-                      </SmartLink>
-                    </Column>
-                  </Row>
-                  <Row center gap="8">
-                    <IconButton variant="secondary" size="s">
-                      <ArrowUpRight color="#555" size={14} />
-                    </IconButton>
-                    <IconButton
-                      variant="secondary"
-                      size="s"
-                      onClick={() => router.push("/add-prompt")}
-                    >
-                      <Clipboard color="#555" size={14} />
-                    </IconButton>
-                  </Row>{" "}
-                </Row>
-                <Row
-                  fillWidth
-                  vertical="center"
-                  horizontal="start"
-                  paddingY="4"
-                >
-                  <Tag
-                    size="s"
-                    style={{
-                      backgroundColor: "#F0F0F0",
-                      borderColor: "transparent",
-                    }}
-                  >
-                    <Text
-                      style={{ fontSize: "12px" }}
-                      onBackground="neutral-medium"
-                    >
-                      Published
-                    </Text>
-                  </Tag>
-                </Row>
-                <InlineCode
-                  padding="0"
-                  style={{
-                    padding: "10px",
-                    backgroundColor: "#F0F0F0",
-                    borderColor: "transparent",
-                  }}
-                >
-                  <Text
-                    onBackground="neutral-strong"
-                    style={{ letterSpacing: "0.2px", whiteSpace: "pre-line" }}
-                  >
-                    {`You are a strict and professional prompt engineer. Your task isto create a prompt for a text-to-image model that generates animage of a futuristic cityscape at night, with neon lights andflying cars.
-
-                And you will provide the prompt in a code block format, like this:
-
-
-                prompt: "Create an image of a futuristic cityscape at night, with neon lights and flying cars."
-                                
-                tags: ["futuristic", "cityscape", "night", "neon lights", "flying cars"]
-
-                `}
-                  </Text>
-                </InlineCode>
-              </Card>
-            </Flex>{" "}
-            <Flex>
-              {" "}
-              <Card
-                fillWidth
-                padding="s"
-                radius="s"
-                border="neutral-medium"
-                maxWidth={25}
-                as={Flex}
-                direction="column"
-                vertical="start"
-                horizontal="start"
-                gap="8"
-              >
-                <Row vertical="center" horizontal="space-between" fillWidth>
-                  <Row gap="8">
-                    <Avvvatars value={"vhibojnkljjsdgwer"} style="shape" />
-                    <Column gap="4" vertical="center" horizontal="start">
-                      <Text
-                        variant="label-default-s"
-                        onBackground="neutral-strong"
-                        className={inter.className}
-                        style={{ lineHeight: "1", fontSize: "13px" }}
-                      >
-                        Image prompt
-                      </Text>
-                      <SmartLink href="#">
-                        <Text
-                          variant="label-default-s"
-                          onBackground="neutral-weak"
-                          className={inter.className}
-                          style={{ fontSize: "13px", lineHeight: "1" }}
-                        >
-                          asdf-asf3fasf-qi9304-sjot
-                        </Text>
-                      </SmartLink>
-                    </Column>
-                  </Row>
-                  <Row center gap="8">
-                    <IconButton variant="secondary" size="s">
-                      <ArrowUpRight color="#555" size={14} />
-                    </IconButton>
-                    <IconButton
-                      variant="secondary"
-                      size="s"
-                      onClick={() => router.push("/add-prompt")}
-                    >
-                      <Clipboard color="#555" size={14} />
-                    </IconButton>
-                  </Row>{" "}
-                </Row>
-                <Row
-                  fillWidth
-                  vertical="center"
-                  horizontal="start"
-                  paddingY="4"
-                >
-                  <Tag
-                    size="s"
-                    style={{
-                      backgroundColor: "#F0F0F0",
-                      borderColor: "transparent",
-                    }}
-                  >
-                    <Text
-                      style={{ fontSize: "12px" }}
-                      onBackground="neutral-medium"
-                    >
-                      Published
-                    </Text>
-                  </Tag>
-                </Row>
-                <InlineCode
-                  padding="0"
-                  style={{
-                    padding: "10px",
-                    backgroundColor: "#F0F0F0",
-                    borderColor: "transparent",
-                  }}
-                >
-                  <Text
-                    onBackground="neutral-strong"
-                    style={{ letterSpacing: "0.2px", whiteSpace: "pre-line" }}
-                  >
-                    {`You are a strict and professional prompt engineer. Your task isto create a prompt for a text-to-image model that generates animage of a futuristic cityscape at night, with neon lights andflying cars.
-
-                And you will provide the prompt in a code block format, like this:
-
-
-                prompt: "Create an image of a futuristic cityscape at night, with neon lights and flying cars."
-                                
-                tags: ["futuristic", "cityscape", "night", "neon lights", "flying cars"]
-
-                `}
-                  </Text>
-                </InlineCode>
-              </Card>
-            </Flex>{" "}
-            <Flex>
-              {" "}
-              <Card
-                fillWidth
-                padding="s"
-                radius="s"
-                border="neutral-medium"
-                maxWidth={25}
-                as={Flex}
-                direction="column"
-                vertical="start"
-                horizontal="start"
-                gap="8"
-              >
-                <Row vertical="center" horizontal="space-between" fillWidth>
-                  <Row gap="8">
-                    <Avvvatars value={"vhibojnkljjsdgwer"} style="shape" />
-                    <Column gap="4" vertical="center" horizontal="start">
-                      <Text
-                        variant="label-default-s"
-                        onBackground="neutral-strong"
-                        className={inter.className}
-                        style={{ lineHeight: "1", fontSize: "13px" }}
-                      >
-                        Image prompt
-                      </Text>
-                      <SmartLink href="#">
-                        <Text
-                          variant="label-default-s"
-                          onBackground="neutral-weak"
-                          className={inter.className}
-                          style={{ fontSize: "13px", lineHeight: "1" }}
-                        >
-                          asdf-asf3fasf-qi9304-sjot
-                        </Text>
-                      </SmartLink>
-                    </Column>
-                  </Row>
-                  <Row center gap="8">
-                    <IconButton variant="secondary" size="s">
-                      <ArrowUpRight color="#555" size={14} />
-                    </IconButton>
-                    <IconButton
-                      variant="secondary"
-                      size="s"
-                      onClick={() => router.push("/add-prompt")}
-                    >
-                      <Clipboard color="#555" size={14} />
-                    </IconButton>
-                  </Row>{" "}
-                </Row>
-                <Row
-                  fillWidth
-                  vertical="center"
-                  horizontal="start"
-                  paddingY="4"
-                >
-                  <Tag
-                    size="s"
-                    style={{
-                      backgroundColor: "#F0F0F0",
-                      borderColor: "transparent",
-                    }}
-                  >
-                    <Text
-                      style={{ fontSize: "12px" }}
-                      onBackground="neutral-medium"
-                    >
-                      Published
-                    </Text>
-                  </Tag>
-                </Row>
-                <InlineCode
-                  padding="0"
-                  style={{
-                    padding: "10px",
-                    backgroundColor: "#F0F0F0",
-                    borderColor: "transparent",
-                  }}
-                >
-                  <Text
-                    onBackground="neutral-strong"
-                    style={{ letterSpacing: "0.2px", whiteSpace: "pre-line" }}
-                  >
-                    {`You are a strict and professional prompt engineer. Your task isto create a prompt for a text-to-image model that generates animage of a futuristic cityscape at night, with neon lights andflying cars.
-
-                And you will provide the prompt in a code block format, like this:
-
-
-                prompt: "Create an image of a futuristic cityscape at night, with neon lights and flying cars."
-                                
-                tags: ["futuristic", "cityscape", "night", "neon lights", "flying cars"]
-
-                `}
-                  </Text>
-                </InlineCode>
-              </Card>
-            </Flex>
+            {prompts.map((prompt, index) => (
+              <PromptCard
+                key={index}
+                title={prompt.title}
+                description={prompt.description}
+                card_id={prompt.card_id}
+                pfp={prompt.pfp}
+                id_published={prompt.id_published}
+                is_featured={prompt.is_featured}
+              />
+            ))}
           </Row>
         </Scroller>
       </Column>
     </>
   );
 }
+
+function PromptCard({
+  title,
+  description,
+  card_id,
+  pfp,
+  id_published = false,
+  is_featured = false,
+}: {
+  title: string;
+  description: string;
+  pfp: string;
+  card_id: string;
+  id_published?: boolean;
+  is_featured?: boolean;
+}) {
+  const router = useRouter();
+  return (
+    <Flex>
+      {" "}
+      <Card
+        fillWidth
+        padding="s"
+        radius="s"
+        border="neutral-medium"
+        maxWidth={22}
+        minWidth={22}
+        as={Flex}
+        direction="column"
+        vertical="start"
+        horizontal="start"
+        gap="8"
+      >
+        <Row vertical="center" horizontal="space-between" fillWidth>
+          <Row gap="8">
+            <Avvvatars value={pfp} style="shape" />
+            <Column gap="4" vertical="center" horizontal="start">
+              <Text
+                variant="label-default-s"
+                onBackground="neutral-strong"
+                className={inter.className}
+                style={{ lineHeight: "1", fontSize: "13px" }}
+              >
+                {title}
+              </Text>
+              <SmartLink href="#">
+                <Text
+                  variant="label-default-s"
+                  onBackground="neutral-weak"
+                  className={inter.className}
+                  style={{ fontSize: "13px", lineHeight: "1" }}
+                >
+                  {card_id}
+                </Text>
+              </SmartLink>
+            </Column>
+          </Row>
+          <Row center gap="8">
+            <IconButton variant="secondary" size="s">
+              <ArrowUpRight color="#555" size={14} />
+            </IconButton>
+            <IconButton
+              variant="secondary"
+              size="s"
+              onClick={() => router.push("/add-prompt")}
+            >
+              <Clipboard color="#555" size={14} />
+            </IconButton>
+          </Row>{" "}
+        </Row>
+        <Row fillWidth vertical="center" horizontal="start" paddingY="4" gap="4">
+          {is_featured && (
+            <Tag size="s" variant="gradient">
+              <Text style={{ fontSize: "12px" }}>Featured</Text>
+            </Tag>
+          )}
+          {id_published ? (
+            <Tag
+              size="s"
+              style={{
+                backgroundColor: "#f0f0f0",
+                borderColor: "transparent",
+              }}
+            >
+              <Text style={{ fontSize: "12px" }} onBackground="neutral-medium">
+                Published
+              </Text>
+            </Tag>
+          ) : (
+            <Tag
+              size="s"
+              style={{
+                backgroundColor: "#dadada",
+                borderColor: "transparent",
+              }}
+            >
+              <Text style={{ fontSize: "12px" }} onBackground="neutral-medium">
+                Draft
+              </Text>
+            </Tag>
+          )}
+        </Row>
+      </Card>
+    </Flex>
+  );
+}
+
 function Dashboard({
   userInfoFromSession,
   sectionVariable,
@@ -1499,7 +627,7 @@ function Dashboard({
                 Free
               </Tag>
               <Button weight="default" size="m">
-                <Text className={outfit.className} variant="label-default-m">
+                <Text className={inter.className} style={{ fontSize: "14px" }} variant="label-default-m">
                   Upgrade to pro
                 </Text>
               </Button>
@@ -1861,7 +989,8 @@ function Sidebar({ items, setSection }: SidebarProps) {
                     // Set the section to the item's name
                     if (
                       typeof itemName === "string" &&
-                      typeof window !== "undefined"
+                      typeof window !== "undefined" &&
+                      !item.isFolder()
                     ) {
                       setSection(itemName);
                     }

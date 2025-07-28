@@ -5,6 +5,7 @@ import {
   Text,
   Media,
   IconButton,
+  CodeBlock,
 } from "@once-ui-system/core";
 import React, { useState } from "react";
 import { Inter } from "next/font/google";
@@ -334,3 +335,6 @@ const Comments: React.FC<{ comments: CommentData[] }> = React.memo(
     );
   }
 );
+
+
+

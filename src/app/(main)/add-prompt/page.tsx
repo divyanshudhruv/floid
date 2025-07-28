@@ -335,6 +335,7 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
       pfp: "user1@example.com",
       id_published: true,
       is_featured: true,
+      is_private: false,
     },
     {
       title: "Translate to French",
@@ -343,6 +344,7 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
       pfp: "user2@example.com",
       id_published: false,
       is_featured: false,
+      is_private: false,
     },
     {
       title: "Generate Blog Ideas",
@@ -351,6 +353,7 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
       pfp: "user3@example.com",
       id_published: true,
       is_featured: false,
+      is_private: true,
     },
     {
       title: "Code Review",
@@ -359,6 +362,7 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
       pfp: "user4@example.com",
       id_published: false,
       is_featured: false,
+      is_private: true,
     },
     {
       title: "Write Email Reply",
@@ -367,6 +371,7 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
       pfp: "user5@example.com",
       id_published: true,
       is_featured: false,
+      is_private: false,
     },
     {
       title: "Fix Grammar",
@@ -375,6 +380,7 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
       pfp: "user6@example.com",
       id_published: true,
       is_featured: true,
+      is_private: false,
     },
     {
       title: "Explain Concept",
@@ -383,6 +389,7 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
       pfp: "user7@example.com",
       id_published: false,
       is_featured: false,
+      is_private: false,
     },
     {
       title: "Summarize Meeting",
@@ -391,6 +398,7 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
       pfp: "user8@example.com",
       id_published: true,
       is_featured: false,
+      is_private: false,
     },
     {
       title: "Generate Tweet",
@@ -399,6 +407,7 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
       pfp: "user9@example.com",
       id_published: false,
       is_featured: true,
+      is_private: false,
     },
     {
       title: "Create To-Do List",
@@ -407,6 +416,7 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
       pfp: "user10@example.com",
       id_published: true,
       is_featured: false,
+      is_private: false,
     },
   ]);
   const [searchValue, setSearchValue] = useState<string>("");
@@ -450,7 +460,6 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
                 onBackground="neutral-strong"
               >
                 All prompts
-            <AlertComponent/>
               </Text>
               <Text
                 style={{ fontSize: "15px" }}
@@ -524,6 +533,7 @@ function AllPrompts({ userInfoFromSession }: { userInfoFromSession: any }) {
                     pfp={prompt.pfp}
                     id_published={prompt.id_published}
                     is_featured={prompt.is_featured}
+                    is_private={prompt.is_private}
                   />
                 ))}
               </Row>
@@ -665,6 +675,7 @@ function PromptCard({
   pfp,
   id_published = false,
   is_featured = false,
+  is_private = false,
 }: {
   title: string;
   description: string;
@@ -672,6 +683,7 @@ function PromptCard({
   card_id: string;
   id_published?: boolean;
   is_featured?: boolean;
+  is_private?: boolean;
 }) {
   const router = useRouter();
   return (
@@ -745,6 +757,12 @@ function PromptCard({
           {is_featured && (
             <Tag size="s" variant="gradient">
               <Text style={{ fontSize: "12px" }}>Featured</Text>
+            </Tag>
+          )}
+
+          {is_private && (
+            <Tag size="s" variant="brand">
+              <Text style={{ fontSize: "12px" }}>Private</Text>
             </Tag>
           )}
           {id_published ? (
@@ -1630,7 +1648,7 @@ function ActiveTab({
         </Column>
         <Column gap="20">
           {" "}
-          <SegmentedControl
+          {/* <SegmentedControl
             marginTop="20"
             fillWidth={false}
             selected={activeTab.toLowerCase()}
@@ -1643,7 +1661,7 @@ function ActiveTab({
               setSegmentedControlValue(value);
               setActiveTab(value.charAt(0).toUpperCase() + value.slice(1));
             }}
-          />
+          /> */}
           <Column fillWidth>
             {activeTab.toLowerCase() === "shared" && (
               <>

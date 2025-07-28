@@ -1,168 +1,160 @@
 import { supabase } from "@/app/utils/Supabase";
 import AnimatedContent from "@/blocks/Animations/AnimatedContent/AnimatedContent";
-import { Row, Column, Button, Text, Spinner } from "@once-ui-system/core";
+import { Row, Column, Button, Text, Spinner, Flex } from "@once-ui-system/core";
 import { DownloadIcon } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import Cards from "./Cards";
-
-type PostData = {
-  post_id: string;
-  uuid: string | null;
-  name: string | null;
-  pfp: string | null;
-  category: string | null;
-  tag: string | null;
-  last_post: string | null;
-  last_comment: string | null;
-  last_like: string | null;
-  created_at: string;
-  bot_id: string | null;
-  like_id: string | null;
-  comment_id: string | null;
-  post_content: {
-    body: string;
-    heading: string;
-  };
-  likers: { uuid: string }[];
-  commenters: {
-    date: string;
-    text: string;
-    user: {
-      name: string;
-      avatar: string;
-    };
-  }[];
-};
-
-const POSTS_PER_LOAD = 6;
+import PromptCard from "./Prompts";
 
 export default function Posts() {
-  const [posts, setPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(false);
-  const [colCount, setColCount] = useState(3);
 
-  useEffect(() => {
-    const updateColCount = () => {
-      const cardWidth = 432; // 27rem * 16px
-      const width = window.innerWidth;
-      setColCount(
-        width < cardWidth * 2 + 32 ? 1 : width < cardWidth * 3 + 64 ? 2 : 3
-      );
-    };
-    updateColCount();
-    window.addEventListener("resize", updateColCount);
-    return () => window.removeEventListener("resize", updateColCount);
-  }, []);
-
-  // Split posts into columns
-  const columns = Array.from({ length: colCount }, () => [] as PostData[]);
-  posts.forEach((post, i) => columns[i % colCount].push(post));
-
-  const fetchPosts = useCallback(async (offset = 0) => {
-    setLoading(true);
-    const { data } = await supabase
-      .from("posts")
-      .select(
-        "post_id, uuid, name, pfp, category, tag, created_at, post_content, likers, commenters"
-      )
-      .order("created_at", { ascending: false })
-      .range(offset, offset + POSTS_PER_LOAD - 1);
-    setLoading(false);
-    return Array.isArray(data) ? data : [];
-  }, []);
-
-  useEffect(() => {
-    fetchPosts().then((data) =>
-      setPosts(
-        data.map((item) => ({
-          post_id: item.post_id,
-          uuid: item.uuid ?? null,
-          name: item.name ?? null,
-          pfp: item.pfp ?? null,
-          category: item.category ?? null,
-          tag: item.tag ?? null,
-          created_at: item.created_at,
-          post_content: item.post_content ?? { body: "", heading: "" },
-          likers: item.likers ?? [],
-          commenters: item.commenters ?? [],
-          last_post: null,
-          last_comment: null,
-          last_like: null,
-          bot_id: null,
-          like_id: null,
-          comment_id: null,
-        }))
-      )
-    );
-  }, [fetchPosts]);
-
-  const loadMore = async () => {
-    const newPosts = await fetchPosts(posts.length);
-    if (newPosts.length) {
-      setPosts((prev) => [
-        ...prev,
-        ...newPosts.map((item) => ({
-          post_id: item.post_id,
-          uuid: item.uuid ?? null,
-          name: item.name ?? null,
-          pfp: item.pfp ?? null,
-          category: item.category ?? null,
-          tag: item.tag ?? null,
-          created_at: item.created_at,
-          post_content: item.post_content ?? { body: "", heading: "" },
-          likers: item.likers ?? [],
-          commenters: item.commenters ?? [],
-          last_post: null,
-          last_comment: null,
-          last_like: null,
-          bot_id: null,
-          like_id: null,
-          comment_id: null,
-        })),
-      ]);
-    }
-  };
-
+  const [prompts, setPrompts] = useState([
+    {
+      title: "Summarize Article",
+      description: "Summarize the given article in 3 sentences.",
+      card_id: "prompt-001",
+      pfp: "user1@example.com",
+      id_published: true,
+      is_featured: true,
+      is_private: false,
+    },
+    {
+      title: "Translate to French",
+      description: "Translate the following text to French.",
+      card_id: "prompt-002",
+      pfp: "user2@example.com",
+      id_published: false,
+      is_featured: false,
+      is_private: false,
+    },
+    {
+      title: "Generate Blog Ideas",
+      description: "Suggest 5 blog post ideas about AI.",
+      card_id: "prompt-003",
+      pfp: "user3@example.com",
+      id_published: true,
+      is_featured: false,
+      is_private: true,
+    },
+    {
+      title: "Code Review",
+      description: "Review this TypeScript code for best practices.",
+      card_id: "prompt-004",
+      pfp: "user4@example.com",
+      id_published: false,
+      is_featured: false,
+      is_private: true,
+    },
+    {
+      title: "Write Email Reply",
+      description: "Draft a polite reply to this customer email.",
+      card_id: "prompt-005",
+      pfp: "user5@example.com",
+      id_published: true,
+      is_featured: false,
+      is_private: false,
+    },
+    {
+      title: "Fix Grammar",
+      description: "Correct the grammar in this paragraph.",
+      card_id: "prompt-006",
+      pfp: "user6@example.com",
+      id_published: true,
+      is_featured: true,
+      is_private: false,
+    },
+    {
+      title: "Explain Concept",
+      description: "Explain quantum computing in simple terms.",
+      card_id: "prompt-007",
+      pfp: "user7@example.com",
+      id_published: false,
+      is_featured: false,
+      is_private: false,
+    },
+    {
+      title: "Summarize Meeting",
+      description: "Summarize the key points from this meeting transcript.",
+      card_id: "prompt-008",
+      pfp: "user8@example.com",
+      id_published: true,
+      is_featured: false,
+      is_private: false,
+    },
+    {
+      title: "Generate Tweet",
+      description: "Write a tweet about the latest tech trends.",
+      card_id: "prompt-009",
+      pfp: "user9@example.com",
+      id_published: false,
+      is_featured: true,
+      is_private: false,
+    },
+    {
+      title: "Create To-Do List",
+      description: "Make a to-do list for launching a new product.",
+      card_id: "prompt-010",
+      pfp: "user10@example.com",
+      id_published: true,
+      is_featured: false,
+      is_private: false,
+    },
+  ]);
   return (
     <>
       <Row
         fillWidth
-        maxWidth={80}
         // background="accent-strong"
-        gap="20"
-        style={{ marginTop: 32, alignItems: "flex-start", width: "80vw" }}
+        center
+        style={{ marginTop: 32 }}
+        maxWidth={80}
       >
-        {loading && posts.length === 0 ? (
+        {loading ? (
           <Column fillHeight center fillWidth>
             <Spinner size="xl" />
-          </Column>
-        ) : posts.length === 0 ? (
-          <Column fillHeight center fillWidth>
-            <Spinner size="xl" />
-
-            <Text onBackground="neutral-medium" variant="label-default-s">
-              No post found. Try again
-            </Text>
           </Column>
         ) : (
-          columns.map((col, colIdx) => (
-            <Column key={colIdx} gap="20" style={{ flex: 1, minWidth: 0 }}>
-              {col.map((item, idx) => (
-                <AnimatedContent
-                  delay={colIdx * 0.15 + idx * 0.08}
-                  initialOpacity={0}
-                  id={`animated-card-${colIdx}-${idx}-${item.post_id}-${item.uuid}`}
-                  distance={30}
-                  key={`animated-card-${colIdx}-${idx}-${item.post_id}-${item.uuid}`}
+          // <Row
+          //   gap="20"
+          //   horizontal="start"
+          //   background="accent-strong"
+          //   wrap={true}
+          //   maxWidth={50}
+          //   fitWidth
+          // >
+          <Column style={{ width: "100%" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: "24px",
+                alignItems: "start",
+                width: "100%",
+              }}
+            >
+              {prompts.map((prompt, index) => (
+                <div
+                  key={index}
+                  style={{ breakInside: "avoid", width: "100%" }}
                 >
-                  <Cards data={item} />
-                </AnimatedContent>
+                  <PromptCard
+                    title={prompt.title}
+                    description={prompt.description}
+                    card_id={prompt.card_id}
+                    pfp={prompt.pfp}
+                    id_published={prompt.id_published}
+                    is_featured={prompt.is_featured}
+                    is_private={prompt.is_private}
+                  />
+                </div>
               ))}
-            </Column>
-          ))
+            </div>
+          </Column>
+          // </Row>
         )}
       </Row>
-      {posts.length === 0 ? null : (
+      {/* {posts.length ===</Column> 0 ? null : (
         <Row center fillWidth>
           <Button
             variant="secondary"
@@ -188,7 +180,7 @@ export default function Posts() {
             </Text>
           </Button>
         </Row>
-      )}
+      )} */}
     </>
   );
 }

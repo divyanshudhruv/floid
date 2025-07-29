@@ -97,7 +97,7 @@ type CommentData = {
   text: string;
 };
 
-export default function PromptCard({
+export default function PromptCardGlobal({
   title,
   description,
   card_id,
@@ -132,7 +132,7 @@ export default function PromptCard({
           vertical="start"
           horizontal="start"
           gap="8"
-          style={{ backgroundColor: "#f7f7f7" }}
+        //   style={{ backgroundColor: "#f7f7f7" }}
         >
           <Row vertical="center" horizontal="space-between" fillWidth>
             <Row gap="8">

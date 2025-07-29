@@ -27,6 +27,7 @@ import { Inter, Outfit } from "next/font/google";
 import {
   Bell,
   Command,
+  Filter,
   Info,
   LogIn,
   Moon,
@@ -534,7 +535,7 @@ Output format:
             </Text>
           </Flex>
           <Flex fillWidth paddingX="xl" data-border="playful" maxWidth={30}>
-            <Input
+            <Row gap="8" center><Input
               id=""
               className="hero-search-input"
               height="m"
@@ -547,29 +548,10 @@ Output format:
               }
               hasSuffix={
                 <Flex className="hero-kbar">
-                  <Kbar items={kbarItems}>
-                    <Button
-                      variant="tertiary"
-                      size="s"
-                      style={{
-                        maxWidth: "fit-content",
-                        paddingInline: "0 !important",
-                        paddingBlock: "0 !important",
-                      }}
-                    >
-                      <Text
-                        onBackground="neutral-weak"
-                        variant="label-default-m"
-                      >
-                        <Row gap="2" center>
-                          <Command size={15} color="#777" />K
-                        </Row>
-                      </Text>
-                    </Button>
-                  </Kbar>
+                 <IconButton size="m" variant="secondary"><Filter size={17} color="#777"></Filter></IconButton>
                 </Flex>
               }
-            />
+            /></Row>
           </Flex>
           <Column center gap="16">
             <AvatarGroup

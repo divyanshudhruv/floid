@@ -26,6 +26,9 @@ import {
   CursorCard,
   MediaUpload,
   Select,
+  useToast,
+  Spinner,
+  Dialog,
 } from "@once-ui-system/core";
 import Avvvatars from "avvvatars-react";
 
@@ -55,6 +58,7 @@ import {
   Eye,
   EyeClosed,
   Feather,
+  Home,
   Lock,
   LucideMenu,
   LucideTrash2,
@@ -90,8 +94,9 @@ interface Item {
 const items: Record<string, Item> = {
   company: {
     name: "Company",
-    children: ["frontend", "user"],
+    children: ["main_dashboard", "frontend", "user"],
   },
+  main_dashboard: { name: "Home" },
   search: {
     name: "Search",
     children: ["prompts"],
@@ -117,11 +122,11 @@ const items: Record<string, Item> = {
   profile: { name: "Profile" },
   settings: { name: "Settings" },
   components: { name: "Shared" },
-  tokens: { name: "Private" },
+  tokens: { name: "Private Prompts" },
   guidelines: { name: "Public" },
   // "web-platform": { name: "Web Platform" },
   backend: { name: "All Prompts" },
-  private: { name: "Private" },
+  private: { name: "Private Prompts" },
   apis: { name: "All Prompts" },
   infrastructure: { name: "Infrastructure" },
   marketing: { name: "Marketing", children: ["content", "seo"] },
@@ -140,14 +145,25 @@ export default function AddPromptPage() {
         data: { session },
       } = await supabase.auth.getSession();
       if (session?.user) {
-        const { id, email, user_metadata } = session.user;
-        setUserInfoFromSession({
-          id,
-          email,
-          name: user_metadata?.name || "",
-          pfp: user_metadata?.pfp || "",
-          avatar: user_metadata?.avatar_url || "",
-        });
+        // Fetch user info from 'users' table
+        const { data, error } = await supabase
+          .from("users")
+          .select("first_name, last_name, email, uuid, pfp,username")
+          .eq("email", session.user.email)
+          .single();
+
+        if (data) {
+          setUserInfoFromSession({
+            id: data.uuid,
+            email: data.email,
+            name: `${data.first_name || ""} ${data.last_name || ""}`.trim(),
+            pfp: data.pfp || "",
+            avatar: data.pfp || "",
+            username: data.username || "",
+          });
+        } else {
+          setUserInfoFromSession(null);
+        }
       } else {
         setUserInfoFromSession(null);
       }
@@ -155,6 +171,24 @@ export default function AddPromptPage() {
     fetchSession();
   }, []);
 
+  // Only realtime retrieve: listen for changes in the "prompts" table and update state
+  useEffect(() => {
+    const channel = supabase
+      .channel("prompts-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "prompts" },
+        (payload: any) => {
+          // You can handle INSERT, UPDATE, DELETE here if needed
+          // For example, you might want to refetch or update a local state
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, []);
   const router = useRouter();
   const [section, setSection] = useState("All Prompts");
   return (
@@ -313,7 +347,7 @@ export default function AddPromptPage() {
         </Column>
 
         {(section === "All Prompts" ||
-          section === "Private" ||
+          section === "Private Prompts" ||
           section === "Public") && (
           <Vault
             userInfoFromSession={userInfoFromSession}
@@ -349,99 +383,101 @@ function Vault({
   setActiveTab: (tab: string) => void;
 }) {
   const router = useRouter();
+  const [prompts, setPrompts] = useState<any[]>([]);
 
-  const [prompts, setPrompts] = useState([
-    {
-      title: "Summarize Article",
-      description: "Summarize the given article in 3 sentences.",
-      card_id: "prompt-001",
-      pfp: "user1@example.com",
-      id_published: true,
-      is_featured: true,
-      is_private: false,
-    },
-    {
-      title: "Translate to French",
-      description: "Translate the following text to French.",
-      card_id: "prompt-002",
-      pfp: "user2@example.com",
-      id_published: false,
-      is_featured: false,
-      is_private: false,
-    },
-    {
-      title: "Generate Blog Ideas",
-      description: "Suggest 5 blog post ideas about AI.",
-      card_id: "prompt-003",
-      pfp: "user3@example.com",
-      id_published: true,
-      is_featured: false,
-      is_private: true,
-    },
-    {
-      title: "Code Review",
-      description: "Review this TypeScript code for best practices.",
-      card_id: "prompt-004",
-      pfp: "user4@example.com",
-      id_published: false,
-      is_featured: false,
-      is_private: true,
-    },
-    {
-      title: "Write Email Reply",
-      description: "Draft a polite reply to this customer email.",
-      card_id: "prompt-005",
-      pfp: "user5@example.com",
-      id_published: true,
-      is_featured: false,
-      is_private: false,
-    },
-    {
-      title: "Fix Grammar",
-      description: "Correct the grammar in this paragraph.",
-      card_id: "prompt-006",
-      pfp: "user6@example.com",
-      id_published: true,
-      is_featured: true,
-      is_private: false,
-    },
-    {
-      title: "Explain Concept",
-      description: "Explain quantum computing in simple terms.",
-      card_id: "prompt-007",
-      pfp: "user7@example.com",
-      id_published: false,
-      is_featured: false,
-      is_private: false,
-    },
-    {
-      title: "Summarize Meeting",
-      description: "Summarize the key points from this meeting transcript.",
-      card_id: "prompt-008",
-      pfp: "user8@example.com",
-      id_published: true,
-      is_featured: false,
-      is_private: false,
-    },
-    {
-      title: "Generate Tweet",
-      description: "Write a tweet about the latest tech trends.",
-      card_id: "prompt-009",
-      pfp: "user9@example.com",
-      id_published: false,
-      is_featured: true,
-      is_private: false,
-    },
-    {
-      title: "Create To-Do List",
-      description: "Make a to-do list for launching a new product.",
-      card_id: "prompt-010",
-      pfp: "user10@example.com",
-      id_published: true,
-      is_featured: false,
-      is_private: false,
-    },
-  ]);
+  useEffect(() => {
+    async function fetchPrompts() {
+      const { data, error } = await supabase
+        .from("prompts")
+        .select(
+          "prompt_id, is_published, is_featured, is_private, content, prompt_avatar, uuid,is_sharable, created_at"
+        );
+      if (!error && data) {
+        setPrompts(
+          data.map((item: any) => ({
+            title: item.content?.title
+              ? item.content.title.slice(0, 19).concat("...")
+              : "",
+            prompt: item.content?.prompt || "",
+            card_id: item.prompt_id,
+            pfp: item.prompt_avatar || item.uuid || "",
+            id_published: item.is_published,
+            is_featured: item.is_featured,
+            is_private: item.is_private,
+            is_sharable: item.is_sharable,
+            created_at: item.created_at,
+          }))
+        );
+      }
+    }
+    fetchPrompts();
+  }, []);
+
+  // Enable realtime updates for prompts table
+  useEffect(() => {
+    const channel = supabase
+      .channel("prompts-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "prompts" },
+        (payload: any) => {
+          setPrompts((prevPrompts) => {
+            if (payload.eventType === "INSERT") {
+              const item = payload.new;
+              return [
+                ...prevPrompts,
+                {
+                  title: item.content?.title
+                    ? item.content.title.slice(0, 19).concat("...")
+                    : "",
+                  prompt: item.content?.prompt || "",
+                  card_id: item.prompt_id.slice(0, 8),
+                  pfp: item.prompt_avatar || item.uuid || "",
+                  id_published: item.is_published,
+                  is_featured: item.is_featured,
+                  is_private: item.is_private,
+                  is_sharable: item.is_sharable,
+                  created_at: item.created_at,
+                },
+              ];
+            }
+            if (payload.eventType === "UPDATE") {
+              const item = payload.new;
+              return prevPrompts.map((prompt) =>
+                prompt.card_id === item.prompt_id.slice(0, 8)
+                  ? {
+                      ...prompt,
+                      title: item.content?.title
+                        ? item.content.title.slice(0, 19).concat("...")
+                        : "",
+                      prompt: item.content?.prompt || "",
+                      card_id: item.prompt_id.slice(0, 8),
+                      pfp: item.prompt_avatar || item.uuid || "",
+                      id_published: item.is_published,
+                      is_featured: item.is_featured,
+                      is_private: item.is_private,
+                      is_sharable: item.is_sharable,
+                      created_at: item.created_at,
+                    }
+                  : prompt
+              );
+            }
+            if (payload.eventType === "DELETE") {
+              const item = payload.old;
+              return prevPrompts.filter(
+                (prompt) => prompt.card_id !== item.prompt_id.slice(0, 8)
+              );
+            }
+            return prevPrompts;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, []);
   const [searchValue, setSearchValue] = useState<string>("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -487,14 +523,16 @@ function Vault({
                 className={inter.className}
                 onBackground="neutral-strong"
               >
-                {activeTab === "Private" ? "Private Prompts" : "All Prompts"}
+                {activeTab === "Private Prompts"
+                  ? "Private Prompts"
+                  : "All Prompts"}
               </Text>
               <Text
                 style={{ fontSize: "15px" }}
                 className={inter.className}
                 onBackground="neutral-medium"
               >
-                {activeTab === "Private"
+                {activeTab === "Private Prompts"
                   ? "Manage your private prompts"
                   : "Explore all available prompts"}
               </Text>
@@ -567,7 +605,7 @@ function Vault({
               horizontal="start"
               wrap={true}
             >
-              {activeTab === "Private" &&
+              {activeTab === "Private Prompts" &&
                 (() => {
                   const filteredPrompts = prompts
                     .filter((prompt) => prompt.is_private)
@@ -593,7 +631,7 @@ function Vault({
                     <PrivateCard
                       key={index}
                       title={prompt.title}
-                      description={prompt.description}
+                      description={prompt.prompt}
                       card_id={prompt.card_id}
                       pfp={prompt.pfp}
                       id_published={prompt.id_published}
@@ -650,12 +688,14 @@ function Vault({
                     <PromptCard
                       key={index}
                       title={prompt.title}
-                      description={prompt.description}
+                      description={prompt.prompt}
                       card_id={prompt.card_id}
                       pfp={prompt.pfp}
                       id_published={prompt.id_published}
                       is_featured={prompt.is_featured}
                       is_private={prompt.is_private}
+                      is_published={prompt.is_published}
+                      is_sharable={prompt.is_sharable}
                     />
                   ));
                 })()}
@@ -675,6 +715,8 @@ function PromptCard({
   id_published = false,
   is_featured = false,
   is_private = false,
+  is_published = false,
+  is_sharable = false,
 }: {
   title: string;
   description: string;
@@ -683,8 +725,47 @@ function PromptCard({
   id_published?: boolean;
   is_featured?: boolean;
   is_private?: boolean;
+  is_published?: boolean;
+  is_sharable?: boolean;
 }) {
+  const [checked, setChecked] = useState<boolean>(!!is_published);
+  const [privateChecked, setPrivateChecked] = useState<boolean>(!!is_private);
+  const [shareable, setShareable] = useState<boolean>(!!is_sharable);
+  useEffect(() => {
+    setChecked(!!is_published);
+  }, [is_published]);
+  useEffect(() => {
+    setShareable(!!is_sharable);
+  }, [is_sharable]);
+
   const router = useRouter();
+  const { addToast } = useToast();
+  function changePrivacy() {
+    // Toggle privacy in DB and update local state for instant UI feedback
+    supabase
+      .from("prompts")
+      .update({ is_private: !privateChecked })
+      .eq("prompt_id", card_id)
+      .then(({ error }) => {
+        if (error) {
+          addToast({
+            message:
+              "Failed to change privacy. Please try again. Error: " +
+              error.message,
+            variant: "danger",
+          });
+        } else {
+          setPrivateChecked((prev) => !prev); // Optimistically update UI
+          addToast({
+            message: `Prompt privacy changed to ${
+              !privateChecked ? "Private" : "Public"
+            }`,
+            variant: "success",
+          });
+        }
+      });
+  }
+
   return (
     <Flex>
       {" "}
@@ -720,15 +801,19 @@ function PromptCard({
                   className={inter.className}
                   style={{ fontSize: "13px", lineHeight: "1" }}
                 >
-                  {card_id}
+                  {card_id.slice(0, 8)}
                 </Text>
               </SmartLink>
             </Column>
           </Row>
           <Row center gap="8">
             {" "}
-            <IconButton variant="secondary" size="s">
-              <Eye color="#555" size={14} />
+            <IconButton variant="secondary" size="s" onClick={changePrivacy}>
+              {privateChecked ? (
+                <EyeClosed color="#555" size={14} />
+              ) : (
+                <Eye color="#555" size={14} />
+              )}
             </IconButton>
             <IconButton
               variant="secondary"
@@ -807,7 +892,12 @@ function PromptCard({
             padding: "16px 16px",
           }}
         >
-          <Checkbox />
+          <Checkbox
+            isChecked={checked}
+            onToggle={() => setChecked(!checked)}
+            checked={checked}
+            defaultChecked={checked}
+          />
         </Row>
       </Card>
     </Flex>
@@ -1022,6 +1112,8 @@ function Sidebar({ items, setSection }: SidebarProps) {
                   <span className="flex items-center gap-2">
                     {item.isFolder() ? (
                       <FolderOpenIcon className="text-muted-foreground pointer-events-none size-4" />
+                    ) : item.getItemData().name === "Home" ? (
+                      <Home className="text-muted-foreground pointer-events-none size-4" />
                     ) : (
                       <FileIcon className="text-muted-foreground pointer-events-none size-4" />
                     )}
@@ -1075,20 +1167,77 @@ function Dashboard({
   };
 
   const [userInputData, setUserInputData] = useState<any>({
-    firstName: "",
-    lastName: "",
+    firstName: userInfoFromSession?.name?.split(" ")[0] || "",
+    lastName: userInfoFromSession?.name?.split(" ")[1] || "",
     email: userInfoFromSession?.email || "",
-    username: "",
+    username: userInfoFromSession?.username || "",
   });
 
-  function saveAccountSettings() {
+  const { addToast } = useToast();
+  const [loading, setLoading] = useState<boolean>(false);
+  const [delLoading, setDelLoading] = useState<boolean>(false);
+  const [deleteAccountDialog, setDeleteAccountDialog] =
+    useState<boolean>(false);
+  function saveAccountSettings() {}
 
+  function saveUserInputData() {
+    setLoading(true);
+    supabase
+      .from("users")
+      .update({
+        first_name: userInputData.firstName,
+        last_name: userInputData.lastName,
+        username: userInputData.username,
+      })
+      .eq("uuid", userInfoFromSession?.id)
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("Error updating user info:", error);
+          addToast({
+            message: "Failed to update user info. Please try again.",
+            variant: "danger",
+          });
+        } else {
+          console.log("User info updated successfully:", data);
 
+          addToast({
+            message: "User info updated successfully!",
+            variant: "success",
+          });
+        }
+        setLoading(false);
+      });
   }
 
-  function saveUserInputData() {}
+  function deleteAccount() {
+    setDeleteAccountDialog(true);
+  }
+  function confirmDeleteAccount() {
+    setDelLoading(true);
 
-  function deleteAccount() {}
+    supabase
+      .from("users")
+      .delete()
+      .eq("uuid", userInfoFromSession?.id)
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("Error deleting account:", error);
+          addToast({
+            message: "Failed to delete account. Please try again.",
+            variant: "danger",
+          });
+        } else {
+          console.log("Account deleted successfully:", data);
+          addToast({
+            message: "Account deleted successfully!",
+            variant: "success",
+          });
+          router.push("/");
+        }
+        setDelLoading(false);
+        setDeleteAccountDialog(false);
+      });
+  }
   return (
     <>
       {" "}
@@ -1171,6 +1320,7 @@ function Dashboard({
                     maxHeight={3.5}
                     style={{ overflow: "hidden !important" }}
                     emptyState=""
+                    initialPreviewImage={userInfoFromSession.pfp}
                   />
                   <Button>Upload image</Button>
                 </Row>
@@ -1246,7 +1396,16 @@ function Dashboard({
                 </Row>
                 <Row fillWidth vertical="center" horizontal="start">
                   {" "}
-                  <Button onClick={saveUserInputData}>Save all</Button>
+                  <Button onClick={saveUserInputData} disabled={loading}>
+                    {loading ? (
+                      <>
+                        Saving...&nbsp;
+                        <Spinner size="s" />
+                      </>
+                    ) : (
+                      "Save all"
+                    )}
+                  </Button>
                 </Row>{" "}
               </Column>
             </Column>
@@ -1285,6 +1444,27 @@ function Dashboard({
           )}
         </Column>
       </Column>
+      <Dialog
+        title="Delete Account"
+        isOpen={deleteAccountDialog}
+        onClose={() => setDeleteAccountDialog(false)}
+        description="Are you sure you want to delete your account? This action cannot be undone."
+      >
+        <Button
+          variant="danger"
+          onClick={confirmDeleteAccount}
+          loading={delLoading}
+        >
+          {delLoading ? (
+            <>
+              Deleting...&nbsp;
+              <Spinner size="s" />
+            </>
+          ) : (
+            "Delete Account"
+          )}
+        </Button>
+      </Dialog>
     </>
   );
 }

@@ -121,10 +121,6 @@ const Home: React.FC = () => {
   const [userPfp, setUserPfp] = useState<string | null>(null);
   const router = useRouter();
 
-  // Notification
-
-  // Load More
-
   // Smooth Scroll
   useEffect(() => {
     const lenis = new Lenis({ autoRaf: true });

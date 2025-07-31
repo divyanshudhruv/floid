@@ -212,7 +212,7 @@ const [isLoading, setIsLoading] = useState(true);
                 transition: "background 0.15s",
               }}
               onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) =>
-                (e.currentTarget.style.backgroundColor = "#18181B")
+                (e.currentTarget.style.backgroundColor = "#000")
               }
               onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) =>
                 (e.currentTarget.style.backgroundColor = "#27272A")

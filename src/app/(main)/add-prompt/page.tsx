@@ -29,6 +29,7 @@ import {
   useToast,
   Spinner,
   Dialog,
+  Textarea,
 } from "@once-ui-system/core";
 import Avvvatars from "avvvatars-react";
 
@@ -192,7 +193,9 @@ export default function AddPromptPage() {
               setUserInfoFromSession({
                 id: newData.uuid,
                 email: newData.email,
-                name: `${newData.first_name || ""} ${newData.last_name || ""}`.trim(),
+                name: `${newData.first_name || ""} ${
+                  newData.last_name || ""
+                }`.trim(),
                 pfp: newData.pfp || "",
                 avatar: newData.pfp || "",
                 username: newData.username || "",
@@ -236,6 +239,49 @@ export default function AddPromptPage() {
 
   const router = useRouter();
   const [section, setSection] = useState("All Prompts");
+  const [openAddPromptDialog, setOpenAddPromptDialog] = useState(false);
+  const [newPromptName, setNewPromptName] = useState("");
+  const [newPromptContent, setNewPromptContent] = useState("");
+  const [newPromptLoading, setNewPromptLoading] = useState(false);
+  const { addToast } = useToast();
+  function handleAddPrompt() {
+    setNewPromptLoading(true);
+    if (!newPromptName || !newPromptContent) {
+      addToast({
+        message: "Please enter both prompt name and content.",
+        variant: "danger",
+      });
+      return;
+    }
+    // Add prompt to the database
+    supabase
+      .from("prompts")
+      .insert([
+        {
+          content: {
+            title: newPromptName,
+            description: newPromptContent,
+          },
+        },
+      ])
+      .then(({ data, error }) => {
+        if (error) {
+          addToast({
+            message: "Error adding prompt.",
+            variant: "danger",
+          });
+        } else {
+          addToast({
+            message: "Prompt added successfully.",
+            variant: "success",
+          });
+          setNewPromptName("");
+          setNewPromptContent("");
+        }
+      });
+    setNewPromptLoading(false);
+    setOpenAddPromptDialog(false);
+  }
   return (
     <>
       <Row
@@ -320,12 +366,12 @@ export default function AddPromptPage() {
                   color: "#F8F9FA",
                 }}
                 onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) =>
-                  (e.currentTarget.style.backgroundColor = "#18181B")
+                  (e.currentTarget.style.backgroundColor = "#000")
                 }
                 onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) =>
                   (e.currentTarget.style.backgroundColor = "#27272A")
                 }
-                onClick={() => router.push("/")}
+                onClick={() => setOpenAddPromptDialog(true)}
                 className={outfit.className}
               >
                 Add prompt
@@ -340,7 +386,7 @@ export default function AddPromptPage() {
                   transition: "background 0.15s",
                 }}
                 onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) =>
-                  (e.currentTarget.style.backgroundColor = "#18181B")
+                  (e.currentTarget.style.backgroundColor = "#000")
                 }
                 onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) =>
                   (e.currentTarget.style.backgroundColor = "#27272A")
@@ -385,7 +431,6 @@ export default function AddPromptPage() {
                 avatarProps={{
                   src: userInfoFromSession?.pfp || userInfoFromSession?.avatar,
                 }}
-                dropdown={<Column width={10} height={20}></Column>}
               />
             </div>
           </Flex>
@@ -407,6 +452,43 @@ export default function AddPromptPage() {
           />
         )}
       </Row>
+
+      <Dialog
+        title="Add Prompt"
+        isOpen={openAddPromptDialog}
+        onClose={() => setOpenAddPromptDialog(false)}
+        description="Add a new prompt to your vault"
+      >
+        <Column gap="12">
+          {" "}
+          <Input
+            id=""
+            label="Prompt name"
+            height="s"
+            description="Enter the name of your prompt"
+            value={newPromptName}
+            onChange={(e) => setNewPromptName(e.target.value)}
+          ></Input>
+          <Textarea
+            id=""
+            label="Prompt content"
+            style={{ minHeight: "200px" }}
+            description="Enter or paste the content of your prompt"
+            value={newPromptContent}
+            onChange={(e) => setNewPromptContent(e.target.value)}
+          ></Textarea>
+          <Row fillWidth horizontal="end">
+            {" "}
+            <Button
+              variant="primary"
+              loading={newPromptLoading}
+              onClick={handleAddPrompt}
+            >
+              Add Prompt
+            </Button>
+          </Row>{" "}
+        </Column>
+      </Dialog>
     </>
   );
 }
@@ -685,9 +767,9 @@ function Vault({
                       if (selectedFilter === "public")
                         return !prompt.is_private;
                       if (selectedFilter === "draft")
-                        return !prompt.id_published;
+                        return !prompt.is_published;
                       if (selectedFilter === "published")
-                        return prompt.id_published;
+                        return prompt.is_published;
                       if (selectedFilter === "featured")
                         return prompt.is_featured;
                       return true;
@@ -1638,6 +1720,13 @@ function Dashboard({
         setDeleteAccountDialog(false);
       });
   }
+
+  function logoutFromSupabase() {
+    supabase.auth.signOut().then(() => {
+      router.push("/");
+    });
+  }
+
   return (
     <>
       {" "}
@@ -1832,6 +1921,12 @@ function Dashboard({
                   <Button onClick={saveAccountSettings}>
                     Save changes
                   </Button>{" "}
+                  <Button
+                    variant="primary"
+                    onClick={() => logoutFromSupabase()}
+                  >
+                    Log Out
+                  </Button>
                   <Button
                     variant="danger"
                     onClick={() => setDeleteAccountDialog(true)}

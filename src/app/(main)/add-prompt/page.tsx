@@ -174,13 +174,20 @@ export default function AddPromptPage() {
   // Only realtime retrieve: listen for changes in the "prompts" table and update state
   useEffect(() => {
     const channel = supabase
-      .channel("prompts-realtime")
+      .channel("prompts-featured-realtime")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "prompts" },
+        { event: "UPDATE", schema: "public", table: "prompts" },
         (payload: any) => {
-          // You can handle INSERT, UPDATE, DELETE here if needed
-          // For example, you might want to refetch or update a local state
+          if (
+            payload.new &&
+            typeof payload.new.is_featured !== "undefined" &&
+            payload.old &&
+            payload.new.is_featured !== payload.old.is_featured
+          ) {
+            // Handle is_featured change here, e.g. show a toast or refetch data
+            // Example: console.log(`Prompt ${payload.new.prompt_id} is_featured changed to ${payload.new.is_featured}`);
+          }
         }
       )
       .subscribe();
@@ -595,6 +602,13 @@ function Vault({
                       const search = searchValue.toLowerCase();
                       return prompt.title.toLowerCase().includes(search);
                     });
+                  if (!prompts.length) {
+                    return (
+                      <Row fillWidth center>
+                        <Spinner size="l" />
+                      </Row>
+                    );
+                  }
                   if (filteredPrompts.length === 0) {
                     return (
                       <Row fillWidth center>
@@ -651,6 +665,13 @@ function Vault({
                       );
                     });
 
+                  if (!prompts.length) {
+                    return (
+                      <Row fillWidth center>
+                        <Spinner size="l" />
+                      </Row>
+                    );
+                  }
                   if (filteredPrompts.length === 0) {
                     return (
                       <Row fillWidth center>
@@ -715,6 +736,7 @@ function PromptCard({
   const router = useRouter();
   const { addToast } = useToast();
 
+  const [featuredCount, setFeaturedCount] = useState(20);
   // Automatically update is_featured based on likes count, with realtime updates
   useEffect(() => {
     let ignore = false;
@@ -729,7 +751,7 @@ function PromptCard({
       if (!ignore && !error && data) {
         const likesArray = Array.isArray(data.likes) ? data.likes : [];
         const likesCount = likesArray.length;
-        if (likesCount > 2 && !isFeatured) {
+        if (likesCount > featuredCount && !isFeatured) {
           await supabase
             .from("prompts")
             .update({ is_featured: true })
@@ -739,7 +761,7 @@ function PromptCard({
             message: "Your prompt was marked as featured",
             variant: "success",
           });
-        } else if (likesCount <= 2 && isFeatured) {
+        } else if (likesCount <= featuredCount && isFeatured) {
           await supabase
             .from("prompts")
             .update({ is_featured: false })
@@ -881,6 +903,7 @@ function PromptCard({
             variant: "danger",
           });
         } else {
+          setIsPublished((prev) => !prev);
           addToast({
             message: `Prompt ${
               !isPublished ? "published" : "unpublished"
@@ -1181,7 +1204,7 @@ function PrivateCard({
 
   // Clipboard copy helper
   const [copyLoading, setCopyLoading] = useState(false);
-  const[isFeatured, setIsFeatured] = useState(is_featured);
+  const [isFeatured, setIsFeatured] = useState(is_featured);
   async function handleCopy() {
     setCopyLoading(true);
     setTimeout(async () => {
@@ -1198,7 +1221,7 @@ function PrivateCard({
       setCopyLoading(false);
     }, 1000);
   }
-  
+
   return (
     <Flex>
       <Card

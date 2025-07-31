@@ -144,13 +144,42 @@ export default function PromptCardGlobal({
       setCopyLoading(false);
     }, 1000);
   }
+  // Track if the current user has liked this prompt
+  const [isLiked, setIsLiked] = useState(false);
+
+  // Fetch like state for this prompt and user on mount and when card_id changes
+  React.useEffect(() => {
+    let mounted = true;
+    async function fetchIsLiked() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        if (mounted) setIsLiked(false);
+        return;
+      }
+      const userId = session.user.id;
+      const { data: likeRow } = await supabase
+        .from("likes")
+        .select("likes")
+        .eq("prompt_id", card_id)
+        .single();
+      if (likeRow && Array.isArray(likeRow.likes)) {
+        if (mounted) setIsLiked(likeRow.likes.includes(userId));
+      } else {
+        if (mounted) setIsLiked(false);
+      }
+    }
+    fetchIsLiked();
+    return () => { mounted = false; };
+  }, [card_id]);
+
+  // Handle like/unlike
   async function handleLike(card_id: string) {
-    // Get current session
     const {
       data: { session },
-      error,
     } = await supabase.auth.getSession();
-    if (error || !session) {
+    if (!session) {
       addToast({
         message: "Please log in to like prompts",
         variant: "danger",
@@ -158,107 +187,36 @@ export default function PromptCardGlobal({
       return;
     }
     const userId = session.user.id;
-
-    // Fetch the likes JSON array for this prompt
-    const { data: likeRow, error: likeError } = await supabase
+    const { data: likeRow } = await supabase
       .from("likes")
       .select("likes")
       .eq("prompt_id", card_id)
       .single();
 
-    let updatedLikes: string[] = [...currentLikes];
+    let likesArr: string[] = (likeRow && Array.isArray(likeRow.likes)) ? likeRow.likes : [];
+    let newLikesArr: string[];
 
-    if (!likeRow) {
-      // No row exists, create one with this userId
-      const { error: insertError } = await supabase
+    if (!likesArr.includes(userId)) {
+      newLikesArr = [...likesArr, userId];
+      setIsLiked(true);
+      addToast({ message: "Prompt liked!", variant: "success" });
+    } else {
+      newLikesArr = likesArr.filter((id) => id !== userId);
+      setIsLiked(false);
+      addToast({ message: "Prompt unliked!", variant: "success" });
+    }
+
+    if (likeRow) {
+      await supabase
+        .from("likes")
+        .update({ likes: newLikesArr })
+        .eq("prompt_id", card_id);
+    } else {
+      await supabase
         .from("likes")
         .insert([{ prompt_id: card_id, likes: [userId] }]);
-      if (insertError) {
-        addToast({
-          message: "Error liking prompt",
-          variant: "danger",
-        });
-        return;
-      }
-      updatedLikes.push(card_id);
-      setCurrentLikes(updatedLikes);
-      addToast({
-        message: "Prompt liked!",
-        variant: "success",
-      });
-    } else {
-      // Row exists, check if userId is in the likes array
-      const likesArr: string[] = Array.isArray(likeRow.likes) ? likeRow.likes : [];
-      const hasLiked = likesArr.includes(userId);
-
-      if (!hasLiked) {
-        // Add userId to likes array
-        const newLikesArr = [...likesArr, userId];
-        const { error: updateError } = await supabase
-          .from("likes")
-          .update({ likes: newLikesArr })
-          .eq("prompt_id", card_id);
-        if (updateError) {
-          addToast({
-            message: "Error liking prompt",
-            variant: "danger",
-          });
-          return;
-        }
-        updatedLikes.push(card_id);
-        setCurrentLikes(updatedLikes);
-        addToast({
-          message: "Prompt liked!",
-          variant: "success",
-        });
-      } else {
-        // Remove userId from likes array
-        const newLikesArr = likesArr.filter((id) => id !== userId);
-        const { error: updateError } = await supabase
-          .from("likes")
-          .update({ likes: newLikesArr })
-          .eq("prompt_id", card_id);
-        if (updateError) {
-          addToast({
-            message: "Error unliking prompt",
-            variant: "danger",
-          });
-          return;
-        }
-        updatedLikes = updatedLikes.filter((id) => id !== card_id);
-        setCurrentLikes(updatedLikes);
-        addToast({
-          message: "Prompt unliked!",
-          variant: "success",
-        });
-      }
     }
   }
-  
-  // Fetch current user's likes on mount
-  React.useEffect(() => {
-    async function fetchLikes() {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
-      if (error || !session) {
-        setCurrentLikes([]);
-        return;
-      }
-      const userId = session.user.id;
-      // Get all prompt_ids where likes JSON array contains this userId
-      const { data: likeRows } = await supabase
-        .from("likes")
-        .select("prompt_id, likes")
-        .contains("likes", [userId]);
-
-      setCurrentLikes(likeRows ? likeRows.map((row) => row.prompt_id) : []);
-    }
-    fetchLikes();
-  }, []);
-
-
 
   return (
     <>
@@ -310,11 +268,11 @@ export default function PromptCardGlobal({
                 onClick={() => handleLike(card_id)}
               >
                 <Heart
-                  color={currentLikes.includes(card_id) ? "#FC5272" : "#555"}
-                  fill={currentLikes.includes(card_id) ? "#FC5272" : "none"}
+                  color={isLiked ? "#FC5272" : "#555"}
+                  fill={isLiked ? "#FC5272" : "none"}
                   size={14}
                 />
-              </IconButton>{" "}
+              </IconButton>
               <IconButton
                 variant="secondary"
                 size="s"

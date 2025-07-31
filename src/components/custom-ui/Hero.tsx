@@ -74,10 +74,9 @@ export default function Hero() {
   }>({});
   const [timeInSecondsBeforeNewPost, setTimeInSecondsBeforeNewPost] =
     useState(50);
-  const [totalUsers, setTotalUsers] = useState(0);
-  const [totalDroids, setTotalDroids] = useState(0);
+  const [totalUsers, setTotalUsers] = useState<number>(0);
+  const [totalPrompts, setTotalPrompts] = useState<number>(0);
 
-  
   const kbarItems = [
     {
       id: "home",
@@ -144,6 +143,29 @@ export default function Hero() {
     },
   ];
 
+  useEffect(() => {
+    const fetchCounts = async () => {
+      setLoading(true);
+      try {
+        const { count: userCount } = await supabase
+          .from("users")
+          .select("*", { count: "exact", head: true });
+        const { count: promptCount } = await supabase
+          .from("prompts")
+          .select("*", { count: "exact", head: true });
+        setTotalUsers(userCount ?? 0);
+        setTotalPrompts(promptCount ?? 0);
+      } catch (error) {
+        addToast({
+          message: "Could not fetch user or prompt counts.",
+          variant: "danger",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCounts();
+  }, []);
   return (
     <>
       <Flex fillWidth paddingY="l" center marginTop="80">
@@ -176,28 +198,33 @@ export default function Hero() {
               }}
               className={inter.className + " text-hero-small"}
             >
-              Floid helps you manage and publish AI prompts with ease and
-              like never before. Share with the world or keep it private — it's your workflow to control.
+              Floid helps you manage and publish AI prompts with ease and like
+              never before. Share with the world or keep it private — it's your
+              workflow to control.
             </Text>
           </Flex>
           <Flex fillWidth paddingX="xl" data-border="playful" maxWidth={30}>
-            <Row gap="8" center><Input
-              id=""
-              className="hero-search-input"
-              height="m"
-              placeholder="Quick search..."
-              style={{ backgroundColor: "#F8F9FA !important" }}
-              hasPrefix={
-                <Text>
-                  <Search color="#666" size={22} />
-                </Text>
-              }
-              hasSuffix={
-                <Flex className="hero-kbar">
-                 <IconButton size="m" variant="secondary"><Filter size={17} color="#777"></Filter></IconButton>
-                </Flex>
-              }
-            /></Row>
+            <Row gap="8" center>
+              <Input
+                id=""
+                className="hero-search-input"
+                height="m"
+                placeholder="Quick search..."
+                style={{ backgroundColor: "#F8F9FA !important" }}
+                hasPrefix={
+                  <Text>
+                    <Search color="#666" size={22} />
+                  </Text>
+                }
+                hasSuffix={
+                  <Flex className="hero-kbar">
+                    <IconButton size="m" variant="secondary">
+                      <Filter size={17} color="#777"></Filter>
+                    </IconButton>
+                  </Flex>
+                }
+              />
+            </Row>
           </Flex>
           <Column center gap="16">
             <AvatarGroup
@@ -229,16 +256,17 @@ export default function Hero() {
               style={{ textAlign: "center" }}
               className={inter.className}
             >
-              Already used by{" "}
-              <b style={{ color: "#555" }}>{totalUsers + 5}+</b> creators,
+              Already used by <b style={{ color: "#555" }}>{totalUsers + 2}+</b>{" "}
+              creators,
               <br />
-              generating <b style={{ color: "#555" }}>{totalUsers + 3}+</b>{" "}
+              generating <b style={{ color: "#555" }}>
+                {totalPrompts}+
+              </b>{" "}
               prompts
             </Text>
           </Column>
         </Column>
       </Flex>
-     
     </>
   );
 }

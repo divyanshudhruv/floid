@@ -102,7 +102,7 @@ export default function PromptCardGlobal({
   description,
   card_id,
   pfp,
-  id_published = false,
+  is_published = false,
   is_featured = false,
   is_private = false,
 }: {
@@ -110,7 +110,7 @@ export default function PromptCardGlobal({
   description: string;
   pfp: string;
   card_id: string;
-  id_published?: boolean;
+  is_published?: boolean;
   is_featured?: boolean;
   is_private?: boolean;
 }) {
@@ -132,11 +132,11 @@ export default function PromptCardGlobal({
           vertical="start"
           horizontal="start"
           gap="8"
-        //   style={{ backgroundColor: "#f7f7f7" }}
+          //   style={{ backgroundColor: "#f7f7f7" }}
         >
           <Row vertical="center" horizontal="space-between" fillWidth>
             <Row gap="8">
-              <Avvvatars value={pfp} style="shape" />
+              <Avvvatars value={title} style="shape" />
               <Column gap="4" vertical="center" horizontal="start">
                 <Text
                   variant="label-default-s"
@@ -144,7 +144,7 @@ export default function PromptCardGlobal({
                   className={inter.className}
                   style={{ lineHeight: "1", fontSize: "13px" }}
                 >
-                  {title}
+                  {title.slice(0, 19).concat("...")}
                 </Text>
                 <SmartLink href="#">
                   <Text
@@ -153,7 +153,7 @@ export default function PromptCardGlobal({
                     className={inter.className}
                     style={{ fontSize: "13px", lineHeight: "1" }}
                   >
-                    {card_id}
+                    {card_id.slice(0, 8)}
                   </Text>
                 </SmartLink>
               </Column>
@@ -208,11 +208,7 @@ export default function PromptCardGlobal({
             title="Prompt"
             codes={[
               {
-                code:
-                  description.length > 80
-                    ? description.slice(0, 80).replace(/(.{33})/g, "$1\n") +
-                      "..."
-                    : description.replace(/(.{33})/g, "$1\n"),
+                code: description,
                 language: "js",
                 label: "Line numbers",
               },
@@ -241,7 +237,7 @@ export default function PromptCardGlobal({
         onClose={() => setPromptShareDialog(false)}
         title="Share prompt"
         description="Share this prompt with others"
-        style={{scale:0.9}}
+        style={{ scale: 0.9 }}
       >
         <Column fillWidth gap="0" marginTop="4">
           {" "}
@@ -258,7 +254,6 @@ export default function PromptCardGlobal({
               },
             ]}
           />
-        
         </Column>
       </Dialog>
     </>

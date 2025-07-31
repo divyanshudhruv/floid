@@ -189,6 +189,7 @@ export default function AddPromptPage() {
       channel.unsubscribe();
     };
   }, []);
+
   const router = useRouter();
   const [section, setSection] = useState("All Prompts");
   return (
@@ -346,9 +347,7 @@ export default function AddPromptPage() {
           </Flex>
         </Column>
 
-        {(section === "All Prompts" ||
-          section === "Private Prompts" ||
-          section === "Public") && (
+        {(section === "All Prompts" || section === "Private Prompts") && (
           <Vault
             userInfoFromSession={userInfoFromSession}
             activeTab={section}
@@ -401,11 +400,12 @@ function Vault({
             prompt: item.content?.prompt || "",
             card_id: item.prompt_id,
             pfp: item.prompt_avatar || item.uuid || "",
-            id_published: item.is_published,
+            is_published: item.is_published,
             is_featured: item.is_featured,
             is_private: item.is_private,
             is_sharable: item.is_sharable,
             created_at: item.created_at,
+            description: item.content?.description || "",
           }))
         );
       }
@@ -413,71 +413,6 @@ function Vault({
     fetchPrompts();
   }, []);
 
-  // Enable realtime updates for prompts table
-  useEffect(() => {
-    const channel = supabase
-      .channel("prompts-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "prompts" },
-        (payload: any) => {
-          setPrompts((prevPrompts) => {
-            if (payload.eventType === "INSERT") {
-              const item = payload.new;
-              return [
-                ...prevPrompts,
-                {
-                  title: item.content?.title
-                    ? item.content.title.slice(0, 19).concat("...")
-                    : "",
-                  prompt: item.content?.prompt || "",
-                  card_id: item.prompt_id.slice(0, 8),
-                  pfp: item.prompt_avatar || item.uuid || "",
-                  id_published: item.is_published,
-                  is_featured: item.is_featured,
-                  is_private: item.is_private,
-                  is_sharable: item.is_sharable,
-                  created_at: item.created_at,
-                },
-              ];
-            }
-            if (payload.eventType === "UPDATE") {
-              const item = payload.new;
-              return prevPrompts.map((prompt) =>
-                prompt.card_id === item.prompt_id.slice(0, 8)
-                  ? {
-                      ...prompt,
-                      title: item.content?.title
-                        ? item.content.title.slice(0, 19).concat("...")
-                        : "",
-                      prompt: item.content?.prompt || "",
-                      card_id: item.prompt_id.slice(0, 8),
-                      pfp: item.prompt_avatar || item.uuid || "",
-                      id_published: item.is_published,
-                      is_featured: item.is_featured,
-                      is_private: item.is_private,
-                      is_sharable: item.is_sharable,
-                      created_at: item.created_at,
-                    }
-                  : prompt
-              );
-            }
-            if (payload.eventType === "DELETE") {
-              const item = payload.old;
-              return prevPrompts.filter(
-                (prompt) => prompt.card_id !== item.prompt_id.slice(0, 8)
-              );
-            }
-            return prevPrompts;
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, []);
   const [searchValue, setSearchValue] = useState<string>("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -489,6 +424,69 @@ function Vault({
   };
   const [selectedFilter, setSelectedFilter] = useState("");
 
+  // Listen for realtime updates to the prompt and update local state accordingly
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("prompts-vault-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "prompts" },
+        (payload: any) => {
+          if (payload.eventType === "INSERT" && payload.new) {
+            setPrompts((prev) => [
+              {
+                title: payload.new.content?.title
+                  ? payload.new.content.title.slice(0, 19).concat("...")
+                  : "",
+                prompt: payload.new.content?.prompt || "",
+                card_id: payload.new.prompt_id,
+                pfp: payload.new.prompt_avatar || payload.new.uuid || "",
+                is_published: payload.new.is_published,
+                is_featured: payload.new.is_featured,
+                is_private: payload.new.is_private,
+                is_sharable: payload.new.is_sharable,
+                created_at: payload.new.created_at,
+                description: payload.new.content?.description || "",
+              },
+              ...prev,
+            ]);
+          }
+          if (payload.eventType === "UPDATE" && payload.new) {
+            setPrompts((prev) =>
+              prev.map((item) =>
+                item.card_id === payload.new.prompt_id
+                  ? {
+                      ...item,
+                      title: payload.new.content?.title
+                        ? payload.new.content.title.slice(0, 19).concat("...")
+                        : "",
+                      prompt: payload.new.content?.prompt || "",
+                      pfp: payload.new.prompt_avatar || payload.new.uuid || "",
+                      is_published: payload.new.is_published,
+                      is_featured: payload.new.is_featured,
+                      is_private: payload.new.is_private,
+                      is_sharable: payload.new.is_sharable,
+                      created_at: payload.new.created_at,
+                      description: payload.new.content?.description || "",
+                    }
+                  : item
+              )
+            );
+          }
+          if (payload.eventType === "DELETE" && payload.old) {
+            setPrompts((prev) =>
+              prev.filter((item) => item.card_id !== payload.old.prompt_id)
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, []);
   return (
     <>
       {" "}
@@ -631,10 +629,10 @@ function Vault({
                     <PrivateCard
                       key={index}
                       title={prompt.title}
-                      description={prompt.prompt}
+                      description={prompt.description}
                       card_id={prompt.card_id}
                       pfp={prompt.pfp}
-                      id_published={prompt.id_published}
+                      is_published={prompt.is_published}
                       is_featured={prompt.is_featured}
                       is_private={prompt.is_private}
                     />
@@ -688,10 +686,9 @@ function Vault({
                     <PromptCard
                       key={index}
                       title={prompt.title}
-                      description={prompt.prompt}
+                      description={prompt.description}
                       card_id={prompt.card_id}
                       pfp={prompt.pfp}
-                      id_published={prompt.id_published}
                       is_featured={prompt.is_featured}
                       is_private={prompt.is_private}
                       is_published={prompt.is_published}
@@ -706,12 +703,13 @@ function Vault({
     </>
   );
 }
+// Refactored PromptCard component with improvements and bug fixes
+
 function PromptCard({
   title,
   description,
   card_id,
   pfp,
-  id_published = false,
   is_featured = false,
   is_private = false,
   is_published = false,
@@ -721,61 +719,73 @@ function PromptCard({
   description: string;
   pfp: string;
   card_id: string;
-  id_published?: boolean;
   is_featured?: boolean;
   is_private?: boolean;
   is_published?: boolean;
   is_sharable?: boolean;
 }) {
-  const [checked, setChecked] = useState<boolean>(!!id_published);
-  const [privateChecked, setPrivateChecked] = useState<boolean>(!!is_private);
-  const [shareable, setShareable] = useState<boolean>(!!is_sharable);
-  const [visible, setVisible] = useState<boolean>(true);
+  const [isPublished, setIsPublished] = useState(is_published);
+  const [isPrivate, setIsPrivate] = useState(is_private);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const router = useRouter();
   const { addToast } = useToast();
 
-  // Keep state in sync with props
+  // Keep state in sync with props if they change
   useEffect(() => {
-    setChecked(!!id_published);
-  }, [id_published]);
-  useEffect(() => {
-    setShareable(!!is_sharable);
-  }, [is_sharable]);
-  useEffect(() => {
-    setPrivateChecked(!!is_private);
+    setIsPrivate(is_private);
   }, [is_private]);
-
-  // Hide card if it becomes private (for All Prompts page)
   useEffect(() => {
-    if (privateChecked) setVisible(false);
-    else setVisible(true);
-  }, [privateChecked]);
-
+    setIsPublished(is_published);
+  }, [is_published]);
   function changePrivacy(card_id: string) {
-    supabase
-      .from("prompts")
-      .update({ is_private: !privateChecked })
-      .eq("prompt_id", card_id)
-      .then(({ error }) => {
-        if (error) {
-          addToast({
-            message:
-              "Failed to change privacy. Please try again. Error: " +
-              error.message,
-            variant: "danger",
-          });
-        } else {
-          setPrivateChecked((prev) => !prev);
-          addToast({
-            message: `Prompt privacy changed to ${
-              !privateChecked ? "Private" : "Public"
-            }`,
-            variant: "success",
-          });
-        }
-      });
+    // If prompt is published and user tries to make it private, unpublish first
+    if (!isPrivate && isPublished) {
+      supabase
+        .from("prompts")
+        .update({ is_private: true, is_published: false })
+        .eq("prompt_id", card_id)
+        .then(({ error }) => {
+          if (error) {
+            addToast({
+              message:
+                "Failed to change privacy. Please try again. Error: " +
+                error.message,
+              variant: "danger",
+            });
+          } else {
+            setIsPrivate(true);
+            setIsPublished(false);
+            addToast({
+              message: "Prompt privacy changed to Private and unpublished.",
+              variant: "success",
+            });
+          }
+        });
+    } else {
+      supabase
+        .from("prompts")
+        .update({ is_private: !isPrivate })
+        .eq("prompt_id", card_id)
+        .then(({ error }) => {
+          if (error) {
+            addToast({
+              message:
+                "Failed to change privacy. Please try again. Error: " +
+                error.message,
+              variant: "danger",
+            });
+          } else {
+            setIsPrivate((prev) => !prev);
+            addToast({
+              message: `Prompt privacy changed to ${
+                !isPrivate ? "Private" : "Public"
+              }`,
+              variant: "success",
+            });
+          }
+        });
+    }
   }
 
   function deletePrompt(card_id: string) {
@@ -798,50 +808,86 @@ function PromptCard({
             variant: "success",
           });
           setDeleteDialogOpen(false);
-          setVisible(false);
+          // Optionally: remove card from UI (parent should handle)
         }
       });
   }
 
   function updatePublishedStatus(card_id: string) {
+    if (isPrivate) {
+      addToast({
+      message: "Cannot publish a private prompt. Please make it public first.",
+      variant: "danger",
+      });
+      return;
+    }
     supabase
       .from("prompts")
-      .update({ is_published: !checked })
+      .update({ is_published: !isPublished })
       .eq("prompt_id", card_id)
       .then(({ error }) => {
-        if (error) {
-          addToast({
-            message:
-              "Failed to update published status. Please try again. Error: " +
-              error.message,
-            variant: "danger",
-          });
-        } else {
-          setChecked((prev) => !prev);
-          addToast({
-            message: `Prompt ${
-              !checked ? "published" : "unpublished"
-            } successfully`,
-            variant: "success",
-          });
-        }
+      if (error) {
+        addToast({
+        message:
+          "Failed to update published status. Please try again. Error: " +
+          error.message,
+        variant: "danger",
+        });
+      } else {
+        addToast({
+        message: `Prompt ${
+          !isPublished ? "published" : "unpublished"
+        } successfully`,
+        variant: "success",
+        });
+      }
       });
   }
 
-  if (!visible)
-    return (
-      <>
-        <Row fillWidth center>
-          <Text
-            className={inter.className}
-            onBackground="neutral-weak"
-            variant="label-default-s"
-          >
-            No prompts found
-          </Text>
-        </Row>
-      </>
-    );
+  // Clipboard copy helper
+  const [copyLoading, setCopyLoading] = useState(false);
+  async function handleCopy() {
+    setCopyLoading(true);
+    setTimeout(async () => {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(description);
+        } else {
+          // Fallback: prompt user to copy manually
+          window.prompt("Copy to clipboard: Ctrl+C, Enter", description);
+        }
+      } catch (err) {
+        // Optionally handle error (e.g., show a toast)
+      }
+      setCopyLoading(false);
+    }, 1000);
+  }
+
+  // Listen for realtime updates to the prompt and update local state accordingly
+  useEffect(() => {
+    const channel = supabase
+      .channel(`promptcard-realtime-${card_id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "prompts",
+          filter: `prompt_id=eq.${card_id}`,
+        },
+        (payload: any) => {
+          if (payload.eventType === "UPDATE" && payload.new) {
+            setIsPrivate(payload.new.is_private);
+            setIsPublished(payload.new.is_published);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [card_id]);
 
   return (
     <>
@@ -862,7 +908,7 @@ function PromptCard({
         >
           <Row vertical="center" horizontal="space-between" fillWidth>
             <Row gap="8">
-              <Avvvatars value={pfp} style="shape" />
+              <Avvvatars value={title} style="shape" />
               <Column gap="4" vertical="center" horizontal="start">
                 <Text
                   variant="label-default-s"
@@ -870,7 +916,7 @@ function PromptCard({
                   className={inter.className}
                   style={{ lineHeight: "1", fontSize: "13px" }}
                 >
-                  {title}
+                  {title.slice(0, 19).concat("...")}
                 </Text>
                 <SmartLink href="#">
                   <Text
@@ -889,9 +935,9 @@ function PromptCard({
                 variant="secondary"
                 size="s"
                 onClick={() => changePrivacy(card_id)}
-                aria-label={privateChecked ? "Make Public" : "Make Private"}
+                aria-label={isPrivate ? "Make Public" : "Make Private"}
               >
-                {privateChecked ? (
+                {isPrivate ? (
                   <EyeClosed color="#555" size={14} />
                 ) : (
                   <Eye color="#555" size={14} />
@@ -907,32 +953,12 @@ function PromptCard({
               <IconButton variant="secondary" size="s">
                 <Edit color="#555" size={14} />
               </IconButton>
-              <IconButton
-                variant="secondary"
-                size="s"
-                onClick={() => {
-                  if (navigator.clipboard && window.isSecureContext) {
-                    navigator.clipboard.writeText(description);
-                  } else {
-                    // fallback for insecure context or unsupported browsers
-                    const textArea = document.createElement("textarea");
-                    textArea.value = description;
-                    // Avoid scrolling to bottom
-                    textArea.style.position = "fixed";
-                    textArea.style.left = "-999999px";
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    try {
-                      document.execCommand("copy");
-                    } catch (err) {
-                      // Optionally handle error
-                    }
-                    document.body.removeChild(textArea);
-                  }
-                }}
-              >
-                <Clipboard color="#555" size={14} />
+              <IconButton variant="secondary" size="s" onClick={handleCopy}>
+                {copyLoading ? (
+                  <Spinner size="s" />
+                ) : (
+                  <Clipboard color="#555" size={14} />
+                )}
               </IconButton>
             </Row>
           </Row>
@@ -948,13 +974,12 @@ function PromptCard({
                 <Text style={{ fontSize: "12px" }}>Featured</Text>
               </Tag>
             )}
-
-            {privateChecked && (
+            {isPrivate && (
               <Tag size="s" variant="brand">
                 <Text style={{ fontSize: "12px" }}>Private</Text>
               </Tag>
             )}
-            {checked ? (
+            {isPublished ? (
               <Tag
                 size="s"
                 style={{
@@ -1000,8 +1025,9 @@ function PromptCard({
             }}
           >
             <Checkbox
-              checked={checked}
-              onChange={() => updatePublishedStatus(card_id)}
+              label=""
+              isChecked={isPublished}
+              onToggle={() => updatePublishedStatus(card_id)}
             />
           </Row>
         </Card>
@@ -1019,22 +1045,23 @@ function PromptCard({
     </>
   );
 }
+
 function PrivateCard({
   title,
   description,
   card_id,
   pfp,
-  id_published = false,
   is_featured = false,
   is_private = false,
+  is_published = false,
 }: {
   title: string;
   description: string;
   pfp: string;
   card_id: string;
-  id_published?: boolean;
   is_featured?: boolean;
   is_private?: boolean;
+  is_published?: boolean;
 }) {
   const router = useRouter();
   const { addToast } = useToast();
@@ -1099,6 +1126,24 @@ function PrivateCard({
 
   if (!visible) return null;
 
+  // Clipboard copy helper
+  const [copyLoading, setCopyLoading] = useState(false);
+  async function handleCopy() {
+    setCopyLoading(true);
+    setTimeout(async () => {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(description);
+        } else {
+          // Fallback: prompt user to copy manually
+          window.prompt("Copy to clipboard: Ctrl+C, Enter", description);
+        }
+      } catch (err) {
+        // Optionally handle error (e.g., show a toast)
+      }
+      setCopyLoading(false);
+    }, 1000);
+  }
   return (
     <Flex>
       <Card
@@ -1125,7 +1170,7 @@ function PrivateCard({
                 className={inter.className}
                 style={{ lineHeight: "1", fontSize: "13px" }}
               >
-                {title}
+                {title.slice(0, 19).concat("...")}
               </Text>
               <SmartLink href="#">
                 <Text
@@ -1187,7 +1232,11 @@ function PrivateCard({
                 }
               }}
             >
-              <Clipboard color="#555" size={14} />
+              {copyLoading ? (
+                <Spinner size="s" />
+              ) : (
+                <Clipboard color="#555" size={14} />
+              )}
             </IconButton>
           </Row>
         </Row>
@@ -1262,10 +1311,6 @@ import {
   TreeItem,
   TreeItemLabel,
 } from "../../../components/originui/tree";
-import ToolTipComponent from "@/components/comp-354";
-import AlertComponent from "@/components/comp-313";
-import PromptCardGlobal from "@/components/custom-ui/Prompts";
-import { useRef } from "react";
 
 interface Item {
   name: string;
@@ -1439,9 +1484,6 @@ function Dashboard({
       });
   }
 
-  function deleteAccount() {
-    setDeleteAccountDialog(true);
-  }
   function confirmDeleteAccount() {
     setDelLoading(true);
 
@@ -1665,7 +1707,10 @@ function Dashboard({
                   <Button onClick={saveAccountSettings}>
                     Save changes
                   </Button>{" "}
-                  <Button variant="danger" onClick={deleteAccount}>
+                  <Button
+                    variant="danger"
+                    onClick={() => setDeleteAccountDialog(true)}
+                  >
                     Delete Account
                   </Button>
                 </Row>{" "}

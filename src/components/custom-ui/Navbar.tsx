@@ -18,7 +18,7 @@ import {
   NavIcon,
 } from "@once-ui-system/core";
 import { Inter, Outfit } from "next/font/google";
-import { Bell, LogIn, Moon, Plus, Sun } from "lucide-react";
+import { Bell, LayoutDashboard, LogIn, Moon, Plus, SquareChartGanttIcon, Sun, Table2Icon } from "lucide-react";
 
 // Fonts
 const outfit = Outfit({
@@ -219,7 +219,7 @@ const [isLoading, setIsLoading] = useState(true);
               }
               onClick={() => router.push("/add-prompt")}
             >
-              <Plus color="#F8F9FA" size={15} fontWeight={3} />
+              <Table2Icon color="#F8F9FA" size={15} fontWeight={3} />
             </IconButton>
           )}
 

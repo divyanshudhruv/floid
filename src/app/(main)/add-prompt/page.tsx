@@ -706,7 +706,6 @@ function Vault({
     </>
   );
 }
-
 function PromptCard({
   title,
   description,
@@ -728,20 +727,33 @@ function PromptCard({
   is_published?: boolean;
   is_sharable?: boolean;
 }) {
-  const [checked, setChecked] = useState<boolean>(!!is_published);
+  const [checked, setChecked] = useState<boolean>(!!id_published);
   const [privateChecked, setPrivateChecked] = useState<boolean>(!!is_private);
   const [shareable, setShareable] = useState<boolean>(!!is_sharable);
-  useEffect(() => {
-    setChecked(!!is_published);
-  }, [is_published]);
-  useEffect(() => {
-    setShareable(!!is_sharable);
-  }, [is_sharable]);
+  const [visible, setVisible] = useState<boolean>(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const router = useRouter();
   const { addToast } = useToast();
-  function changePrivacy() {
-    // Toggle privacy in DB and update local state for instant UI feedback
+
+  // Keep state in sync with props
+  useEffect(() => {
+    setChecked(!!id_published);
+  }, [id_published]);
+  useEffect(() => {
+    setShareable(!!is_sharable);
+  }, [is_sharable]);
+  useEffect(() => {
+    setPrivateChecked(!!is_private);
+  }, [is_private]);
+
+  // Hide card if it becomes private (for All Prompts page)
+  useEffect(() => {
+    if (privateChecked) setVisible(false);
+    else setVisible(true);
+  }, [privateChecked]);
+
+  function changePrivacy(card_id: string) {
     supabase
       .from("prompts")
       .update({ is_private: !privateChecked })
@@ -755,7 +767,7 @@ function PromptCard({
             variant: "danger",
           });
         } else {
-          setPrivateChecked((prev) => !prev); // Optimistically update UI
+          setPrivateChecked((prev) => !prev);
           addToast({
             message: `Prompt privacy changed to ${
               !privateChecked ? "Private" : "Public"
@@ -766,9 +778,329 @@ function PromptCard({
       });
   }
 
+  function deletePrompt(card_id: string) {
+    supabase
+      .from("prompts")
+      .delete()
+      .eq("prompt_id", card_id)
+      .then(({ error }) => {
+        if (error) {
+          addToast({
+            message:
+              "Failed to delete prompt. Please try again. Error: " +
+              error.message,
+            variant: "danger",
+          });
+          setDeleteDialogOpen(false);
+        } else {
+          addToast({
+            message: "Prompt deleted successfully",
+            variant: "success",
+          });
+          setDeleteDialogOpen(false);
+          setVisible(false);
+        }
+      });
+  }
+
+  function updatePublishedStatus(card_id: string) {
+    supabase
+      .from("prompts")
+      .update({ is_published: !checked })
+      .eq("prompt_id", card_id)
+      .then(({ error }) => {
+        if (error) {
+          addToast({
+            message:
+              "Failed to update published status. Please try again. Error: " +
+              error.message,
+            variant: "danger",
+          });
+        } else {
+          setChecked((prev) => !prev);
+          addToast({
+            message: `Prompt ${
+              !checked ? "published" : "unpublished"
+            } successfully`,
+            variant: "success",
+          });
+        }
+      });
+  }
+
+  if (!visible)
+    return (
+      <>
+        <Row fillWidth center>
+          <Text
+            className={inter.className}
+            onBackground="neutral-weak"
+            variant="label-default-s"
+          >
+            No prompts found
+          </Text>
+        </Row>
+      </>
+    );
+
+  return (
+    <>
+      <Flex>
+        <Card
+          fillWidth
+          padding="s"
+          radius="s"
+          border="neutral-medium"
+          maxWidth={22}
+          minWidth={22}
+          as={Flex}
+          direction="column"
+          vertical="start"
+          horizontal="start"
+          gap="8"
+          style={{ position: "relative" }}
+        >
+          <Row vertical="center" horizontal="space-between" fillWidth>
+            <Row gap="8">
+              <Avvvatars value={pfp} style="shape" />
+              <Column gap="4" vertical="center" horizontal="start">
+                <Text
+                  variant="label-default-s"
+                  onBackground="neutral-strong"
+                  className={inter.className}
+                  style={{ lineHeight: "1", fontSize: "13px" }}
+                >
+                  {title}
+                </Text>
+                <SmartLink href="#">
+                  <Text
+                    variant="label-default-s"
+                    onBackground="neutral-weak"
+                    className={inter.className}
+                    style={{ fontSize: "13px", lineHeight: "1" }}
+                  >
+                    {card_id.slice(0, 8)}
+                  </Text>
+                </SmartLink>
+              </Column>
+            </Row>
+            <Row center gap="8">
+              <IconButton
+                variant="secondary"
+                size="s"
+                onClick={() => changePrivacy(card_id)}
+                aria-label={privateChecked ? "Make Public" : "Make Private"}
+              >
+                {privateChecked ? (
+                  <EyeClosed color="#555" size={14} />
+                ) : (
+                  <Eye color="#555" size={14} />
+                )}
+              </IconButton>
+              <IconButton
+                variant="secondary"
+                size="s"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                <LucideTrash2 color="#555" size={14} />
+              </IconButton>
+              <IconButton variant="secondary" size="s">
+                <Edit color="#555" size={14} />
+              </IconButton>
+              <IconButton
+                variant="secondary"
+                size="s"
+                onClick={() => {
+                  if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(description);
+                  } else {
+                    // fallback for insecure context or unsupported browsers
+                    const textArea = document.createElement("textarea");
+                    textArea.value = description;
+                    // Avoid scrolling to bottom
+                    textArea.style.position = "fixed";
+                    textArea.style.left = "-999999px";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {
+                      document.execCommand("copy");
+                    } catch (err) {
+                      // Optionally handle error
+                    }
+                    document.body.removeChild(textArea);
+                  }
+                }}
+              >
+                <Clipboard color="#555" size={14} />
+              </IconButton>
+            </Row>
+          </Row>
+          <Row
+            fillWidth
+            vertical="center"
+            horizontal="start"
+            paddingY="4"
+            gap="4"
+          >
+            {is_featured && (
+              <Tag size="s" variant="gradient">
+                <Text style={{ fontSize: "12px" }}>Featured</Text>
+              </Tag>
+            )}
+
+            {privateChecked && (
+              <Tag size="s" variant="brand">
+                <Text style={{ fontSize: "12px" }}>Private</Text>
+              </Tag>
+            )}
+            {checked ? (
+              <Tag
+                size="s"
+                style={{
+                  backgroundColor: "#dadada",
+                  borderColor: "transparent",
+                }}
+              >
+                <Text
+                  style={{ fontSize: "12px" }}
+                  onBackground="neutral-medium"
+                >
+                  Published
+                </Text>
+              </Tag>
+            ) : (
+              <Tag
+                size="s"
+                style={{
+                  backgroundColor: "#f0f0f0",
+                  borderColor: "transparent",
+                }}
+              >
+                <Text
+                  style={{ fontSize: "12px" }}
+                  onBackground="neutral-medium"
+                >
+                  Draft
+                </Text>
+              </Tag>
+            )}
+          </Row>
+          <Row
+            fillWidth
+            horizontal="end"
+            style={{
+              position: "absolute",
+              bottom: "0",
+              left: "0",
+              right: "0",
+              margin: "auto",
+              width: "100%",
+              padding: "16px 16px",
+            }}
+          >
+            <Checkbox
+              checked={checked}
+              onChange={() => updatePublishedStatus(card_id)}
+            />
+          </Row>
+        </Card>
+      </Flex>
+      <Dialog
+        title="Delete Prompt"
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        description="Are you sure you want to delete this prompt? This action cannot be undone."
+      >
+        <Button variant="danger" onClick={() => deletePrompt(card_id)}>
+          Delete Prompt
+        </Button>
+      </Dialog>
+    </>
+  );
+}
+function PrivateCard({
+  title,
+  description,
+  card_id,
+  pfp,
+  id_published = false,
+  is_featured = false,
+  is_private = false,
+}: {
+  title: string;
+  description: string;
+  pfp: string;
+  card_id: string;
+  id_published?: boolean;
+  is_featured?: boolean;
+  is_private?: boolean;
+}) {
+  const router = useRouter();
+  const { addToast } = useToast();
+  const [privateChecked, setPrivateChecked] = useState<boolean>(!!is_private);
+  const [visible, setVisible] = useState<boolean>(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // Keep state in sync with props
+  useEffect(() => {
+    setPrivateChecked(!!is_private);
+  }, [is_private]);
+
+  function changePrivacy(card_id: string) {
+    supabase
+      .from("prompts")
+      .update({ is_private: !privateChecked })
+      .eq("prompt_id", card_id)
+      .then(({ error }) => {
+        if (error) {
+          addToast({
+            message:
+              "Failed to change privacy. Please try again. Error: " +
+              error.message,
+            variant: "danger",
+          });
+        } else {
+          setPrivateChecked((prev) => !prev);
+          addToast({
+            message: `Prompt privacy changed to ${
+              !privateChecked ? "Private" : "Public"
+            }`,
+            variant: "success",
+          });
+        }
+      });
+  }
+
+  function deletePrompt(card_id: string) {
+    supabase
+      .from("prompts")
+      .delete()
+      .eq("prompt_id", card_id)
+      .then(({ error }) => {
+        if (error) {
+          addToast({
+            message:
+              "Failed to delete prompt. Please try again. Error: " +
+              error.message,
+            variant: "danger",
+          });
+          setDeleteDialogOpen(false);
+        } else {
+          addToast({
+            message: "Prompt deleted successfully",
+            variant: "success",
+          });
+          setDeleteDialogOpen(false);
+          setVisible(false);
+        }
+      });
+  }
+
+  if (!visible) return null;
+
   return (
     <Flex>
-      {" "}
       <Card
         fillWidth
         padding="s"
@@ -781,6 +1113,7 @@ function PromptCard({
         vertical="start"
         horizontal="start"
         gap="8"
+        style={{ position: "relative" }}
       >
         <Row vertical="center" horizontal="space-between" fillWidth>
           <Row gap="8">
@@ -807,8 +1140,12 @@ function PromptCard({
             </Column>
           </Row>
           <Row center gap="8">
-            {" "}
-            <IconButton variant="secondary" size="s" onClick={changePrivacy}>
+            <IconButton
+              variant="secondary"
+              size="s"
+              onClick={() => changePrivacy(card_id)}
+              aria-label={privateChecked ? "Make Public" : "Make Private"}
+            >
               {privateChecked ? (
                 <EyeClosed color="#555" size={14} />
               ) : (
@@ -818,21 +1155,41 @@ function PromptCard({
             <IconButton
               variant="secondary"
               size="s"
-              onClick={() => router.push("/add-prompt")}
+              onClick={() => setDeleteDialogOpen(true)}
             >
               <LucideTrash2 color="#555" size={14} />
-            </IconButton>{" "}
+            </IconButton>
             <IconButton variant="secondary" size="s">
               <Edit color="#555" size={14} />
             </IconButton>
             <IconButton
               variant="secondary"
               size="s"
-              onClick={() => router.push("/add-prompt")}
+              onClick={() => {
+                if (navigator.clipboard && window.isSecureContext) {
+                  navigator.clipboard.writeText(description);
+                } else {
+                  // fallback for insecure context or unsupported browsers
+                  const textArea = document.createElement("textarea");
+                  textArea.value = description;
+                  // Avoid scrolling to bottom
+                  textArea.style.position = "fixed";
+                  textArea.style.left = "-999999px";
+                  document.body.appendChild(textArea);
+                  textArea.focus();
+                  textArea.select();
+                  try {
+                    document.execCommand("copy");
+                  } catch (err) {
+                    // Optionally handle error
+                  }
+                  document.body.removeChild(textArea);
+                }
+              }}
             >
               <Clipboard color="#555" size={14} />
             </IconButton>
-          </Row>{" "}
+          </Row>
         </Row>
         <Row
           fillWidth
@@ -841,29 +1198,15 @@ function PromptCard({
           paddingY="4"
           gap="4"
         >
+          {" "}
           {is_featured && (
             <Tag size="s" variant="gradient">
               <Text style={{ fontSize: "12px" }}>Featured</Text>
             </Tag>
           )}
-
-          {is_private && (
+          {privateChecked ? (
             <Tag size="s" variant="brand">
               <Text style={{ fontSize: "12px" }}>Private</Text>
-            </Tag>
-          )}
-          {id_published ? (
-            <Tag
-              size="s"
-              style={{
-                backgroundColor: "#dadada",
-
-                borderColor: "transparent",
-              }}
-            >
-              <Text style={{ fontSize: "12px" }} onBackground="neutral-medium">
-                Published
-              </Text>
             </Tag>
           ) : (
             <Tag
@@ -892,133 +1235,19 @@ function PromptCard({
             padding: "16px 16px",
           }}
         >
-          <Checkbox
-            isChecked={checked}
-            onToggle={() => setChecked(!checked)}
-            checked={checked}
-            defaultChecked={checked}
-          />
-        </Row>
-      </Card>
-    </Flex>
-  );
-}
-
-function PrivateCard({
-  title,
-  description,
-  card_id,
-  pfp,
-  id_published = false,
-  is_featured = false,
-  is_private = false,
-}: {
-  title: string;
-  description: string;
-  pfp: string;
-  card_id: string;
-  id_published?: boolean;
-  is_featured?: boolean;
-  is_private?: boolean;
-}) {
-  const router = useRouter();
-  return (
-    <Flex>
-      {" "}
-      <Card
-        fillWidth
-        padding="s"
-        radius="s"
-        border="neutral-medium"
-        maxWidth={22}
-        minWidth={22}
-        as={Flex}
-        direction="column"
-        vertical="start"
-        horizontal="start"
-        gap="8"
-      >
-        <Row vertical="center" horizontal="space-between" fillWidth>
-          <Row gap="8">
-            <Avvvatars value={pfp} style="shape" />
-            <Column gap="4" vertical="center" horizontal="start">
-              <Text
-                variant="label-default-s"
-                onBackground="neutral-strong"
-                className={inter.className}
-                style={{ lineHeight: "1", fontSize: "13px" }}
-              >
-                {title}
-              </Text>
-              <SmartLink href="#">
-                <Text
-                  variant="label-default-s"
-                  onBackground="neutral-weak"
-                  className={inter.className}
-                  style={{ fontSize: "13px", lineHeight: "1" }}
-                >
-                  {card_id}
-                </Text>
-              </SmartLink>
-            </Column>
-          </Row>
-          <Row center gap="8">
-            <IconButton
-              variant="secondary"
-              size="s"
-              onClick={() => router.push("/add-prompt")}
-            >
-              <EyeClosed color="#555" size={14} />
-            </IconButton>{" "}
-            <IconButton
-              variant="secondary"
-              size="s"
-              onClick={() => router.push("/add-prompt")}
-            >
-              <LucideTrash2 color="#555" size={14} />
-            </IconButton>{" "}
-            <IconButton variant="secondary" size="s">
-              <Edit color="#555" size={14} />
-            </IconButton>
-            <IconButton
-              variant="secondary"
-              size="s"
-              onClick={() => router.push("/add-prompt")}
-            >
-              <Clipboard color="#555" size={14} />
-            </IconButton>
-          </Row>{" "}
-        </Row>
-        <Row
-          fillWidth
-          vertical="center"
-          horizontal="start"
-          paddingY="4"
-          gap="4"
-        >
-          {is_private === true && (
-            <Tag size="s" variant="brand">
-              <Text style={{ fontSize: "12px" }}>Private</Text>
-            </Tag>
-          )}
-        </Row>
-
-        <Row
-          fillWidth
-          horizontal="end"
-          style={{
-            position: "absolute",
-            bottom: "0",
-            left: "0",
-            right: "0",
-            margin: "auto",
-            width: "100%",
-            padding: "16px 16px",
-          }}
-        >
           <Checkbox checked={true} defaultChecked={true} disabled />
         </Row>
       </Card>
+      <Dialog
+        title="Delete Prompt"
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        description="Are you sure you want to delete this prompt? This action cannot be undone."
+      >
+        <Button variant="danger" onClick={() => deletePrompt(card_id)}>
+          Delete Prompt
+        </Button>
+      </Dialog>
     </Flex>
   );
 }
@@ -1036,6 +1265,7 @@ import {
 import ToolTipComponent from "@/components/comp-354";
 import AlertComponent from "@/components/comp-313";
 import PromptCardGlobal from "@/components/custom-ui/Prompts";
+import { useRef } from "react";
 
 interface Item {
   name: string;

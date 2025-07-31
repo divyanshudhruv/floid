@@ -423,7 +423,7 @@ function Vault({
   const [selectedFilter, setSelectedFilter] = useState("");
 
   // Listen for realtime updates to the prompt and update local state accordingly
-
+  // Listen for realtime updates to the prompts table and update local state accordingly
   useEffect(() => {
     const channel = supabase
       .channel("prompts-vault-realtime")
@@ -431,39 +431,28 @@ function Vault({
         "postgres_changes",
         { event: "*", schema: "public", table: "prompts" },
         (payload: any) => {
+          // Normalize payload for both old and new data
+          const getPromptFromRow = (row: any) => ({
+            title: row.content?.title,
+            prompt: row.content?.prompt || "",
+            card_id: row.prompt_id,
+            pfp: row.prompt_avatar || row.uuid || "",
+            is_published: row.is_published,
+            is_featured: row.is_featured,
+            is_private: row.is_private,
+            is_sharable: row.is_sharable,
+            created_at: row.created_at,
+            description: row.content?.description || "",
+          });
+
           if (payload.eventType === "INSERT" && payload.new) {
-            setPrompts((prev) => [
-              {
-                title: payload.new.content?.title,
-                prompt: payload.new.content?.prompt || "",
-                card_id: payload.new.prompt_id,
-                pfp: payload.new.prompt_avatar || payload.new.uuid || "",
-                is_published: payload.new.is_published,
-                is_featured: payload.new.is_featured,
-                is_private: payload.new.is_private,
-                is_sharable: payload.new.is_sharable,
-                created_at: payload.new.created_at,
-                description: payload.new.content?.description || "",
-              },
-              ...prev,
-            ]);
+            setPrompts((prev) => [getPromptFromRow(payload.new), ...prev]);
           }
           if (payload.eventType === "UPDATE" && payload.new) {
             setPrompts((prev) =>
               prev.map((item) =>
                 item.card_id === payload.new.prompt_id
-                  ? {
-                      ...item,
-                      title: payload.new.content?.title,
-                      prompt: payload.new.content?.prompt || "",
-                      pfp: payload.new.prompt_avatar || payload.new.uuid || "",
-                      is_published: payload.new.is_published,
-                      is_featured: payload.new.is_featured,
-                      is_private: payload.new.is_private,
-                      is_sharable: payload.new.is_sharable,
-                      created_at: payload.new.created_at,
-                      description: payload.new.content?.description || "",
-                    }
+                  ? getPromptFromRow(payload.new)
                   : item
               )
             );
@@ -721,10 +710,73 @@ function PromptCard({
   const [isPublished, setIsPublished] = useState(is_published);
   const [isPrivate, setIsPrivate] = useState(is_private);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isFeatured, setIsFeatured] = useState(is_featured);
 
   const router = useRouter();
   const { addToast } = useToast();
 
+  // Automatically update is_featured based on likes count, with realtime updates
+  useEffect(() => {
+    let ignore = false;
+
+    async function checkAndUpdateFeatured() {
+      const { data, error } = await supabase
+        .from("likes")
+        .select("likes")
+        .eq("prompt_id", card_id)
+        .single();
+
+      if (!ignore && !error && data) {
+        const likesArray = Array.isArray(data.likes) ? data.likes : [];
+        const likesCount = likesArray.length;
+        if (likesCount > 2 && !isFeatured) {
+          await supabase
+            .from("prompts")
+            .update({ is_featured: true })
+            .eq("prompt_id", card_id);
+          setIsFeatured(true);
+          addToast({
+            message: "Your prompt was marked as featured",
+            variant: "success",
+          });
+        } else if (likesCount <= 2 && isFeatured) {
+          await supabase
+            .from("prompts")
+            .update({ is_featured: false })
+            .eq("prompt_id", card_id);
+          setIsFeatured(false);
+          addToast({
+            message: "Your prompt was unmarked as featured",
+            variant: "danger",
+          });
+        }
+      }
+    }
+
+    checkAndUpdateFeatured();
+
+    // Listen for realtime changes in likes for this prompt
+    const channel = supabase
+      .channel(`likes-realtime-${card_id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "likes",
+          filter: `prompt_id=eq.${card_id}`,
+        },
+        () => {
+          checkAndUpdateFeatured();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      ignore = true;
+      channel.unsubscribe();
+    };
+  }, [card_id, isFeatured, addToast]);
   // Keep state in sync with props if they change
   useEffect(() => {
     setIsPrivate(is_private);
@@ -970,7 +1022,7 @@ function PromptCard({
             paddingY="4"
             gap="4"
           >
-            {is_featured && (
+            {isFeatured && (
               <Tag size="s" variant="gradient">
                 <Text style={{ fontSize: "12px" }}>Featured</Text>
               </Tag>
@@ -1129,6 +1181,7 @@ function PrivateCard({
 
   // Clipboard copy helper
   const [copyLoading, setCopyLoading] = useState(false);
+  const[isFeatured, setIsFeatured] = useState(is_featured);
   async function handleCopy() {
     setCopyLoading(true);
     setTimeout(async () => {
@@ -1145,6 +1198,7 @@ function PrivateCard({
       setCopyLoading(false);
     }, 1000);
   }
+  
   return (
     <Flex>
       <Card
@@ -1249,7 +1303,7 @@ function PrivateCard({
           gap="4"
         >
           {" "}
-          {is_featured && (
+          {isFeatured && (
             <Tag size="s" variant="gradient">
               <Text style={{ fontSize: "12px" }}>Featured</Text>
             </Tag>

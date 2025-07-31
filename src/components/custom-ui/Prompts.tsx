@@ -13,6 +13,7 @@ import {
   Dialog,
   Input,
   Button,
+  Spinner,
 } from "@once-ui-system/core";
 import React, { useState } from "react";
 import { Inter } from "next/font/google";
@@ -36,6 +37,7 @@ import CountUp from "@/blocks/TextAnimations/CountUp/CountUp";
 import { useRouter } from "next/navigation";
 import { formatRelativeTime } from "@/app/utils/formatRelativeTime";
 import Avvvatars from "avvvatars-react";
+import { create } from "domain";
 
 // Fonts
 const outfit = Outfit({
@@ -105,6 +107,7 @@ export default function PromptCardGlobal({
   is_published = false,
   is_featured = false,
   is_private = false,
+  created_at = "",
 }: {
   title: string;
   description: string;
@@ -113,9 +116,30 @@ export default function PromptCardGlobal({
   is_published?: boolean;
   is_featured?: boolean;
   is_private?: boolean;
+  created_at?: string;
 }) {
   const [promptShareDialog, setPromptShareDialog] = useState(false);
   const router = useRouter();
+  const created_at_simplified = formatRelativeTime(created_at);
+
+  // Clipboard copy helper
+  const [copyLoading, setCopyLoading] = useState(false);
+  async function handleCopy() {
+    setCopyLoading(true);
+    setTimeout(async () => {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(description);
+        } else {
+          // Fallback: prompt user to copy manually
+          window.prompt("Copy to clipboard: Ctrl+C, Enter", description);
+        }
+      } catch (err) {
+        // Optionally handle error (e.g., show a toast)
+      }
+      setCopyLoading(false);
+    }, 1000);
+  }
   return (
     <>
       <Flex>
@@ -170,8 +194,12 @@ export default function PromptCardGlobal({
               >
                 <Share2Icon color="#555" size={14} />
               </IconButton>
-              <IconButton variant="secondary" size="s">
-                <Clipboard color="#555" size={14} />
+              <IconButton variant="secondary" size="s" onClick={handleCopy}>
+                {copyLoading ? (
+                  <Spinner size="s" />
+                ) : (
+                  <Clipboard color="#555" size={14} />
+                )}
               </IconButton>{" "}
             </Row>{" "}
           </Row>
@@ -196,7 +224,7 @@ export default function PromptCardGlobal({
               }}
             >
               <Text style={{ fontSize: "12px" }} onBackground="neutral-medium">
-                23d ago
+                {created_at_simplified}
               </Text>
             </Tag>
           </Row>

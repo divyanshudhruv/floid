@@ -394,9 +394,7 @@ function Vault({
       if (!error && data) {
         setPrompts(
           data.map((item: any) => ({
-            title: item.content?.title
-              ? item.content.title.slice(0, 19).concat("...")
-              : "",
+            title: item.content?.title,
             prompt: item.content?.prompt || "",
             card_id: item.prompt_id,
             pfp: item.prompt_avatar || item.uuid || "",
@@ -436,9 +434,7 @@ function Vault({
           if (payload.eventType === "INSERT" && payload.new) {
             setPrompts((prev) => [
               {
-                title: payload.new.content?.title
-                  ? payload.new.content.title.slice(0, 19).concat("...")
-                  : "",
+                title: payload.new.content?.title,
                 prompt: payload.new.content?.prompt || "",
                 card_id: payload.new.prompt_id,
                 pfp: payload.new.prompt_avatar || payload.new.uuid || "",
@@ -458,9 +454,7 @@ function Vault({
                 item.card_id === payload.new.prompt_id
                   ? {
                       ...item,
-                      title: payload.new.content?.title
-                        ? payload.new.content.title.slice(0, 19).concat("...")
-                        : "",
+                      title: payload.new.content?.title,
                       prompt: payload.new.content?.prompt || "",
                       pfp: payload.new.prompt_avatar || payload.new.uuid || "",
                       is_published: payload.new.is_published,
@@ -816,8 +810,9 @@ function PromptCard({
   function updatePublishedStatus(card_id: string) {
     if (isPrivate) {
       addToast({
-      message: "Cannot publish a private prompt. Please make it public first.",
-      variant: "danger",
+        message:
+          "Cannot publish a private prompt. Please make it public first.",
+        variant: "danger",
       });
       return;
     }
@@ -826,21 +821,21 @@ function PromptCard({
       .update({ is_published: !isPublished })
       .eq("prompt_id", card_id)
       .then(({ error }) => {
-      if (error) {
-        addToast({
-        message:
-          "Failed to update published status. Please try again. Error: " +
-          error.message,
-        variant: "danger",
-        });
-      } else {
-        addToast({
-        message: `Prompt ${
-          !isPublished ? "published" : "unpublished"
-        } successfully`,
-        variant: "success",
-        });
-      }
+        if (error) {
+          addToast({
+            message:
+              "Failed to update published status. Please try again. Error: " +
+              error.message,
+            variant: "danger",
+          });
+        } else {
+          addToast({
+            message: `Prompt ${
+              !isPublished ? "published" : "unpublished"
+            } successfully`,
+            variant: "success",
+          });
+        }
       });
   }
 
@@ -888,6 +883,8 @@ function PromptCard({
       channel.unsubscribe();
     };
   }, [card_id]);
+
+  const [editDialog, setEditDialog] = useState(false);
 
   return (
     <>
@@ -950,7 +947,11 @@ function PromptCard({
               >
                 <LucideTrash2 color="#555" size={14} />
               </IconButton>
-              <IconButton variant="secondary" size="s">
+              <IconButton
+                variant="secondary"
+                size="s"
+                onClick={() => setEditDialog(true)}
+              >
                 <Edit color="#555" size={14} />
               </IconButton>
               <IconButton variant="secondary" size="s" onClick={handleCopy}>
@@ -1162,7 +1163,7 @@ function PrivateCard({
       >
         <Row vertical="center" horizontal="space-between" fillWidth>
           <Row gap="8">
-            <Avvvatars value={pfp} style="shape" />
+            <Avvvatars value={title} style="shape" />
             <Column gap="4" vertical="center" horizontal="start">
               <Text
                 variant="label-default-s"
@@ -1253,9 +1254,22 @@ function PrivateCard({
               <Text style={{ fontSize: "12px" }}>Featured</Text>
             </Tag>
           )}
-          {privateChecked ? (
+          {privateChecked && (
             <Tag size="s" variant="brand">
               <Text style={{ fontSize: "12px" }}>Private</Text>
+            </Tag>
+          )}
+          {is_published ? (
+            <Tag
+              size="s"
+              style={{
+                backgroundColor: "#dadada",
+                borderColor: "transparent",
+              }}
+            >
+              <Text style={{ fontSize: "12px" }} onBackground="neutral-medium">
+                Published
+              </Text>
             </Tag>
           ) : (
             <Tag
@@ -1269,7 +1283,7 @@ function PrivateCard({
                 Draft
               </Text>
             </Tag>
-          )}
+          )}{" "}
         </Row>
         <Row
           fillWidth
@@ -1594,7 +1608,7 @@ function Dashboard({
                     emptyState=""
                     initialPreviewImage={userInfoFromSession.pfp}
                   />
-                  <Button>Upload image</Button>
+                  <Button disabled={true}>Upload image</Button>
                 </Row>
               </Column>
 
@@ -1668,15 +1682,12 @@ function Dashboard({
                 </Row>
                 <Row fillWidth vertical="center" horizontal="start">
                   {" "}
-                  <Button onClick={saveUserInputData} disabled={loading}>
-                    {loading ? (
-                      <>
-                        Saving...&nbsp;
-                        <Spinner size="s" />
-                      </>
-                    ) : (
-                      "Save all"
-                    )}
+                  <Button
+                    onClick={saveUserInputData}
+                    disabled={loading}
+                    loading={loading}
+                  >
+                    Save All
                   </Button>
                 </Row>{" "}
               </Column>
@@ -1730,14 +1741,7 @@ function Dashboard({
           onClick={confirmDeleteAccount}
           loading={delLoading}
         >
-          {delLoading ? (
-            <>
-              Deleting...&nbsp;
-              <Spinner size="s" />
-            </>
-          ) : (
-            "Delete Account"
-          )}
+          Delete Account
         </Button>
       </Dialog>
     </>

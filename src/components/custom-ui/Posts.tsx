@@ -71,8 +71,7 @@ export default function Posts() {
               setPrompts(
                 data.map((item: any) => ({
                   title: item.content?.title
-                    ? item.content.title.slice(0, 19).concat("...")
-                    : "",
+                    ,
                   prompt: item.content?.prompt || "",
                   card_id: item.prompt_id,
                   pfp: item.prompt_avatar || item.uuid || "",

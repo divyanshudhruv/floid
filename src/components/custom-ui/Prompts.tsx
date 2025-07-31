@@ -146,7 +146,7 @@ export default function PromptCardGlobal({
   }
   // Track if the current user has liked this prompt
   const [isLiked, setIsLiked] = useState(false);
-
+  const [isLikeLoading, setIsLikeLoading] = useState(false);
   // Fetch like state for this prompt and user on mount and when card_id changes
   React.useEffect(() => {
     let mounted = true;
@@ -171,11 +171,15 @@ export default function PromptCardGlobal({
       }
     }
     fetchIsLiked();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [card_id]);
 
   // Handle like/unlike
   async function handleLike(card_id: string) {
+          setIsLikeLoading(true);
+
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -193,7 +197,8 @@ export default function PromptCardGlobal({
       .eq("prompt_id", card_id)
       .single();
 
-    let likesArr: string[] = (likeRow && Array.isArray(likeRow.likes)) ? likeRow.likes : [];
+    let likesArr: string[] =
+      likeRow && Array.isArray(likeRow.likes) ? likeRow.likes : [];
     let newLikesArr: string[];
 
     if (!likesArr.includes(userId)) {
@@ -216,6 +221,7 @@ export default function PromptCardGlobal({
         .from("likes")
         .insert([{ prompt_id: card_id, likes: [userId] }]);
     }
+    setIsLikeLoading(false);
   }
 
   return (
@@ -267,11 +273,21 @@ export default function PromptCardGlobal({
                 size="s"
                 onClick={() => handleLike(card_id)}
               >
-                <Heart
-                  color={isLiked ? "#FC5272" : "#555"}
-                  fill={isLiked ? "#FC5272" : "none"}
-                  size={14}
-                />
+                {isLikeLoading ? (
+                  <Spinner size="s" />
+                ) : isLiked ? (
+                  <Heart
+                    color={isLiked ? "#FC5272" : "#555"}
+                    fill={isLiked ? "#FC5272" : "none"}
+                    size={14}
+                  />
+                ) : (
+                  <Heart
+                    color={isLiked ? "#FC5272" : "#555"}
+                    fill={isLiked ? "#FC5272" : "none"}
+                    size={14}
+                  />
+                )}
               </IconButton>
               <IconButton
                 variant="secondary"
@@ -304,6 +320,18 @@ export default function PromptCardGlobal({
 
             <Tag
               size="s"
+              variant="neutral"
+              // style={{
+              //   backgroundColor: "#f0f0f0",
+              //   borderColor: "transparent",
+              // }}
+            >
+              <Text style={{ fontSize: "12px" }} onBackground="neutral-medium">
+                Sharable
+              </Text>
+            </Tag>
+            <Tag
+              size="s"
               style={{
                 backgroundColor: "#f0f0f0",
                 borderColor: "transparent",
@@ -322,7 +350,14 @@ export default function PromptCardGlobal({
             title="Prompt"
             codes={[
               {
-                code: description,
+                code: description
+                  .split("\n")
+                  .map((line) =>
+                    line.length > 33 ? line.match(/.{1,33}/g)?.join("\n") : line
+                  )
+                  .join("\n")
+                  .slice(0, 60)
+                  .concat("..."),
                 language: "js",
                 label: "Line numbers",
               },

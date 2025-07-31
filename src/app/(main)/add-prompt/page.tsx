@@ -169,6 +169,43 @@ export default function AddPromptPage() {
       }
     };
     fetchSession();
+
+    // Add realtime subscription for user info changes
+    let channel: any;
+    let userEmail: string | null = null;
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      userEmail = session?.user?.email ?? null;
+      if (userEmail) {
+        channel = supabase
+          .channel(`users-realtime-${userEmail}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "users",
+              filter: `email=eq.${userEmail}`,
+            },
+            (payload: any) => {
+              const newData = payload.new;
+              setUserInfoFromSession({
+                id: newData.uuid,
+                email: newData.email,
+                name: `${newData.first_name || ""} ${newData.last_name || ""}`.trim(),
+                pfp: newData.pfp || "",
+                avatar: newData.pfp || "",
+                username: newData.username || "",
+              });
+            }
+          )
+          .subscribe();
+      }
+    });
+
+    return () => {
+      if (channel) channel.unsubscribe();
+    };
   }, []);
 
   // Only realtime retrieve: listen for changes in the "prompts" table and update state

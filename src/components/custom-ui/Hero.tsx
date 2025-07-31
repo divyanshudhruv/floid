@@ -172,7 +172,7 @@ export default function Hero() {
         <Column maxWidth={46} horizontal="center" vertical="start" gap="32">
           <Column center gap="12" className="hero">
             <GitStarButton stars={140} />
-            <Flex maxWidth={45}>
+            <Flex maxWidth={43}>
               <Text
                 style={{
                   fontSize: "55px",
@@ -180,6 +180,7 @@ export default function Hero() {
                   lineHeight: "64px",
                   marginTop: "4px",
                   fontWeight: "500",
+                  letterSpacing:"-0.6px"
                 }}
                 className={inter.className + " text-hero-big"}
               >
@@ -195,6 +196,7 @@ export default function Hero() {
                 textAlign: "center",
                 lineHeight: "24px",
                 color: "#555",
+                letterSpacing: "-0.2px",
               }}
               className={inter.className + " text-hero-small"}
             >

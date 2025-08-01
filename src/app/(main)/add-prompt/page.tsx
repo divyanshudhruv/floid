@@ -749,8 +749,7 @@ function Vault({
       if (!error && data) {
         setPrompts(
           data.map((item: any) => ({
-            title: item.content?.title,
-            prompt: item.content?.prompt || "",
+            title: item.content.title,
             card_id: item.prompt_id,
             pfp: item.prompt_avatar || item.uuid || "",
             is_published: item.is_published,
@@ -758,7 +757,7 @@ function Vault({
             is_private: item.is_private,
             is_sharable: item.is_sharable,
             created_at: item.created_at,
-            description: item.content?.description || "",
+            description: item.content.description || "",
           }))
         );
       }
@@ -788,8 +787,7 @@ function Vault({
         (payload: any) => {
           // Normalize payload for both old and new data
           const getPromptFromRow = (row: any) => ({
-            title: row.content?.title,
-            prompt: row.content?.prompt || "",
+            title: row.content.title,
             card_id: row.prompt_id,
             pfp: row.prompt_avatar || row.uuid || "",
             is_published: row.is_published,
@@ -797,7 +795,7 @@ function Vault({
             is_private: row.is_private,
             is_sharable: row.is_sharable,
             created_at: row.created_at,
-            description: row.content?.description || "",
+            description: row.content.description || "",
           });
 
           if (payload.eventType === "INSERT" && payload.new) {
@@ -1161,7 +1159,6 @@ function PromptCard({
   useEffect(() => {
     setIsPublished(is_published);
   }, [is_published]);
-
 
   function changePrivacy(card_id: string) {
     // If prompt is published and user tries to make it private, unpublish first

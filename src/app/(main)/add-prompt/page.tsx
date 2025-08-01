@@ -1161,6 +1161,8 @@ function PromptCard({
   useEffect(() => {
     setIsPublished(is_published);
   }, [is_published]);
+
+
   function changePrivacy(card_id: string) {
     // If prompt is published and user tries to make it private, unpublish first
     if (!isPrivate && isPublished) {
@@ -1363,11 +1365,9 @@ function PromptCard({
     }
   }
 
-
   return (
     <>
       <Flex>
-
         <Card
           fillWidth
           padding="s"
@@ -1394,7 +1394,7 @@ function PromptCard({
                   className={inter.className}
                   style={{ lineHeight: "1", fontSize: "13px" }}
                 >
-                  {title.slice(0, 19).concat("...")}
+                  {(title ? title.slice(0, 19) : "").concat("...")}
                 </Text>
                 <SmartLink href="#">
                   <Text
@@ -1403,7 +1403,7 @@ function PromptCard({
                     className={inter.className}
                     style={{ fontSize: "13px", lineHeight: "1" }}
                   >
-                    {card_id.slice(0, 8)}
+                    {card_id ? card_id.slice(0, 8) : ""}
                   </Text>
                 </SmartLink>
               </Column>
@@ -1713,13 +1713,10 @@ function PrivateCard({
       setEditPromptLoading(false);
     }
   }
- 
 
   return (
     <>
       <Flex>
-       
-
         <Card
           fillWidth
           padding="s"
@@ -1746,7 +1743,7 @@ function PrivateCard({
                   className={inter.className}
                   style={{ lineHeight: "1", fontSize: "13px" }}
                 >
-                  {title.slice(0, 19).concat("...")}
+                  {(title ? title.slice(0, 19) : "").concat("...")}
                 </Text>
                 <SmartLink href="#">
                   <Text
@@ -1755,7 +1752,7 @@ function PrivateCard({
                     className={inter.className}
                     style={{ fontSize: "13px", lineHeight: "1" }}
                   >
-                    {card_id.slice(0, 8)}
+                    {card_id ? card_id.slice(0, 8) : ""}
                   </Text>
                 </SmartLink>
               </Column>

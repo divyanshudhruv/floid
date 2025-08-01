@@ -863,8 +863,25 @@ function Vault({
                 is_private: payload.new.is_private,
                 is_sharable: payload.new.is_sharable,
                 created_at: payload.new.created_at,
-                description: content?.description || content?.prompt || "",
-                title: content?.title || "123",
+                // Ensure content is parsed if it's a string
+                description: (typeof content === "string"
+                  ? (() => {
+                      try {
+                        return JSON.parse(content).description || JSON.parse(content).prompt || "";
+                      } catch {
+                        return "";
+                      }
+                    })()
+                  : content?.description || content?.prompt || ""),
+                title: (typeof content === "string"
+                  ? (() => {
+                      try {
+                        return JSON.parse(content).title || JSON.parse(content).prompt || "";
+                      } catch {
+                        return "";
+                      }
+                    })()
+                  : content?.title || content?.prompt || ""),
               };
               // Prevent duplicates
               if (prevPrompts.some((p) => p.card_id === newPrompt.card_id)) {
@@ -884,15 +901,31 @@ function Vault({
                       content = {};
                     }
                   }
-                  return {
+                    return {
                     ...prompt,
                     is_published: payload.new.is_published,
                     is_featured: payload.new.is_featured,
                     is_private: payload.new.is_private,
                     is_sharable: payload.new.is_sharable,
-                    description: content?.description || content?.prompt || "",
-                    title: content?.title || content?.prompt || "",
-                  };
+                    // Parse content if it's a string
+                    ...(typeof payload.new.content === "string"
+                      ? (() => {
+                        let parsed: any = {};
+                        try {
+                        parsed = JSON.parse(payload.new.content);
+                        } catch {
+                        parsed = {};
+                        }
+                        return {
+                        description: parsed?.description || parsed?.prompt || "",
+                        title: parsed?.title || parsed?.prompt || "",
+                        };
+                      })()
+                      : {
+                        description: payload.new.content?.description || payload.new.content?.prompt || "",
+                        title: payload.new.content?.title || payload.new.content?.prompt || "",
+                      }),
+                    };
                 }
                 return prompt;
               });
@@ -1393,6 +1426,7 @@ function PromptCard({
           if (payload.eventType === "UPDATE" && payload.new) {
             setIsPrivate(payload.new.is_private);
             setIsPublished(payload.new.is_published);
+            
           }
         }
       )

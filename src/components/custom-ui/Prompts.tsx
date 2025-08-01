@@ -16,6 +16,7 @@ import {
   Button,
   Spinner,
   useToast,
+  Tooltip,
 } from "@once-ui-system/core";
 import React, { useState } from "react";
 import { Inter } from "next/font/google";
@@ -111,6 +112,7 @@ export default function PromptCardGlobal({
   is_featured = false,
   is_private = false,
   created_at = "",
+  uuid = "",
 }: {
   title: string;
   description: string;
@@ -120,6 +122,7 @@ export default function PromptCardGlobal({
   is_featured?: boolean;
   is_private?: boolean;
   created_at?: string;
+  uuid?: string;
 }) {
   const [promptShareDialog, setPromptShareDialog] = useState(false);
   const [currentLikes, setCurrentLikes] = useState<string[]>([]);
@@ -186,17 +189,22 @@ export default function PromptCardGlobal({
     const channel = supabase
       .channel(`likes-prompt-${card_id}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'likes',
+          event: "*",
+          schema: "public",
+          table: "likes",
           filter: `prompt_id=eq.${card_id}`,
         },
         (payload) => {
           // payload.new.likes is the updated likes array
           let likesArr: string[] = [];
-          if (payload.new && typeof payload.new === "object" && "likes" in payload.new && Array.isArray((payload.new as any).likes)) {
+          if (
+            payload.new &&
+            typeof payload.new === "object" &&
+            "likes" in payload.new &&
+            Array.isArray((payload.new as any).likes)
+          ) {
             likesArr = (payload.new as any).likes;
           }
           setCurrentLikes(likesArr);
@@ -269,11 +277,116 @@ export default function PromptCardGlobal({
     }
     setIsLikeLoading(false);
   }
+  // Show tooltip on hover of the card with animation
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  // Use unique IDs for each card/tooltip based on card_id
+  const cardId = `private-card-${card_id}`;
+  const tooltipId = `tooltip-${card_id}`;
+  // Tooltip show/hide logic with delay and hover on tooltip
+  React.useEffect(() => {
+    const card = document.getElementById(cardId);
+    const tooltip = document.getElementById(tooltipId);
+    if (!card || !tooltip) return;
+
+    let hideTimeout: NodeJS.Timeout | null = null;
+
+    function show() {
+      if (hideTimeout) {
+        clearTimeout(hideTimeout);
+        hideTimeout = null;
+      }
+      setShowTooltip(true);
+    }
+
+    function hide() {
+      // Wait 400ms before hiding
+      hideTimeout = setTimeout(() => {
+        setShowTooltip(false);
+      }, 200);
+    }
+
+    card.addEventListener("mouseenter", show);
+    card.addEventListener("mouseleave", hide);
+
+    // Keep tooltip visible if mouse is over tooltip
+    tooltip.addEventListener("mouseenter", show);
+    tooltip.addEventListener("mouseleave", hide);
+
+    return () => {
+      card.removeEventListener("mouseenter", show);
+      card.removeEventListener("mouseleave", hide);
+      tooltip.removeEventListener("mouseenter", show);
+      tooltip.removeEventListener("mouseleave", hide);
+      if (hideTimeout) clearTimeout(hideTimeout);
+    };
+  }, [cardId, tooltipId]);
+
+  React.useEffect(() => {
+    const tooltip = document.getElementById(tooltipId);
+    if (!tooltip) return;
+    tooltip.style.transition =
+      "opacity 0.3s cubic-bezier(0.4,0,0.2,1), transform 0.3s cubic-bezier(0.4,0,0.2,1)";
+    tooltip.style.willChange = "opacity, transform";
+    tooltip.style.transitionProperty = "opacity, transform";
+    tooltip.style.transitionDuration = "0.3s, 0.3s";
+    tooltip.style.transitionTimingFunction =
+      "cubic-bezier(0.4,0,0.2,1), cubic-bezier(0.4,0,0.2,1)";
+    tooltip.style.opacity = showTooltip ? "1" : "0";
+    tooltip.style.pointerEvents = showTooltip ? "auto" : "none";
+    tooltip.style.transform = showTooltip
+      ? "translateY(-10px)"
+      : "translateY(0px)";
+  }, [showTooltip, tooltipId]);
+
+  // Fetch the user's name from the users table where post_id = uuid
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userProfileLink, setUserProfileLink] = useState<string>("#");
+
+  React.useEffect(() => {
+    async function fetchUserName() {
+      if (!card_id) return;
+      const { data, error } = await supabase
+        .from("users")
+        .select("first_name,last_name,link_to_profile")
+        .eq("uuid", uuid) // Assuming pfp is the uuid here, adjust if needed
+        .single();
+      if (!error && data) {
+        setUserName(data.first_name + " " + data.last_name);
+        const link = data.link_to_profile || "";
+        setUserProfileLink(
+          link.startsWith("http://") || link.startsWith("https://")
+            ? link
+            : "https://" + link
+        );
+      } else {
+        setUserName(null);
+        setUserProfileLink("#");
+      }
+    }
+    fetchUserName();
+  }, [pfp]);
 
   return (
     <>
       <Flex>
-        {" "}
+        <Tooltip
+          prefixIcon="at-sign"
+          label={
+            <>
+              <Text>
+                By{" "}
+                <SmartLink href={userProfileLink || "#"}>{userName}</SmartLink>{" "}
+                - {created_at_simplified}
+              </Text>
+            </>
+          }
+          fitWidth
+          fitHeight
+          style={{ position: "absolute", top: "-30px" }}
+          id={tooltipId}
+        />
+
         <Card
           fillWidth
           padding="s"
@@ -286,7 +399,9 @@ export default function PromptCardGlobal({
           vertical="start"
           horizontal="start"
           gap="8"
-          //   style={{ backgroundColor: "#f7f7f7" }}
+          style={{ position: "relative" }}
+          className="private-card"
+          id={cardId}
         >
           <Row vertical="center" horizontal="space-between" fillWidth>
             <Row gap="8">
@@ -395,7 +510,7 @@ export default function PromptCardGlobal({
               }}
             >
               <Text style={{ fontSize: "12px" }} onBackground="neutral-medium">
-                {totalLikes +" like" + (totalLikes !== 1 ? "s" : "")}
+                {totalLikes + " like" + (totalLikes !== 1 ? "s" : "")}
               </Text>
             </Tag>
           </Row>

@@ -31,6 +31,7 @@ import {
   Dialog,
   Textarea,
   NavIcon,
+  Tooltip,
 } from "@once-ui-system/core";
 import Avvvatars from "avvvatars-react";
 
@@ -150,7 +151,9 @@ export default function AddPromptPage() {
         // Fetch user info from 'users' table
         const { data, error } = await supabase
           .from("users")
-          .select("first_name, last_name, email, uuid, pfp,username")
+          .select(
+            "first_name, last_name, email, uuid, pfp,username,link_to_profile"
+          )
           .eq("email", session.user.email)
           .single();
 
@@ -162,6 +165,7 @@ export default function AddPromptPage() {
             pfp: data.pfp || "",
             avatar: data.pfp || "",
             username: data.username || "",
+            link_to_profile: data.link_to_profile || "",
           });
         } else {
           setUserInfoFromSession(null);
@@ -1359,9 +1363,11 @@ function PromptCard({
     }
   }
 
+
   return (
     <>
       <Flex>
+
         <Card
           fillWidth
           padding="s"
@@ -1376,6 +1382,7 @@ function PromptCard({
           horizontal="start"
           gap="8"
           style={{ position: "relative" }}
+          // id={`prompt-card-${card_id}`}
         >
           <Row vertical="center" horizontal="space-between" fillWidth>
             <Row gap="8">
@@ -1706,10 +1713,13 @@ function PrivateCard({
       setEditPromptLoading(false);
     }
   }
+ 
 
   return (
     <>
       <Flex>
+       
+
         <Card
           fillWidth
           padding="s"
@@ -1724,6 +1734,7 @@ function PrivateCard({
           gap="8"
           style={{ position: "relative" }}
           className="private-card"
+          // id={cardId}
         >
           <Row vertical="center" horizontal="space-between" fillWidth>
             <Row gap="8">
@@ -1937,6 +1948,8 @@ import {
   TreeItem,
   TreeItemLabel,
 } from "../../../components/originui/tree";
+import { HiMiniHashtag } from "react-icons/hi2";
+import { link } from "fs";
 
 interface Item {
   name: string;
@@ -2074,6 +2087,7 @@ function Dashboard({
     lastName: userInfoFromSession?.name?.split(" ")[1] || "",
     email: userInfoFromSession?.email || "",
     username: userInfoFromSession?.username || "",
+    profileLink: userInfoFromSession?.link_to_profile || "",
   });
 
   const { addToast } = useToast();
@@ -2091,6 +2105,7 @@ function Dashboard({
         first_name: userInputData.firstName,
         last_name: userInputData.lastName,
         username: userInputData.username,
+        link_to_profile: userInputData.profileLink,
       })
       .eq("uuid", userInfoFromSession?.id)
       .then(({ data, error }) => {
@@ -2291,22 +2306,36 @@ function Dashboard({
                     })
                   }
                 ></Input>
-                <Row gap="12" center>
-                  <Input
-                    id=""
-                    label="Username"
-                    height="s"
-                    description="Choose a unique username"
-                    hasPrefix={<Feather size={15} color="#666"></Feather>}
-                    value={userInputData.username}
-                    onChange={(e) =>
-                      setUserInputData({
-                        ...userInputData,
-                        username: e.target.value,
-                      })
-                    }
-                  ></Input>
-                </Row>
+                <Input
+                  id=""
+                  label="Username"
+                  height="s"
+                  description="Choose a unique username"
+                  hasPrefix={<Feather size={15} color="#666"></Feather>}
+                  value={userInputData.username}
+                  onChange={(e) =>
+                    setUserInputData({
+                      ...userInputData,
+                      username: e.target.value,
+                    })
+                  }
+                ></Input>
+                <Input
+                  id=""
+                  label="Link to your profile"
+                  height="s"
+                  description="Enter the link to your profile"
+                  hasPrefix={
+                    <HiMiniHashtag size={15} color="#666"></HiMiniHashtag>
+                  }
+                  value={userInputData.profileLink}
+                  onChange={(e) =>
+                    setUserInputData({
+                      ...userInputData,
+                      profileLink: e.target.value,
+                    })
+                  }
+                ></Input>
                 <Row fillWidth vertical="center" horizontal="start">
                   {" "}
                   <Button

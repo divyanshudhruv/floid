@@ -260,6 +260,7 @@ export default function Hero() {
             >
               Already used by <b style={{ color: "#555" }}>{totalUsers + 2}+</b>{" "}
               creators,
+              
               <br />
               generating <b style={{ color: "#555" }}>
                 {totalPrompts}+

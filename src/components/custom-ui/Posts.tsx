@@ -25,7 +25,7 @@ export default function Posts() {
       const { data, error } = await supabase
         .from("prompts")
         .select(
-          "prompt_id, is_published, is_featured, is_private, content, prompt_avatar, uuid, is_sharable, created_at"
+          "prompt_id, is_published, is_featured, is_private, content, prompt_avatar, uuid, is_sharable, created_at,uuid"
         )
         .eq("is_published", true)
         .eq("is_private", false);
@@ -43,6 +43,7 @@ export default function Posts() {
             is_sharable: item.is_sharable,
             created_at: item.created_at,
             description: item.content?.description || "",
+            uuid: item.uuid || "",
           }))
         );
       }
@@ -81,6 +82,7 @@ export default function Posts() {
                   is_sharable: item.is_sharable,
                   created_at: item.created_at,
                   description: item.content?.description || "",
+                  uuid: item.uuid || "",
                 }))
               );
             }
@@ -148,6 +150,7 @@ export default function Posts() {
                       is_featured={prompt.is_featured}
                       is_private={prompt.is_private}
                       created_at={prompt.created_at}
+                      uuid={prompt.uuid}
                     />
                   </div>
                 ))

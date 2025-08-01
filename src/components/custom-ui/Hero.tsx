@@ -166,12 +166,35 @@ export default function Hero() {
     };
     fetchCounts();
   }, []);
+
+  const [totalStars, setTotalStars] = useState(0);
+  useEffect(() => {
+    const fetchStars = async () => {
+      try {
+        const res = await fetch(
+          "https://api.github.com/repos/divyanshudhruv/floid"
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (typeof data.stargazers_count === "number") {
+          // Optionally, you can set this to state if you want it dynamic
+          // setStars(data.stargazers_count);
+          setTotalStars(data.stargazers_count);
+        }
+      } catch (e) {
+        // ignore error
+        console.error("Failed to fetch stars:", e);
+      }
+    };
+    fetchStars();
+
+  }, []);
   return (
     <>
       <Flex fillWidth paddingY="l" center marginTop="80">
         <Column maxWidth={46} horizontal="center" vertical="start" gap="32">
           <Column center gap="12" className="hero">
-            <GitStarButton stars={140} />
+            <GitStarButton stars={totalStars} />
             <Flex maxWidth={43}>
               <Text
                 style={{

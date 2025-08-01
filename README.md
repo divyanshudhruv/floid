@@ -74,30 +74,36 @@ Follow these steps to run Floid locally for development.
 ### 📩 Installation
 
 1. **Clone the repository:**
-    ```bash
-    git clone https://github.com/your-username/ai-threads.git
-    cd ai-threads
-    ```
+
+   ```bash
+   git clone https://github.com/your-username/ai-threads.git
+   cd ai-threads
+   ```
 
 2. **Install dependencies:**
-    ```bash
-    npm install
-    ```
+
+   ```bash
+   npm install
+   ```
 
 3. **Set up environment variables:**
-    ```bash
-    cp .env.example .env.local
-    ```
-    Add your Supabase credentials to `.env.local`:
-    ```env
-    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-    ```
+
+   ```bash
+   cp .env.example .env.local
+   ```
+
+   Add your Supabase credentials to `.env.local`:
+
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
 
 4. **Run the development server:**
-    ```bash
-    npm run dev
-    ```
+
+   ```bash
+   npm run dev
+   ```
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
@@ -111,20 +117,23 @@ Configure your Supabase credentials in `.env.local`:
 - **NEXT_PUBLIC_SUPABASE_ANON_KEY**: Your Supabase anon key
 
 These are required for authentication, database, and real-time features.
+
 </details>
 
 <br>
 
 ## 🧩 **Design System & Customization (dev)**
 
-- 🎨 **Tokens:**  
+- 🎨 **Tokens:**
+
   - Design tokens (colors, spacing, typography) in `src/resources/once-ui.config.js`
   - Custom styles in `src/resources/custom.css` and `src/app/global.css`
 
-- 🧱 **Components:**  
+- 🧱 **Components:**
+
   - Use Once UI components from `src/components/eldoraui`, `magicui`, and `ui`
 
-- 🌗 **Theming:**  
+- 🌗 **Theming:**
   - Responsive, mobile-first design
 
 <br>
@@ -172,4 +181,3 @@ See [`LICENSE`](LICENSE) for details.
 <br>
 
 _Crafted with ☕ by indie creators for the open-source community._
-

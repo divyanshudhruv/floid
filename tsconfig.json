@@ -16,7 +16,7 @@
     "plugins": [
       {
         "name": "next"
-      }
+      } 
     ],
     "paths": {
       "@/*": ["./src/*"]

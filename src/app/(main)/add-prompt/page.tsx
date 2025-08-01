@@ -739,32 +739,6 @@ function Vault({
   const router = useRouter();
   const [prompts, setPrompts] = useState<any[]>([]);
 
-  useEffect(() => {
-    async function fetchPrompts() {
-      const { data, error } = await supabase
-        .from("prompts")
-        .select(
-          "prompt_id, is_published, is_featured, is_private, content, prompt_avatar, uuid,is_sharable, created_at"
-        );
-      if (!error && data) {
-        setPrompts(
-          data.map((item: any) => ({
-            title: item.content.title,
-            card_id: item.prompt_id,
-            pfp: item.prompt_avatar || item.uuid || "",
-            is_published: item.is_published,
-            is_featured: item.is_featured,
-            is_private: item.is_private,
-            is_sharable: item.is_sharable,
-            created_at: item.created_at,
-            description: item.content.description || "",
-          }))
-        );
-      }
-    }
-    fetchPrompts();
-  }, []);
-
   const [searchValue, setSearchValue] = useState<string>("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -778,6 +752,47 @@ function Vault({
 
   // Listen for realtime updates to the prompt and update local state accordingly
   // Listen for realtime updates to the prompts table and update local state accordingly
+
+  const { addToast } = useToast();
+
+  useEffect(() => {
+    async function fetchPrompts() {
+      const { data, error } = await supabase
+        .from("prompts")
+        .select(
+          "prompt_id, is_published, is_featured, is_private, content, prompt_avatar, uuid, is_sharable, created_at"
+        );
+      if (!error && data) {
+        setPrompts(
+          data.map((item: any) => {
+            // Ensure content is parsed from JSON if needed
+            let content = item.content;
+            if (typeof content === "string") {
+              try {
+                content = JSON.parse(content);
+              } catch {
+                content = {};
+              }
+            }
+            return {
+              card_id: item.prompt_id,
+              pfp: item.prompt_avatar || item.uuid || "",
+              is_published: item.is_published,
+              is_featured: item.is_featured,
+              is_private: item.is_private,
+              is_sharable: item.is_sharable,
+              created_at: item.created_at,
+              description: content?.description || content?.prompt || "",
+              title: content?.title || content?.prompt || "",
+            };
+          })
+        );
+      }
+    }
+    fetchPrompts();
+  }, []);
+
+  // Realtime: listen for changes in the "prompts" table and update state
   useEffect(() => {
     const channel = supabase
       .channel("prompts-vault-realtime")
@@ -785,36 +800,67 @@ function Vault({
         "postgres_changes",
         { event: "*", schema: "public", table: "prompts" },
         (payload: any) => {
-          // Normalize payload for both old and new data
-          const getPromptFromRow = (row: any) => ({
-            title: row.content.title,
-            card_id: row.prompt_id,
-            pfp: row.prompt_avatar || row.uuid || "",
-            is_published: row.is_published,
-            is_featured: row.is_featured,
-            is_private: row.is_private,
-            is_sharable: row.is_sharable,
-            created_at: row.created_at,
-            description: row.content.description || "",
+          setPrompts((prevPrompts) => {
+            if (payload.eventType === "INSERT" && payload.new) {
+              // Add new prompt
+              let content = payload.new.content;
+              if (typeof content === "string") {
+                try {
+                  content = JSON.parse(content);
+                } catch {
+                  content = {};
+                }
+              }
+              const newPrompt = {
+                card_id: payload.new.prompt_id,
+                pfp: payload.new.prompt_avatar || payload.new.uuid || "",
+                is_published: payload.new.is_published,
+                is_featured: payload.new.is_featured,
+                is_private: payload.new.is_private,
+                is_sharable: payload.new.is_sharable,
+                created_at: payload.new.created_at,
+                description: content?.description || content?.prompt || "",
+                title: content?.title || "123",
+              };
+              // Prevent duplicates
+              if (prevPrompts.some((p) => p.card_id === newPrompt.card_id)) {
+                return prevPrompts;
+              }
+              return [newPrompt, ...prevPrompts];
+            }
+            if (payload.eventType === "UPDATE" && payload.new) {
+              // Update existing prompt
+              return prevPrompts.map((prompt) => {
+                if (prompt.card_id === payload.new.prompt_id) {
+                  let content = payload.new.content;
+                  if (typeof content === "string") {
+                    try {
+                      content = JSON.parse(content);
+                    } catch {
+                      content = {};
+                    }
+                  }
+                  return {
+                    ...prompt,
+                    is_published: payload.new.is_published,
+                    is_featured: payload.new.is_featured,
+                    is_private: payload.new.is_private,
+                    is_sharable: payload.new.is_sharable,
+                    description: content?.description || content?.prompt || "",
+                    title: content?.title || content?.prompt || "",
+                  };
+                }
+                return prompt;
+              });
+            }
+            if (payload.eventType === "DELETE" && payload.old) {
+              // Remove deleted prompt
+              return prevPrompts.filter(
+                (prompt) => prompt.card_id !== payload.old.prompt_id
+              );
+            }
+            return prevPrompts;
           });
-
-          if (payload.eventType === "INSERT" && payload.new) {
-            setPrompts((prev) => [getPromptFromRow(payload.new), ...prev]);
-          }
-          if (payload.eventType === "UPDATE" && payload.new) {
-            setPrompts((prev) =>
-              prev.map((item) =>
-                item.card_id === payload.new.prompt_id
-                  ? getPromptFromRow(payload.new)
-                  : item
-              )
-            );
-          }
-          if (payload.eventType === "DELETE" && payload.old) {
-            setPrompts((prev) =>
-              prev.filter((item) => item.card_id !== payload.old.prompt_id)
-            );
-          }
         }
       )
       .subscribe();
@@ -1361,6 +1407,7 @@ function PromptCard({
       setEditPromptLoading(false);
     }
   }
+  const [oldTitle, setOldTitle] = useState(title);
 
   return (
     <>
@@ -1391,7 +1438,9 @@ function PromptCard({
                   className={inter.className}
                   style={{ lineHeight: "1", fontSize: "13px" }}
                 >
-                  {(title ? title.slice(0, 19) : "").concat("...")}
+                  {title
+                    ? title.slice(0, 19).concat("...")
+                    : "Error Loading Title..."}
                 </Text>
                 <SmartLink href="#">
                   <Text
@@ -1740,7 +1789,7 @@ function PrivateCard({
                   className={inter.className}
                   style={{ lineHeight: "1", fontSize: "13px" }}
                 >
-                  {(title ? title.slice(0, 19) : "").concat("...")}
+                  {title.slice(0, 19).concat("...")}
                 </Text>
                 <SmartLink href="#">
                   <Text

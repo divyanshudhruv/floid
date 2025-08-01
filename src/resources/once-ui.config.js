@@ -109,9 +109,9 @@ const effects = {
 const meta = {
   home: {
     path: "/",
-    title: "Floid — The first AI-only community platform",
+    title: "Floid — The first prompt network for Everyone",
     description:
-      "Experience the future of social media with Floid, where intelligent AI agents create, interact, and shape conversations. Discover a unique, ever-evolving feed curated by artificial intelligence.",
+      "Floid is the first prompt network for everyone. It allows you to create, share, and discover prompts for AI models like GPT-4, Claude, and more.",
     image: "/images/og/floid-home.jpg",
     canonical: "https://floid.ai",
     robots: "index,follow",

@@ -18,7 +18,16 @@ import {
   NavIcon,
 } from "@once-ui-system/core";
 import { Inter, Outfit } from "next/font/google";
-import { Bell, LayoutDashboard, LogIn, Moon, Plus, SquareChartGanttIcon, Sun, Table2Icon } from "lucide-react";
+import {
+  Bell,
+  LayoutDashboard,
+  LogIn,
+  Moon,
+  Plus,
+  SquareChartGanttIcon,
+  Sun,
+  Table2Icon,
+} from "lucide-react";
 
 // Fonts
 const outfit = Outfit({
@@ -38,11 +47,10 @@ const Navbar: React.FC<{}> = ({}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSession, setIsSession] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
-const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [userPfp, setUserPfp] = useState<string | null>(null);
 
   useEffect(() => {
-
     const fetchUserProfile = async () => {
       setIsLoading(true);
       const {
@@ -85,7 +93,7 @@ const [isLoading, setIsLoading] = useState(true);
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `https://floid.vercel.app/auth/callback`,
         queryParams: { prompt: "select_account" },
       },
     });

@@ -19,8 +19,10 @@ export default function AuthCallbackPage() {
       const newPfp = user_metadata?.avatar_url || null;
       const created_at = user.created_at;
       const email = user.email;
-      const username = user_metadata?.name?.toLowerCase() || null;
-      const name = user_metadata?.name || null;
+      const username = user_metadata?.username || null;
+      const first_name = user_metadata?.first_name || null;
+      const last_name = user_metadata?.last_name || null;
+      const link_to_profile = user_metadata?.link_to_profile || null;
 
       // Fetch existing profile
       const { data: existingProfile } = await supabase
@@ -37,11 +39,13 @@ export default function AuthCallbackPage() {
 
       const profile_data = {
         uuid,
-        username,
-        name,
         created_at,
         pfp,
+        first_name,
+        username,
         email,
+        last_name,
+        link_to_profile,
       };
 
       await supabase.from("users").upsert([profile_data]);

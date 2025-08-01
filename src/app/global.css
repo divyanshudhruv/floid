@@ -115,6 +115,7 @@
     @apply border-border outline-ring/50;
   }
 
+  
   body {
     background-color: #fbfbfb !important;
     overflow-x: hidden !important;

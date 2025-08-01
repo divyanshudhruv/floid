@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback } from "react";
 import Cards from "./Cards";
 import PromptCard from "./Prompts";
 import { Inter } from "next/font/google";
+import "./../../app/global.css";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -70,8 +71,7 @@ export default function Posts() {
             if (!error && data) {
               setPrompts(
                 data.map((item: any) => ({
-                  title: item.content?.title
-                    ,
+                  title: item.content?.title,
                   prompt: item.content?.prompt || "",
                   card_id: item.prompt_id,
                   pfp: item.prompt_avatar || item.uuid || "",
@@ -116,16 +116,13 @@ export default function Posts() {
           //   maxWidth={50}
           //   fitWidth
           // >
-          <Column style={{ width: "100%" }} fillWidth>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "24px",
-                alignItems: "start",
-                width: "100%",
-              }}
-            >
+          <Column
+            style={{ width: "100%" }}
+            fillWidth
+            center
+            horizontal="center"
+          >
+            <div className="posts-grid">
               {prompts.length === 0 ? (
                 <Row fillWidth center style={{ gridColumn: "1 / -1" }}>
                   <Text
@@ -140,7 +137,7 @@ export default function Posts() {
                 prompts.map((prompt, index) => (
                   <div
                     key={prompt.card_id || index}
-                    style={{ breakInside: "avoid", width: "100%" }}
+                    style={{ breakInside: "avoid", width: "fit-content" }}
                   >
                     <PromptCard
                       title={prompt.title}

@@ -30,6 +30,7 @@ import {
   Spinner,
   Dialog,
   Textarea,
+  NavIcon,
 } from "@once-ui-system/core";
 import Avvvatars from "avvvatars-react";
 
@@ -251,6 +252,7 @@ export default function AddPromptPage() {
         message: "Please enter both prompt name and content.",
         variant: "danger",
       });
+      setNewPromptLoading(false);
       return;
     }
     // Add prompt to the database
@@ -282,6 +284,11 @@ export default function AddPromptPage() {
     setNewPromptLoading(false);
     setOpenAddPromptDialog(false);
   }
+
+  const [isActive, setIsActive] = useState(false);
+  const handleClick = () => {
+    setIsActive(!isActive);
+  };
   return (
     <>
       <Row
@@ -297,6 +304,7 @@ export default function AddPromptPage() {
         paddingX="xs"
         horizontal="start"
         vertical="start"
+        className="add-prompt-container"
       >
         <Column
           fillWidth
@@ -306,8 +314,13 @@ export default function AddPromptPage() {
           paddingRight="xs"
           paddingY="2"
           vertical="space-between"
+          className="sidebar-container"
         >
-          <Column>
+          <Column
+            background="neutral-weak"
+            fillHeight
+            className="sidebar-content"
+          >
             <Flex
               gap="8"
               vertical="center"
@@ -436,11 +449,198 @@ export default function AddPromptPage() {
           </Flex>
         </Column>
 
+        <Flex className="sidebar-horizontal">
+          <Row
+            style={{
+              minWidth: "100vw",
+              maxWidth: "100vw",
+              height: "100%",
+              background: "#f5f5f5",
+              borderRadius: "12px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+              padding: "24px 16px",
+              boxSizing: "border-box",
+              display: "flex",
+              flexDirection: "column",
+              gap: "16px",
+            }}
+          >
+            <Flex
+              gap="8"
+              vertical="center"
+              horizontal="space-between"
+              fillWidth
+            >
+              <Row fillWidth gap="8" vertical="center">
+                {" "}
+                <img
+                  src="/logo-dark.png"
+                  style={{
+                    borderRadius: "100%",
+                    width: "40px",
+                    height: "40px",
+                    objectFit: "cover",
+                  }}
+                  alt="Logo"
+                />
+                <Text
+                  onBackground="neutral-strong"
+                  style={{ fontSize: "16px" }}
+                  className={inter.className}
+                >
+                  Floid
+                </Text>
+                <Tag variant="neutral" size="s" fitHeight>
+                  <Text
+                    onBackground="neutral-weak"
+                    style={{ fontSize: "12px" }}
+                    className={inter.className}
+                  >
+                    Beta
+                  </Text>
+                </Tag>
+              </Row>
+              <Row gap="4">
+                {" "}
+                <UserMenu
+                  style={{
+                    width: "100%",
+                    minWidth: "0",
+                    boxSizing: "border-box",
+                    display: "block",
+                  }}
+                  name={userInfoFromSession?.name || "Guest"}
+                  subline={(() => {
+                    const email = userInfoFromSession?.email || "Not logged in";
+                    if (!email.includes("@")) return email;
+                    const [local, domain] = email.split("@");
+                    if (local.length <= 6) return email;
+                    const shown =
+                      local.length > 7
+                        ? `${local.slice(0, 8)}***${local.slice(-2)}@${domain}`
+                        : `${local.slice(0, 7)}***${local.slice(-1)}@${domain}`;
+                    return shown;
+                  })()}
+                  placement="right-end"
+                  avatarProps={{
+                    src:
+                      userInfoFromSession?.pfp || userInfoFromSession?.avatar,
+                  }}
+                />
+                <NavIcon
+                  isActive={isActive}
+                  onClick={handleClick}
+                  aria-label="Toggle navigation menu"
+                  aria-expanded={isActive}
+                  aria-controls="demo-nav"
+                >
+                  {" "}
+                </NavIcon>
+              </Row>
+            </Flex>{" "}
+            {isActive && (
+              <Column padding="m" id="demo-nav">
+                <Row
+                  gap="8"
+                  fillWidth
+                  horizontal="start"
+                  vertical="center"
+                  marginTop="8"
+                  fitHeight
+                  paddingY="xs"
+                  marginBottom="8"
+                >
+                  <Button
+                    fillWidth
+                    data-border="conservative"
+                    weight="default"
+                    size="s"
+                    style={{
+                      borderColor: "transparent",
+                      backgroundColor: "#27272A !important",
+                      transition: "background 0.15s",
+                      color: "#F8F9FA",
+                    }}
+                    onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) =>
+                      (e.currentTarget.style.backgroundColor = "#000")
+                    }
+                    onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) =>
+                      (e.currentTarget.style.backgroundColor = "#27272A")
+                    }
+                    onClick={() => setOpenAddPromptDialog(true)}
+                    className={outfit.className}
+                  >
+                    Add prompt
+                  </Button>
+                  <IconButton
+                    data-border="conservative"
+                    variant="primary"
+                    size="m"
+                    style={{
+                      borderColor: "transparent",
+                      backgroundColor: "#27272A !important",
+                      transition: "background 0.15s",
+                    }}
+                    onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) =>
+                      (e.currentTarget.style.backgroundColor = "#000")
+                    }
+                    onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) =>
+                      (e.currentTarget.style.backgroundColor = "#27272A")
+                    }
+                    onClick={() => router.push("/add-prompt")}
+                  >
+                    <Bell color="#F8F9FA" size={15} fontWeight={3} />
+                  </IconButton>
+                </Row>
+                <Row style={{ backgroundColor: "#fff" }} paddingX="s">
+                  {" "}
+                  <Sidebar items={items} setSection={setSection} />
+                </Row>
+              </Column>
+            )}
+          </Row>
+        </Flex>
+
         {(section === "All Prompts" || section === "Private Prompts") && (
           <Vault
             userInfoFromSession={userInfoFromSession}
             activeTab={section}
             setActiveTab={setSection}
+            changeSidebarWidth={() => {
+              const sidebar = document.querySelector(
+                ".sidebar-container"
+              ) as HTMLElement | null;
+              if (sidebar) {
+                const currentWidth = sidebar.getAttribute("data-width");
+                sidebar.style.transition =
+                  "width 0.3s cubic-bezier(0.4,0,0.2,1)";
+                sidebar.style.overflow = "hidden";
+                sidebar.style.height = "100%"; // Always enforce 100% height
+                if (currentWidth === "narrow") {
+                  sidebar.setAttribute("data-width", "wide");
+                  sidebar.style.display = "flex";
+                  // Force reflow to ensure transition works after display change
+                  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+                  sidebar.offsetWidth;
+                  sidebar.style.width = "300px"; // Set to wide width
+                } else {
+                  sidebar.setAttribute("data-width", "narrow");
+                  sidebar.style.width = "0px"; // Set to narrow width
+                  // Listen for transition end to set display none
+                  const handleTransitionEnd = () => {
+                    sidebar.style.display = "none";
+                    sidebar.removeEventListener(
+                      "transitionend",
+                      handleTransitionEnd
+                    );
+                  };
+                  sidebar.addEventListener(
+                    "transitionend",
+                    handleTransitionEnd
+                  );
+                }
+              }
+            }}
           />
         )}
 
@@ -449,6 +649,41 @@ export default function AddPromptPage() {
             userInfoFromSession={userInfoFromSession}
             activeTab={section}
             setActiveTab={setSection}
+            changeSidebarWidth={() => {
+              const sidebar = document.querySelector(
+                ".sidebar-container"
+              ) as HTMLElement | null;
+              if (sidebar) {
+                const currentWidth = sidebar.getAttribute("data-width");
+                sidebar.style.transition =
+                  "width 0.3s cubic-bezier(0.4,0,0.2,1)";
+                sidebar.style.overflow = "hidden";
+                sidebar.style.height = "100%"; // Always enforce 100% height
+                if (currentWidth === "narrow") {
+                  sidebar.setAttribute("data-width", "wide");
+                  sidebar.style.display = "flex";
+                  // Force reflow to ensure transition works after display change
+                  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+                  sidebar.offsetWidth;
+                  sidebar.style.width = "300px"; // Set to wide width
+                } else {
+                  sidebar.setAttribute("data-width", "narrow");
+                  sidebar.style.width = "0px"; // Set to narrow width
+                  // Listen for transition end to set display none
+                  const handleTransitionEnd = () => {
+                    sidebar.style.display = "none";
+                    sidebar.removeEventListener(
+                      "transitionend",
+                      handleTransitionEnd
+                    );
+                  };
+                  sidebar.addEventListener(
+                    "transitionend",
+                    handleTransitionEnd
+                  );
+                }
+              }
+            }}
           />
         )}
       </Row>
@@ -502,10 +737,12 @@ function Vault({
   userInfoFromSession,
   activeTab,
   setActiveTab,
+  changeSidebarWidth,
 }: {
   userInfoFromSession: any;
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  changeSidebarWidth: () => void;
 }) {
   const router = useRouter();
   const [prompts, setPrompts] = useState<any[]>([]);
@@ -596,16 +833,17 @@ function Vault({
       channel.unsubscribe();
     };
   }, []);
+
   return (
     <>
       {" "}
       <Column
         fillWidth
         fillHeight
-        paddingX="xs"
-        paddingY="xs"
+        padding="xs"
         radius="s-4"
         border="neutral-medium"
+        className="vault-container"
         style={{
           overflowY: "scroll",
           maxHeight: "calc(100vh - 24px)",
@@ -619,7 +857,12 @@ function Vault({
           vertical="center"
           horizontal="start"
         >
-          <IconButton variant="secondary" size="m">
+          <IconButton
+            variant="secondary"
+            size="m"
+            onClick={changeSidebarWidth}
+            className="sidebar-toggle"
+          >
             <SidebarCloseIcon color="#555" size={17}></SidebarCloseIcon>
           </IconButton>
           <Row gap="0" fillWidth vertical="center" horizontal="space-between">
@@ -663,7 +906,7 @@ function Vault({
 
         <Column marginTop="20">
           <Column fillWidth>
-            <Row fillWidth gap="8">
+            <Row fillWidth gap="8" className="search-bar-container">
               <Input
                 id="input-1"
                 label="Search"
@@ -689,7 +932,7 @@ function Vault({
                   label="Choose a filter"
                   value={selectedFilter}
                   height="s"
-                  style={{ maxWidth: "20vw" }}
+                  className="filter-select"
                   options={[
                     { value: "all", label: "All" },
                     { value: "private", label: "Private" },
@@ -711,6 +954,7 @@ function Vault({
               vertical="start"
               horizontal="start"
               wrap={true}
+              className="prompts-container-small"
             >
               {activeTab === "Private Prompts" &&
                 (() => {
@@ -1090,6 +1334,7 @@ function PromptCard({
           border="neutral-medium"
           maxWidth={22}
           minWidth={22}
+          className="prompt-card"
           as={Flex}
           direction="column"
           vertical="start"
@@ -1634,10 +1879,12 @@ function Dashboard({
   userInfoFromSession,
   activeTab,
   setActiveTab,
+  changeSidebarWidth,
 }: {
   userInfoFromSession: any;
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  changeSidebarWidth: () => void;
 }) {
   const router = useRouter();
 
@@ -1742,6 +1989,7 @@ function Dashboard({
           maxHeight: "calc(100vh - 24px)",
           backgroundColor: "#fff",
         }}
+        className="vault-container"
       >
         <Column
           gap="4"
@@ -1750,7 +1998,12 @@ function Dashboard({
           vertical="center"
           horizontal="start"
         >
-          <IconButton variant="secondary" size="m">
+          <IconButton
+            variant="secondary"
+            size="m"
+            onClick={changeSidebarWidth}
+            className="sidebar-toggle"
+          >
             <SidebarCloseIcon color="#555" size={17}></SidebarCloseIcon>
           </IconButton>
           <Row gap="0" fillWidth vertical="center" horizontal="space-between">

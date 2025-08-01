@@ -125,6 +125,7 @@ export default function PromptCardGlobal({
   const [currentLikes, setCurrentLikes] = useState<string[]>([]);
   const router = useRouter();
   const created_at_simplified = formatRelativeTime(created_at);
+  const [totalLikes, setTotalLikes] = useState(0);
   const { addToast } = useToast();
   // Clipboard copy helper
   const [copyLoading, setCopyLoading] = useState(false);
@@ -147,6 +148,7 @@ export default function PromptCardGlobal({
   // Track if the current user has liked this prompt
   const [isLiked, setIsLiked] = useState(false);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
+
   // Fetch like state for this prompt and user on mount and when card_id changes
   React.useEffect(() => {
     let mounted = true;
@@ -165,20 +167,60 @@ export default function PromptCardGlobal({
         .eq("prompt_id", card_id)
         .single();
       if (likeRow && Array.isArray(likeRow.likes)) {
-        if (mounted) setIsLiked(likeRow.likes.includes(userId));
+        if (mounted) {
+          setIsLiked(likeRow.likes.includes(userId));
+          setCurrentLikes(likeRow.likes);
+          setTotalLikes(likeRow.likes.length);
+        }
       } else {
-        if (mounted) setIsLiked(false);
+        if (mounted) {
+          setIsLiked(false);
+          setCurrentLikes([]);
+          setTotalLikes(0);
+        }
       }
     }
     fetchIsLiked();
+
+    // Subscribe to realtime updates for likes on this prompt
+    const channel = supabase
+      .channel(`likes-prompt-${card_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'likes',
+          filter: `prompt_id=eq.${card_id}`,
+        },
+        (payload) => {
+          // payload.new.likes is the updated likes array
+          let likesArr: string[] = [];
+          if (payload.new && typeof payload.new === "object" && "likes" in payload.new && Array.isArray((payload.new as any).likes)) {
+            likesArr = (payload.new as any).likes;
+          }
+          setCurrentLikes(likesArr);
+          setTotalLikes(likesArr.length);
+          supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+              setIsLiked(likesArr.includes(session.user.id));
+            } else {
+              setIsLiked(false);
+            }
+          });
+        }
+      )
+      .subscribe();
+
     return () => {
       mounted = false;
+      supabase.removeChannel(channel);
     };
   }, [card_id]);
 
   // Handle like/unlike
   async function handleLike(card_id: string) {
-          setIsLikeLoading(true);
+    setIsLikeLoading(true);
 
     const {
       data: { session },
@@ -188,6 +230,7 @@ export default function PromptCardGlobal({
         message: "Please log in to like prompts",
         variant: "danger",
       });
+      setIsLikeLoading(false);
       return;
     }
     const userId = session.user.id;
@@ -210,6 +253,9 @@ export default function PromptCardGlobal({
       setIsLiked(false);
       addToast({ message: "Prompt unliked!", variant: "success" });
     }
+
+    setCurrentLikes(newLikesArr);
+    setTotalLikes(newLikesArr.length);
 
     if (likeRow) {
       await supabase
@@ -339,6 +385,17 @@ export default function PromptCardGlobal({
             >
               <Text style={{ fontSize: "12px" }} onBackground="neutral-medium">
                 {created_at_simplified}
+              </Text>
+            </Tag>
+            <Tag
+              size="s"
+              style={{
+                backgroundColor: "#f0f0f0",
+                borderColor: "transparent",
+              }}
+            >
+              <Text style={{ fontSize: "12px" }} onBackground="neutral-medium">
+                {totalLikes +" like" + (totalLikes !== 1 ? "s" : "")}
               </Text>
             </Tag>
           </Row>

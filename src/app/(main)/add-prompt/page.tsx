@@ -159,7 +159,7 @@ export default function AddPromptPage() {
 
         if (data) {
           setUserInfoFromSession({
-            id: data.uuid,
+            id: session.user.id,
             email: data.email,
             name: `${data.first_name || ""} ${data.last_name || ""}`.trim(),
             pfp: data.pfp || "",
@@ -756,12 +756,56 @@ function Vault({
   const { addToast } = useToast();
 
   useEffect(() => {
+    // Get session and current user id, then use id to query "uuid"
+    async function getSessionAndFetchPrompts() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      if (!userId) return;
+
+      // Fetch prompts where uuid equals user id
+      const { data, error } = await supabase
+        .from("prompts")
+        .select(
+          "prompt_id, is_published, is_featured, is_private, content, prompt_avatar, uuid, is_sharable, created_at"
+        )
+        .eq("uuid", userId);
+
+      if (!error && data) {
+        setPrompts(
+          data.map((item: any) => {
+            let content = item.content;
+            if (typeof content === "string") {
+              try {
+                content = JSON.parse(content);
+              } catch {
+                content = {};
+              }
+            }
+            return {
+              card_id: item.prompt_id,
+              pfp: item.prompt_avatar || item.uuid || "",
+              is_published: item.is_published,
+              is_featured: item.is_featured,
+              is_private: item.is_private,
+              is_sharable: item.is_sharable,
+              created_at: item.created_at,
+              description: content?.description || content?.prompt || "",
+              title: content?.title || content?.prompt || "",
+            };
+          })
+        );
+      }
+    }
+    getSessionAndFetchPrompts();
     async function fetchPrompts() {
       const { data, error } = await supabase
         .from("prompts")
         .select(
           "prompt_id, is_published, is_featured, is_private, content, prompt_avatar, uuid, is_sharable, created_at"
-        );
+        )
+        .eq("uuid", userInfoFromSession.id);
       if (!error && data) {
         setPrompts(
           data.map((item: any) => {
@@ -1561,6 +1605,7 @@ function PromptCard({
         </Card>
       </Flex>
       <Dialog
+        style={{ zIndex: "99999 !important" }}
         title="Delete Prompt"
         isOpen={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
@@ -1572,6 +1617,7 @@ function PromptCard({
       </Dialog>
 
       <Dialog
+        style={{ zIndex: "99999 !important" }}
         title="Edit Prompt"
         isOpen={editPromptDialog}
         onClose={() => setEditPromptDialog(false)}
@@ -1930,6 +1976,7 @@ function PrivateCard({
           </Row>
         </Card>
         <Dialog
+          style={{ zIndex: "99999 !important" }}
           title="Delete Prompt"
           isOpen={deleteDialogOpen}
           onClose={() => setDeleteDialogOpen(false)}
@@ -1942,6 +1989,7 @@ function PrivateCard({
       </Flex>
 
       <Dialog
+        style={{ zIndex: "99999 !important" }}
         title="Edit Prompt"
         isOpen={editPromptDialog}
         onClose={() => setEditPromptDialog(false)}
@@ -2033,7 +2081,10 @@ function Sidebar({ items, setSection }: SidebarProps) {
 
   // Render all folders as open, and remove any click handlers that toggle open/close
   return (
-    <div className="flex h-full flex-col gap-2 *:first:grow">
+    <div
+      className="flex h-full flex-col gap-2 *:first:grow"
+      style={{ zIndex: "10 !important" }}
+    >
       <div>
         <Tree
           className="relative before:absolute before:inset-0 before:-ms-1 before:bg-[repeating-linear-gradient(to_right,transparent_0,transparent_calc(var(--tree-indent)-1px),var(--border)_calc(var(--tree-indent)-1px),var(--border)_calc(var(--tree-indent)))] bg-transparent"
@@ -2436,6 +2487,7 @@ function Dashboard({
         </Column>
       </Column>
       <Dialog
+        style={{ zIndex: "99999 !important" }}
         title="Delete Account"
         isOpen={deleteAccountDialog}
         onClose={() => setDeleteAccountDialog(false)}

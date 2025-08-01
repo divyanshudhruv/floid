@@ -277,6 +277,33 @@ export default function PromptCardGlobal({
     }
     setIsLikeLoading(false);
   }
+
+  // Fetch likes count for this prompt even if user is not logged in
+  React.useEffect(() => {
+    let mounted = true;
+    async function fetchLikesCount() {
+      const { data: likeRow } = await supabase
+        .from("likes")
+        .select("likes")
+        .eq("prompt_id", card_id)
+        .single();
+      if (likeRow && Array.isArray(likeRow.likes)) {
+        if (mounted) {
+          setCurrentLikes(likeRow.likes);
+          setTotalLikes(likeRow.likes.length);
+        }
+      } else {
+        if (mounted) {
+          setCurrentLikes([]);
+          setTotalLikes(0);
+        }
+      }
+    }
+    fetchLikesCount();
+    return () => {
+      mounted = false;
+    };
+  }, [card_id]);
   // Show tooltip on hover of the card with animation
   const [showTooltip, setShowTooltip] = useState(false);
 

@@ -45,7 +45,10 @@ export default function Sidebar({ items }: SidebarProps) {
 
   // All colors except fonts are set to transparent
   return (
-    <div className="flex h-full flex-col gap-2 *:first:grow bg-transparent">
+    <div
+      className="flex h-full flex-col gap-2 *:first:grow bg-transparent"
+      style={{ zIndex: "10 !important" }}
+    >
       <div>
         <Tree
           className="relative before:absolute before:inset-0 before:-ms-1 before:bg-transparent bg-transparent"

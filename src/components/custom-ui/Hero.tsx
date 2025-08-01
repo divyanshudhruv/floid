@@ -180,7 +180,7 @@ export default function Hero() {
                   lineHeight: "64px",
                   marginTop: "4px",
                   fontWeight: "500",
-                  letterSpacing:"-0.6px"
+                  letterSpacing: "-0.6px",
                 }}
                 className={inter.className + " text-hero-big"}
               >
@@ -190,7 +190,8 @@ export default function Hero() {
             </Flex>
           </Column>
           <Flex center className="hero-description" maxWidth={40}>
-            <Text
+            <Text                id="searchbar"
+
               style={{
                 fontSize: "16px",
                 textAlign: "center",
@@ -205,7 +206,7 @@ export default function Hero() {
               workflow to control.
             </Text>
           </Flex>
-          <Flex fillWidth paddingX="xl" data-border="playful" maxWidth={30}>
+          <Flex fillWidth paddingX="xl" data-border="playful" maxWidth={30} >
             <Row gap="8" center>
               <Input
                 id=""
@@ -260,11 +261,8 @@ export default function Hero() {
             >
               Already used by <b style={{ color: "#555" }}>{totalUsers + 2}+</b>{" "}
               creators,
-              
               <br />
-              generating <b style={{ color: "#555" }}>
-                {totalPrompts}+
-              </b>{" "}
+              generating <b style={{ color: "#555" }}>{totalPrompts}+</b>{" "}
               prompts
             </Text>
           </Column>

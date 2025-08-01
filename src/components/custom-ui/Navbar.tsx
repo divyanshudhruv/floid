@@ -141,7 +141,7 @@ const [isLoading, setIsLoading] = useState(true);
             </SmartLink>
             <SmartLink
               style={{ fontSize: "12px", color: "#333" }}
-              href="/explore"
+              href="#"
               onMouseEnter={(e) => (e.currentTarget.style.color = "#000")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "#333")}
             >
@@ -149,7 +149,7 @@ const [isLoading, setIsLoading] = useState(true);
             </SmartLink>
             <SmartLink
               style={{ fontSize: "12px", color: "#333" }}
-              href="/search"
+              href="#searchbar"
               onMouseEnter={(e) => (e.currentTarget.style.color = "#000")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "#333")}
             >

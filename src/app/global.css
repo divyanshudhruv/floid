@@ -119,6 +119,11 @@
     background-color: #fbfbfb !important;
     overflow-x: hidden !important;
   }
+
+  html{
+    scroll-behavior: smooth;
+   
+  }
 }
 
 .navbar {

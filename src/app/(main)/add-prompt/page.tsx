@@ -500,7 +500,7 @@ export default function AddPromptPage() {
                   </Text>
                 </Tag>
               </Row>
-              <Row gap="4">
+              <Row gap="8">
                 {" "}
                 <UserMenu
                   style={{
@@ -509,18 +509,6 @@ export default function AddPromptPage() {
                     boxSizing: "border-box",
                     display: "block",
                   }}
-                  name={userInfoFromSession?.name || "Guest"}
-                  subline={(() => {
-                    const email = userInfoFromSession?.email || "Not logged in";
-                    if (!email.includes("@")) return email;
-                    const [local, domain] = email.split("@");
-                    if (local.length <= 6) return email;
-                    const shown =
-                      local.length > 7
-                        ? `${local.slice(0, 8)}***${local.slice(-2)}@${domain}`
-                        : `${local.slice(0, 7)}***${local.slice(-1)}@${domain}`;
-                    return shown;
-                  })()}
                   placement="right-end"
                   avatarProps={{
                     src:
@@ -1322,7 +1310,54 @@ function PromptCard({
     };
   }, [card_id]);
 
-  const [editDialog, setEditDialog] = useState(false);
+  const [editPromptDialog, setEditPromptDialog] = useState(false);
+
+  const [editPromptTitle, setEditPromptTitle] = useState(title);
+  const [editPromptContent, setEditPromptContent] = useState(description);
+  const [editPromptLoading, setEditPromptLoading] = useState(false);
+  async function handleEditPrompt() {
+    setEditPromptLoading(true);
+    try {
+      const { error } = await supabase
+        .from("prompts")
+        .update({
+          content: {
+            title: editPromptTitle,
+            description: editPromptContent,
+          },
+        })
+        .eq("prompt_id", card_id);
+      if (error) {
+        addToast({
+          message:
+            "Failed to update prompt. Please try again. Error: " +
+            error.message,
+          variant: "danger",
+        });
+        setEditPromptLoading(false);
+        return;
+      }
+      addToast({
+        message: "Prompt updated successfully",
+        variant: "success",
+      });
+      setEditPromptDialog(false);
+      setEditPromptLoading(false);
+    } catch (error: unknown) {
+      let errorMessage = "Unknown error";
+      if (error && typeof error === "object" && "message" in error) {
+        errorMessage = (error as { message: string }).message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      }
+      addToast({
+        message:
+          "Failed to update prompt. Please try again. Error: " + errorMessage,
+        variant: "danger",
+      });
+      setEditPromptLoading(false);
+    }
+  }
 
   return (
     <>
@@ -1389,7 +1424,7 @@ function PromptCard({
               <IconButton
                 variant="secondary"
                 size="s"
-                onClick={() => setEditDialog(true)}
+                onClick={() => setEditPromptDialog(true)}
               >
                 <Edit color="#555" size={14} />
               </IconButton>
@@ -1481,6 +1516,43 @@ function PromptCard({
         <Button variant="danger" onClick={() => deletePrompt(card_id)}>
           Delete Prompt
         </Button>
+      </Dialog>
+
+      <Dialog
+        title="Edit Prompt"
+        isOpen={editPromptDialog}
+        onClose={() => setEditPromptDialog(false)}
+        description="Edit your prompt"
+      >
+        <Column gap="12">
+          {" "}
+          <Input
+            id=""
+            label="Prompt name"
+            height="s"
+            description="Enter the name of your prompt"
+            value={editPromptTitle}
+            onChange={(e) => setEditPromptTitle(e.target.value)}
+          ></Input>
+          <Textarea
+            id=""
+            label="Prompt content"
+            style={{ minHeight: "200px" }}
+            description="Enter or paste the content of your prompt"
+            value={editPromptContent}
+            onChange={(e) => setEditPromptContent(e.target.value)}
+          ></Textarea>
+          <Row fillWidth horizontal="end">
+            {" "}
+            <Button
+              variant="primary"
+              loading={editPromptLoading}
+              onClick={handleEditPrompt}
+            >
+              Edit Prompt
+            </Button>
+          </Row>{" "}
+        </Column>
       </Dialog>
     </>
   );
@@ -1586,173 +1658,272 @@ function PrivateCard({
     }, 1000);
   }
 
+  const [editPromptDialog, setEditPromptDialog] = useState(false);
+
+  const [editPromptTitle, setEditPromptTitle] = useState(title);
+  const [editPromptContent, setEditPromptContent] = useState(description);
+  const [editPromptLoading, setEditPromptLoading] = useState(false);
+  async function handleEditPrompt() {
+    setEditPromptLoading(true);
+    try {
+      const { error } = await supabase
+        .from("prompts")
+        .update({
+          content: {
+            title: editPromptTitle,
+            description: editPromptContent,
+          },
+        })
+        .eq("prompt_id", card_id);
+      if (error) {
+        addToast({
+          message:
+            "Failed to update prompt. Please try again. Error: " +
+            error.message,
+          variant: "danger",
+        });
+        setEditPromptLoading(false);
+        return;
+      }
+      addToast({
+        message: "Prompt updated successfully",
+        variant: "success",
+      });
+      setEditPromptDialog(false);
+      setEditPromptLoading(false);
+    } catch (error: unknown) {
+      let errorMessage = "Unknown error";
+      if (error && typeof error === "object" && "message" in error) {
+        errorMessage = (error as { message: string }).message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      }
+      addToast({
+        message:
+          "Failed to update prompt. Please try again. Error: " + errorMessage,
+        variant: "danger",
+      });
+      setEditPromptLoading(false);
+    }
+  }
+
   return (
-    <Flex>
-      <Card
-        fillWidth
-        padding="s"
-        radius="s"
-        border="neutral-medium"
-        maxWidth={22}
-        minWidth={22}
-        as={Flex}
-        direction="column"
-        vertical="start"
-        horizontal="start"
-        gap="8"
-        style={{ position: "relative" }}
-      >
-        <Row vertical="center" horizontal="space-between" fillWidth>
-          <Row gap="8">
-            <Avvvatars value={title} style="shape" />
-            <Column gap="4" vertical="center" horizontal="start">
-              <Text
-                variant="label-default-s"
-                onBackground="neutral-strong"
-                className={inter.className}
-                style={{ lineHeight: "1", fontSize: "13px" }}
-              >
-                {title.slice(0, 19).concat("...")}
-              </Text>
-              <SmartLink href="#">
+    <>
+      <Flex>
+        <Card
+          fillWidth
+          padding="s"
+          radius="s"
+          border="neutral-medium"
+          maxWidth={22}
+          minWidth={22}
+          as={Flex}
+          direction="column"
+          vertical="start"
+          horizontal="start"
+          gap="8"
+          style={{ position: "relative" }}
+          className="private-card"
+        >
+          <Row vertical="center" horizontal="space-between" fillWidth>
+            <Row gap="8">
+              <Avvvatars value={title} style="shape" />
+              <Column gap="4" vertical="center" horizontal="start">
                 <Text
                   variant="label-default-s"
-                  onBackground="neutral-weak"
+                  onBackground="neutral-strong"
                   className={inter.className}
-                  style={{ fontSize: "13px", lineHeight: "1" }}
+                  style={{ lineHeight: "1", fontSize: "13px" }}
                 >
-                  {card_id.slice(0, 8)}
+                  {title.slice(0, 19).concat("...")}
                 </Text>
-              </SmartLink>
-            </Column>
-          </Row>
-          <Row center gap="8">
-            <IconButton
-              variant="secondary"
-              size="s"
-              onClick={() => changePrivacy(card_id)}
-              aria-label={privateChecked ? "Make Public" : "Make Private"}
-            >
-              {privateChecked ? (
-                <EyeClosed color="#555" size={14} />
-              ) : (
-                <Eye color="#555" size={14} />
-              )}
-            </IconButton>
-            <IconButton
-              variant="secondary"
-              size="s"
-              onClick={() => setDeleteDialogOpen(true)}
-            >
-              <LucideTrash2 color="#555" size={14} />
-            </IconButton>
-            <IconButton variant="secondary" size="s">
-              <Edit color="#555" size={14} />
-            </IconButton>
-            <IconButton
-              variant="secondary"
-              size="s"
-              onClick={() => {
-                if (navigator.clipboard && window.isSecureContext) {
-                  navigator.clipboard.writeText(description);
-                } else {
-                  // fallback for insecure context or unsupported browsers
-                  const textArea = document.createElement("textarea");
-                  textArea.value = description;
-                  // Avoid scrolling to bottom
-                  textArea.style.position = "fixed";
-                  textArea.style.left = "-999999px";
-                  document.body.appendChild(textArea);
-                  textArea.focus();
-                  textArea.select();
-                  try {
-                    document.execCommand("copy");
-                  } catch (err) {
-                    // Optionally handle error
+                <SmartLink href="#">
+                  <Text
+                    variant="label-default-s"
+                    onBackground="neutral-weak"
+                    className={inter.className}
+                    style={{ fontSize: "13px", lineHeight: "1" }}
+                  >
+                    {card_id.slice(0, 8)}
+                  </Text>
+                </SmartLink>
+              </Column>
+            </Row>
+            <Row center gap="8">
+              <IconButton
+                variant="secondary"
+                size="s"
+                onClick={() => changePrivacy(card_id)}
+                aria-label={privateChecked ? "Make Public" : "Make Private"}
+              >
+                {privateChecked ? (
+                  <EyeClosed color="#555" size={14} />
+                ) : (
+                  <Eye color="#555" size={14} />
+                )}
+              </IconButton>
+              <IconButton
+                variant="secondary"
+                size="s"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                <LucideTrash2 color="#555" size={14} />
+              </IconButton>
+              <IconButton
+                variant="secondary"
+                size="s"
+                onClick={() => setEditPromptDialog(true)}
+              >
+                <Edit color="#555" size={14} />
+              </IconButton>
+              <IconButton
+                variant="secondary"
+                size="s"
+                onClick={() => {
+                  if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(description);
+                  } else {
+                    // fallback for insecure context or unsupported browsers
+                    const textArea = document.createElement("textarea");
+                    textArea.value = description;
+                    // Avoid scrolling to bottom
+                    textArea.style.position = "fixed";
+                    textArea.style.left = "-999999px";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {
+                      document.execCommand("copy");
+                    } catch (err) {
+                      // Optionally handle error
+                    }
+                    document.body.removeChild(textArea);
                   }
-                  document.body.removeChild(textArea);
-                }
-              }}
-            >
-              {copyLoading ? (
-                <Spinner size="s" />
-              ) : (
-                <Clipboard color="#555" size={14} />
-              )}
-            </IconButton>
+                }}
+              >
+                {copyLoading ? (
+                  <Spinner size="s" />
+                ) : (
+                  <Clipboard color="#555" size={14} />
+                )}
+              </IconButton>
+            </Row>
           </Row>
-        </Row>
-        <Row
-          fillWidth
-          vertical="center"
-          horizontal="start"
-          paddingY="4"
-          gap="4"
+          <Row
+            fillWidth
+            vertical="center"
+            horizontal="start"
+            paddingY="4"
+            gap="4"
+          >
+            {" "}
+            {isFeatured && (
+              <Tag size="s" variant="gradient">
+                <Text style={{ fontSize: "12px" }}>Featured</Text>
+              </Tag>
+            )}
+            {privateChecked && (
+              <Tag size="s" variant="brand">
+                <Text style={{ fontSize: "12px" }}>Private</Text>
+              </Tag>
+            )}
+            {is_published ? (
+              <Tag
+                size="s"
+                style={{
+                  backgroundColor: "#dadada",
+                  borderColor: "transparent",
+                }}
+              >
+                <Text
+                  style={{ fontSize: "12px" }}
+                  onBackground="neutral-medium"
+                >
+                  Published
+                </Text>
+              </Tag>
+            ) : (
+              <Tag
+                size="s"
+                style={{
+                  backgroundColor: "#f0f0f0",
+                  borderColor: "transparent",
+                }}
+              >
+                <Text
+                  style={{ fontSize: "12px" }}
+                  onBackground="neutral-medium"
+                >
+                  Draft
+                </Text>
+              </Tag>
+            )}{" "}
+          </Row>
+          <Row
+            fillWidth
+            horizontal="end"
+            style={{
+              position: "absolute",
+              bottom: "0",
+              left: "0",
+              right: "0",
+              margin: "auto",
+              width: "100%",
+              padding: "16px 16px",
+            }}
+          >
+            <Checkbox checked={true} defaultChecked={true} disabled />
+          </Row>
+        </Card>
+        <Dialog
+          title="Delete Prompt"
+          isOpen={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          description="Are you sure you want to delete this prompt? This action cannot be undone."
         >
-          {" "}
-          {isFeatured && (
-            <Tag size="s" variant="gradient">
-              <Text style={{ fontSize: "12px" }}>Featured</Text>
-            </Tag>
-          )}
-          {privateChecked && (
-            <Tag size="s" variant="brand">
-              <Text style={{ fontSize: "12px" }}>Private</Text>
-            </Tag>
-          )}
-          {is_published ? (
-            <Tag
-              size="s"
-              style={{
-                backgroundColor: "#dadada",
-                borderColor: "transparent",
-              }}
-            >
-              <Text style={{ fontSize: "12px" }} onBackground="neutral-medium">
-                Published
-              </Text>
-            </Tag>
-          ) : (
-            <Tag
-              size="s"
-              style={{
-                backgroundColor: "#f0f0f0",
-                borderColor: "transparent",
-              }}
-            >
-              <Text style={{ fontSize: "12px" }} onBackground="neutral-medium">
-                Draft
-              </Text>
-            </Tag>
-          )}{" "}
-        </Row>
-        <Row
-          fillWidth
-          horizontal="end"
-          style={{
-            position: "absolute",
-            bottom: "0",
-            left: "0",
-            right: "0",
-            margin: "auto",
-            width: "100%",
-            padding: "16px 16px",
-          }}
-        >
-          <Checkbox checked={true} defaultChecked={true} disabled />
-        </Row>
-      </Card>
+          <Button variant="danger" onClick={() => deletePrompt(card_id)}>
+            Delete Prompt
+          </Button>
+        </Dialog>
+      </Flex>
+
       <Dialog
-        title="Delete Prompt"
-        isOpen={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        description="Are you sure you want to delete this prompt? This action cannot be undone."
+        title="Edit Prompt"
+        isOpen={editPromptDialog}
+        onClose={() => setEditPromptDialog(false)}
+        description="Edit your prompt"
       >
-        <Button variant="danger" onClick={() => deletePrompt(card_id)}>
-          Delete Prompt
-        </Button>
+        <Column gap="12">
+          {" "}
+          <Input
+            id=""
+            label="Prompt name"
+            height="s"
+            description="Enter the name of your prompt"
+            value={editPromptTitle}
+            onChange={(e) => setEditPromptTitle(e.target.value)}
+          ></Input>
+          <Textarea
+            id=""
+            label="Prompt content"
+            style={{ minHeight: "200px" }}
+            description="Enter or paste the content of your prompt"
+            value={editPromptContent}
+            onChange={(e) => setEditPromptContent(e.target.value)}
+          ></Textarea>
+          <Row fillWidth horizontal="end">
+            {" "}
+            <Button
+              variant="primary"
+              loading={editPromptLoading}
+              onClick={handleEditPrompt}
+            >
+              Edit Prompt
+            </Button>
+          </Row>{" "}
+        </Column>
       </Dialog>
-    </Flex>
+    </>
   );
 }
 

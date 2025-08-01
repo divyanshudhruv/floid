@@ -864,24 +864,7 @@ function Vault({
                 is_sharable: payload.new.is_sharable,
                 created_at: payload.new.created_at,
                 // Ensure content is parsed if it's a string
-                description: (typeof content === "string"
-                  ? (() => {
-                      try {
-                        return JSON.parse(content).description || JSON.parse(content).prompt || "";
-                      } catch {
-                        return "";
-                      }
-                    })()
-                  : content?.description || content?.prompt || ""),
-                title: (typeof content === "string"
-                  ? (() => {
-                      try {
-                        return JSON.parse(content).title || JSON.parse(content).prompt || "";
-                      } catch {
-                        return "";
-                      }
-                    })()
-                  : content?.title || content?.prompt || ""),
+               
               };
               // Prevent duplicates
               if (prevPrompts.some((p) => p.card_id === newPrompt.card_id)) {
@@ -907,24 +890,7 @@ function Vault({
                     is_featured: payload.new.is_featured,
                     is_private: payload.new.is_private,
                     is_sharable: payload.new.is_sharable,
-                    // Parse content if it's a string
-                    ...(typeof payload.new.content === "string"
-                      ? (() => {
-                        let parsed: any = {};
-                        try {
-                        parsed = JSON.parse(payload.new.content);
-                        } catch {
-                        parsed = {};
-                        }
-                        return {
-                        description: parsed?.description || parsed?.prompt || "",
-                        title: parsed?.title || parsed?.prompt || "",
-                        };
-                      })()
-                      : {
-                        description: payload.new.content?.description || payload.new.content?.prompt || "",
-                        title: payload.new.content?.title || payload.new.content?.prompt || "",
-                      }),
+                   
                     };
                 }
                 return prompt;

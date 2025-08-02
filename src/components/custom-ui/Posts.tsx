@@ -29,7 +29,7 @@ export default function Posts() {
         )
         .eq("is_published", true)
         .eq("is_private", false)
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: false });
       if (!error && data) {
         setPrompts(
           data.map((item: any) => ({
@@ -70,7 +70,7 @@ export default function Posts() {
               )
               .eq("is_published", true)
               .eq("is_private", false)
-              .order("created_at", { ascending: true });
+              .order("created_at", { ascending: false });
             if (!error && data) {
               setPrompts(
                 data.map((item: any) => ({

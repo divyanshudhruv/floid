@@ -20,8 +20,8 @@ export default function AuthCallbackPage() {
       const created_at = user.created_at;
       const email = user.email;
       const username = user_metadata?.username || null;
-      const first_name = user_metadata?.first_name || null;
-      const last_name = user_metadata?.last_name || null;
+      const first_name = user_metadata?.name.split(" ")[0] || null;
+      const last_name = user_metadata?.name.split(" ")[1] || null;
       const link_to_profile = user_metadata?.link_to_profile || null;
 
       // Fetch existing profile
@@ -56,7 +56,12 @@ export default function AuthCallbackPage() {
     handleAuthCallback();
   }, [router]);
   return (
-    <Flex center fillWidth fillHeight style={{ minWidth: "100vw", minHeight: "100svh" }}>
+    <Flex
+      center
+      fillWidth
+      fillHeight
+      style={{ minWidth: "100vw", minHeight: "100svh" }}
+    >
       <Spinner size="xl" />
     </Flex>
   );

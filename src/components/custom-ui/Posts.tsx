@@ -28,7 +28,8 @@ export default function Posts() {
           "prompt_id, is_published, is_featured, is_private, content, prompt_avatar, uuid, is_sharable, created_at,uuid"
         )
         .eq("is_published", true)
-        .eq("is_private", false);
+        .eq("is_private", false)
+        .order("created_at", { ascending: true });
       if (!error && data) {
         setPrompts(
           data.map((item: any) => ({
@@ -68,7 +69,8 @@ export default function Posts() {
                 "prompt_id, is_published, is_featured, is_private, content, prompt_avatar, uuid, is_sharable, created_at"
               )
               .eq("is_published", true)
-              .eq("is_private", false);
+              .eq("is_private", false)
+              .order("created_at", { ascending: true });
             if (!error && data) {
               setPrompts(
                 data.map((item: any) => ({

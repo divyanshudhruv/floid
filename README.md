@@ -41,7 +41,7 @@ A next-gen, thread-based platform built with [Once UI](https://once-ui.com), foc
 
 - ⚛️ **Next.js 15** (React 19)
 - 🟦 **TypeScript**
-- 🟨 **Javascript** (JSON config)
+- 🟨 **Javascript** (JSON config) 
 - 🎨 **Tailwind CSS**, **SCSS**, **PostCSS**
 - 🦸 **Supabase** (Database, Auth, Real-time)
 - 🧩 **Once UI** (Design System)

@@ -24,6 +24,9 @@ import {
   DropdownWrapper,
   Option,
   Kbd,
+  ContextMenu,
+  Dialog,
+  CodeBlock,
 } from "@once-ui-system/core";
 
 import { Inter_Tight } from "next/font/google";
@@ -55,6 +58,7 @@ import {
   PiOpenAiLogoDuotone,
   PiOpenAiLogoLight,
   PiSparkle,
+  PiTrash,
   PiVideo,
   PiVideoCamera,
   PiVideoConference,
@@ -68,6 +72,7 @@ import {
   TbBrandGithubCopilot,
   TbBrandReact,
   TbClick,
+  TbDeselect,
   TbDownload,
   TbFileDownload,
   TbFileSmile,
@@ -83,6 +88,7 @@ const interTight = Inter_Tight({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
 });
+import { supabase } from "@/lib/supabase";
 
 export default function Home() {
   const cardData = [
@@ -147,6 +153,18 @@ export default function Home() {
   ];
   const [searchPromptQuery, setSearchPromptQuery] = useState("");
 
+  function googleSignInSupabase() {
+    supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+      redirectTo: window.location.origin+"/auth/callback",
+      queryParams: {
+        prompt: "select_account",
+      },
+      },
+    });
+  
+  }
   return (
     <Flex
       fillWidth
@@ -172,16 +190,30 @@ export default function Home() {
             >
               Floid — Prompts
             </Text>
-            <ToggleButton
-              size="m"
-              style={{ border: "1px solid #33333322", paddingBlock: "17px" }}
-            >
-              <Row center gap="8">
-                {" "}
-                Github
-                <GrGithub size={16} />
-              </Row>
-            </ToggleButton>{" "}
+            <Row gap="8">
+              {" "}
+              <ToggleButton
+                size="m"
+                style={{ border: "1px solid #33333322", paddingBlock: "17px" }}
+              >
+                <Row center gap="8">
+                  {" "}
+                  Github
+                  <GrGithub size={16} />
+                </Row>
+              </ToggleButton>{" "}
+              <ToggleButton
+                size="m"
+                style={{ border: "1px solid #33333322", paddingBlock: "17px" }}
+                onClick={googleSignInSupabase}
+              >
+                <Row center gap="8">
+                  {" "}
+                  Login after session exists then show username and pfp
+                  <Avatar src={""} />
+                </Row>
+              </ToggleButton>{" "}
+            </Row>
           </Row>
         </Flex>{" "}
         <Flex direction="column" fillWidth horizontal="start" vertical="center">
@@ -405,147 +437,229 @@ function CardContainer({
   icons = [],
   onPreview,
 }: CardContainerProps) {
+  const [isOpen, setIsOpen] = useState(false);
   return (
-    <Flex>
-      <Card
-        radius="l-4"
-        direction="column"
-        border="neutral-alpha-medium"
-        paddingBottom="12"
-        maxWidth={20}
-        cursor="interactive"
-        overflow="hidden"
-      >
-        <Column paddingTop="24" style={{ backgroundColor: "#fff" }} gap="12">
-          <Row
-            fillWidth
-            gap="8"
-            vertical="center"
-            horizontal="between"
-            paddingX="24"
+    <>
+      <Flex>
+        <ContextMenu
+          placement="bottom-start"
+          dropdown={
+            <Column gap="2" padding="4" minWidth={10}>
+              <Option
+                hasPrefix={
+                  <Icon size="xs" name="edit" onBackground="neutral-weak" />
+                }
+                label="Edit"
+                value="edit"
+                style={{
+                  cursor: "pointer",
+                  color: "#fafafa",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#fafafa")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+              />
+
+              <Line marginY="2" />
+              <Option
+                hasPrefix={<PiTrash color="#222" />}
+                danger
+                label="Delete"
+                value="delete"
+                style={{
+                  cursor: "pointer",
+                  color: "#fafafa",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#fafafa")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+              />
+            </Column>
+          }
+        >
+          <Card
+            radius="l-4"
+            direction="column"
+            border="neutral-alpha-medium"
+            paddingBottom="12"
+            maxWidth={20}
+            cursor="interactive"
+            overflow="hidden"
           >
-            <Text variant="label-strong-xl" className={interTight.className}>
-              <Row gap="8">
+            <Column
+              paddingTop="24"
+              style={{ backgroundColor: "#fff" }}
+              gap="12"
+            >
+              <Row
+                fillWidth
+                gap="8"
+                vertical="center"
+                horizontal="between"
+                paddingX="24"
+              >
                 <Text
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(to bottom, #0d0d0e 0%, #131315 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                    color: "transparent",
-                  }}
+                  variant="label-strong-xl"
+                  className={interTight.className}
                 >
-                  {title}
+                  <Row gap="8">
+                    <Text
+                      style={{
+                        backgroundImage:
+                          "linear-gradient(to bottom, #0d0d0e 0%, #131315 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                        color: "transparent",
+                      }}
+                    >
+                      {title}
+                    </Text>
+                    {isNew && (
+                      <Tag
+                        variant="neutral"
+                        className={interTight.className}
+                        style={{
+                          backgroundColor: "#131315",
+                          color: "#fff",
+                          fontWeight: 500,
+                          paddingInline: "4px",
+                          paddingBlock: "2px",
+                        }}
+                        data-border="rounded"
+                      >
+                        <Text
+                          variant="label-strong-xs"
+                          style={{ color: "#fafafa", fontSize: "10px" }}
+                        >
+                          New
+                        </Text>
+                      </Tag>
+                    )}
+                  </Row>
                 </Text>
-                {isNew && (
+                <Tag
+                  variant="neutral"
+                  className={interTight.className}
+                  size="s"
+                  data-border="conservative"
+                >
+                  <Row center gap="4">
+                    <Text variant="label-default-xs">{clicks}</Text>
+                    <TbClick />
+                  </Row>
+                </Tag>
+              </Row>
+              <Column fillWidth gap="8" paddingX="24">
+                <Text onBackground="neutral-weak" variant="body-default-s">
+                  {description}
+                </Text>
+              </Column>
+              <Row
+                gap="4"
+                vertical="center"
+                textVariant="label-default-s"
+                onBackground="neutral-medium"
+                paddingX="24"
+              >
+                {tags.map((tag) => (
                   <Tag
+                    key={tag}
                     variant="neutral"
                     className={interTight.className}
-                    style={{
-                      backgroundColor: "#131315",
-                      color: "#fff",
-                      fontWeight: 500,
-                      paddingInline: "4px",
-                      paddingBlock: "2px",
-                    }}
                     data-border="rounded"
+                    style={{ backgroundColor: "#fafafa" }}
                   >
                     <Text
-                      variant="label-strong-xs"
-                      style={{ color: "#fafafa", fontSize: "10px" }}
+                      variant="label-default-xs"
+                      style={{
+                        fontSize: "12px",
+                        backgroundImage:
+                          "linear-gradient(to bottom, #4e4e54ff 0%, #6e6e76ff 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                        color: "transparent",
+                      }}
                     >
-                      New
+                      {tag}
                     </Text>
                   </Tag>
-                )}
+                ))}
               </Row>
-            </Text>
-            <Tag
-              variant="neutral"
-              className={interTight.className}
-              size="s"
-              data-border="conservative"
-            >
-              <Row center gap="4">
-                <Text variant="label-default-xs">{clicks}</Text>
-                <TbClick />
-              </Row>
-            </Tag>
-          </Row>
-          <Column fillWidth gap="8" paddingX="24">
-            <Text onBackground="neutral-weak" variant="body-default-s">
-              {description}
-            </Text>
-          </Column>
-          <Row
-            gap="4"
-            vertical="center"
-            textVariant="label-default-s"
-            onBackground="neutral-medium"
-            paddingX="24"
-          >
-            {tags.map((tag) => (
-              <Tag
-                key={tag}
-                variant="neutral"
-                className={interTight.className}
-                data-border="rounded"
-                style={{ backgroundColor: "#fafafa" }}
-              >
-                <Text
-                  variant="label-default-xs"
-                  style={{
-                    fontSize: "12px",
-                    backgroundImage:
-                      "linear-gradient(to bottom, #4e4e54ff 0%, #6e6e76ff 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                    color: "transparent",
-                  }}
-                >
-                  {tag}
-                </Text>
-              </Tag>
-            ))}
-          </Row>
-          <Line background="neutral-alpha-medium" height={0.005} />
-        </Column>
+              <Line background="neutral-alpha-medium" height={0.005} />
+            </Column>
 
-        <Row
-          fillWidth
-          paddingX="24"
-          horizontal="between"
-          vertical="center"
-          paddingTop="12"
-        >
-          <Row fitWidth gap="2" vertical="center" horizontal="start">
-            {icons.map((icon, i) => (
-              <IconButton
-                key={i}
-                variant="tertiary"
-                style={{ color: "#131315dd" }}
-                size="s"
+            <Row
+              fillWidth
+              paddingX="24"
+              horizontal="between"
+              vertical="center"
+              paddingTop="12"
+            >
+              <Row fitWidth gap="2" vertical="center" horizontal="start">
+                {icons.map((icon, i) => (
+                  <IconButton
+                    key={i}
+                    variant="tertiary"
+                    style={{ color: "#131315dd" }}
+                    size="s"
+                  >
+                    {icon}
+                  </IconButton>
+                ))}
+              </Row>
+              <Text
+                onBackground="neutral-weak"
+                variant="body-default-xs"
+                style={{ cursor: onPreview ? "pointer" : undefined }}
+                onClick={onPreview}
               >
-                {icon}
-              </IconButton>
-            ))}
-          </Row>
-          <Text
-            onBackground="neutral-weak"
-            variant="body-default-xs"
-            style={{ cursor: onPreview ? "pointer" : undefined }}
-            onClick={onPreview}
-          >
-            <Row gap="4" center>
-              <Text>Preview prompt</Text>
-              <BsArrowRight />
+                <Row gap="4" center>
+                  <Text onClick={() => setIsOpen(true)}>Preview prompt</Text>
+                  <BsArrowRight />
+                </Row>
+              </Text>
             </Row>
-          </Text>
-        </Row>
-      </Card>
-    </Flex>
+          </Card>
+        </ContextMenu>
+      </Flex>
+
+      {/* rdf */}
+      <Dialog
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title={title}
+        description={description}
+      >
+        <CodeBlock
+          copyButton={false}
+          codes={[
+            {
+              code: `// JavaScript
+
+      add<Rowprompt here
+      `,
+              language: "javascript",
+              label: "Prompt",
+            },
+            {
+              code: `<!-- Date of Creation -->
+add date of creation here
+
+      `,
+              language: "html",
+              label: "✷ Date of Creation",
+            },
+            {
+              code: `/* Author */
+      add author name here
+      `,
+              language: "css",
+              label: "✷ Author",
+            },
+          ]}
+        />
+      </Dialog>
+    </>
   );
 }
 

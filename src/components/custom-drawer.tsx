@@ -1,9 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Minus, Plus } from "lucide-react";
-import { Bar, BarChart, ResponsiveContainer } from "recharts";
-
+import { TbPrompt } from "react-icons/tb";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -27,9 +25,18 @@ import {
   Textarea,
   useToast,
 } from "@once-ui-system/core";
-import { TbPrompt } from "react-icons/tb";
-
 import { supabase } from "@/lib/supabase";
+
+const MODEL_OPTIONS = [
+  { label: "ChatGPT", value: "<PiOpenAiLogo />" },
+  { label: "Gemini", value: "<RiGeminiLine />" },
+  { label: "Perplexity", value: "<SiPerplexity />" },
+  { label: "Android", value: "<PiAndroidLogo />" },
+  { label: "Apple", value: "<PiAppleLogo />" },
+  { label: "Linux", value: "<PiLinuxLogo />" },
+  { label: "Code", value: "<PiCode />" },
+  { label: "Others", value: "<Others />" }, // Added "Others" checkbox
+];
 
 export function DrawerDemo() {
   const { addToast } = useToast();
@@ -39,50 +46,48 @@ export function DrawerDemo() {
   const [promptTags, setPromptTags] = React.useState<string[]>(["AI"]);
   const [promptUsage, setPromptUsage] = React.useState<string>("");
 
-
   const [currentUserFromSession, setCurrentUserFromSession] =
     React.useState<any>(null);
+
   React.useEffect(() => {
     const getSessionUser = async () => {
       const { data, error } = await supabase.auth.getSession();
-      console.log("Session data:", data, "Error:", error);
       if (data?.session?.user) {
         setCurrentUserFromSession(data.session.user.id);
-      } else {
-        addToast({ message: "No user session found", variant: "danger" });
       }
     };
     getSessionUser();
   }, [addToast]);
 
-  async function insertDataToSupabase(){
-    console.log("Insert data:", {
-      promptName,
-      promptDescription,
-      promptUsage,
-      promptTags,
-      models,
-      currentUserFromSession,
-    });
+  async function insertDataToSupabase() {
     if (!promptName || !promptDescription || !promptUsage) {
       addToast({ message: "Please fill in all fields", variant: "danger" });
       return;
     }
 
-    const { data, error } = await supabase
-      .from("prompts")
-      .insert([
+    // Insert tags one by one into "tags" table
+    for (const tag of promptTags) {
+      await supabase
+        .from("tags")
+        .insert([{ tag_name: tag }])
+        .then(({ error }) => {
+          if (error) {
+            console.log("Error inserting tag:", tag, error);
+          }
+        });
+    }
+
+    // Ensure models is stored as JSON array
+    const { data, error } = await supabase.from("prompts").insert([
       {
         author_id: currentUserFromSession,
         title: promptName,
         description: promptDescription,
         content: promptUsage,
         tags: promptTags,
-        models: models,
+        models: models, // Should be a JSON/array column in Supabase
       },
-      ]);
-
-    console.log("Supabase insert result:", { data, error });
+    ]);
 
     if (error) {
       addToast({ message: "Error inserting data", variant: "danger" });
@@ -90,19 +95,32 @@ export function DrawerDemo() {
       addToast({ message: "Data inserted successfully", variant: "success" });
     }
   }
+
+  const handleModelChange = (value: string, checked: boolean) => {
+    setModels((prev) =>
+      checked
+        ? prev.includes(value)
+          ? prev
+          : [...prev, value]
+        : prev.filter((m) => m !== value)
+    );
+  };
+
   return (
     <Drawer>
       <DrawerTrigger asChild>
         <IconButton
           variant="secondary"
           style={{ backgroundColor: "#33333311" }}
+          tooltip="Add your Prompt"
+          tooltipPosition="bottom"
         >
           <TbPrompt size={14} fontWeight={0} />
         </IconButton>
       </DrawerTrigger>
       <DrawerContent>
         <div
-          className="mx-auto w-full "
+          className="mx-auto w-full"
           style={{
             alignItems: "center",
             display: "flex",
@@ -140,7 +158,7 @@ export function DrawerDemo() {
                       placeholder="e.g. Image Generation"
                       value={promptTags}
                       onChange={(newTags) => {
-                        if (newTags.length <= 5) {
+                        if (newTags.length <= 4) {
                           setPromptTags(newTags);
                         }
                       }}
@@ -162,90 +180,19 @@ export function DrawerDemo() {
                       Select the AI models:
                     </Text>
                     <Row gap="12" wrap={true}>
-                      <Checkbox
-                        label="ChatGPT"
-                        checked={models.includes("ChatGPT")}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setModels((prev) =>
-                            checked
-                              ? [...prev, "ChatGPT"]
-                              : prev.filter((m) => m !== "ChatGPT")
-                          );
-                        }}
-                      />
-                      <Checkbox
-                        label="Gemini"
-                        checked={models.includes("Gemini")}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setModels((prev) =>
-                            checked
-                              ? [...prev, "Gemini"]
-                              : prev.filter((m) => m !== "Gemini")
-                          );
-                        }}
-                      />
-                      <Checkbox
-                        label="Perplexity"
-                        checked={models.includes("Perplexity")}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setModels((prev) =>
-                            checked
-                              ? [...prev, "Perplexity"]
-                              : prev.filter((m) => m !== "Perplexity")
-                          );
-                        }}
-                      />
-                      <Checkbox
-                        label="Android"
-                        checked={models.includes("Android")}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setModels((prev) =>
-                            checked
-                              ? [...prev, "Android"]
-                              : prev.filter((m) => m !== "Android")
-                          );
-                        }}
-                      />
-                      <Checkbox
-                        label="Apple"
-                        checked={models.includes("Apple")}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setModels((prev) =>
-                            checked
-                              ? [...prev, "Apple"]
-                              : prev.filter((m) => m !== "Apple")
-                          );
-                        }}
-                      />
-                      <Checkbox
-                        label="Linux"
-                        checked={models.includes("Linux")}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setModels((prev) =>
-                            checked
-                              ? [...prev, "Linux"]
-                              : prev.filter((m) => m !== "Linux")
-                          );
-                        }}
-                      />
-                      <Checkbox
-                        label="Others"
-                        checked={models.includes("Others")}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setModels((prev) =>
-                            checked
-                              ? [...prev, "Others"]
-                              : prev.filter((m) => m !== "Others")
-                          );
-                        }}
-                      />
+                      {MODEL_OPTIONS.map((model) => (
+                        <Checkbox
+                          key={model.value}
+                          label={model.label}
+                          checked={models.includes(model.value)}
+                          onToggle={() =>
+                            handleModelChange(
+                              model.value,
+                              !models.includes(model.value)
+                            )
+                          }
+                        />
+                      ))}
                     </Row>
                   </Column>
                 </Column>
@@ -263,8 +210,9 @@ export function DrawerDemo() {
               </Flex>
             </Row>
             <Column fillWidth>
-              {" "}
-              <Button onClick={insertDataToSupabase}>Submit</Button>
+              <DrawerClose asChild>
+                <Button onClick={insertDataToSupabase}>Submit</Button>
+              </DrawerClose>
               <DrawerClose asChild>
                 <Button variant="outline">Cancel</Button>
               </DrawerClose>

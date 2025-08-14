@@ -114,6 +114,7 @@ export default function Home() {
       const profile_picture_url = user_metadata?.picture || null;
 
       // Fetch existing user
+
       const { data: existing, error: fetchError } = await supabase
         .from("users")
         .select("id, profile_picture_url")
@@ -133,6 +134,7 @@ export default function Home() {
             profile_picture_url: existing.profile_picture_url
               ? existing.profile_picture_url
               : profile_picture_url,
+            id: user.id,
           })
           .eq("id", existing.id);
 
@@ -153,6 +155,7 @@ export default function Home() {
             profile_picture_url,
             created_at: new Date().toISOString(),
             last_sign_in_at: new Date().toISOString(),
+            id: user.id,
           },
         ]);
         addToast({
@@ -166,8 +169,13 @@ export default function Home() {
     // Redirect to home after success
   }, []);
   return (
-    <Flex fillWidth fillHeight center style={{ minHeight: "100vh", minWidth: "100vw" }}>
-      <Spinner size="l"/>
+    <Flex
+      fillWidth
+      fillHeight
+      center
+      style={{ minHeight: "100vh", minWidth: "100vw" }}
+    >
+      <Spinner size="l" />
     </Flex>
   );
 }

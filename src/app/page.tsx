@@ -44,6 +44,8 @@ import {
   PiCamera,
   PiCode,
   PiCodeBlock,
+  PiDoor,
+  PiDoorOpen,
   PiDotsThreeCircle,
   PiDownloadLight,
   PiFileJsDuotone,
@@ -82,6 +84,7 @@ import {
   TbTag,
   TbWorldDownload,
 } from "react-icons/tb";
+import React from "react";
 
 const interTight = Inter_Tight({
   subsets: ["latin"],
@@ -99,7 +102,7 @@ export default function Home() {
       const { data, error } = await supabase
         .from("prompts")
         .select(
-          "id, title, description, tags, click_counts, models, author_id, content, created_at"
+          "id, title, description, tags, click_counts, models, author_id, content, created_at, updated_at"
         );
       if (error) {
         console.error("Error fetching prompts:", error);
@@ -112,12 +115,17 @@ export default function Home() {
             description: prompt.description ?? "",
             tags: prompt.tags ?? [],
             onPreview: () => console.log("Previewing", prompt.title),
-            icons: [], // You can map models to icons if needed
+            // You can map models to icons if needed
             isNew:
               prompt.created_at &&
               new Date(prompt.created_at) >
-                new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // new if created within 7 days
+                new Date(Date.now() - 1000 * 60 * 60 * 24 * 1), // new if created within 1 day
             clicks: prompt.click_counts ?? 0,
+            prompt_id: prompt.id,
+            prompt: prompt.content ?? "",
+            author_id: prompt.author_id,
+            date: prompt.created_at,
+            icons: prompt.models ?? [],
           }))
         );
       }
@@ -176,6 +184,60 @@ export default function Home() {
       listener?.subscription.unsubscribe();
     };
   }, []);
+  function supabaseSessionLogout() {
+    supabase.auth.signOut().then(() => {
+      setUser(null);
+      window.location.reload();
+    });
+  }
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("prompts-changes")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "prompts" },
+        (payload) => {
+          // Only refetch on new row insert
+          supabase
+            .from("prompts")
+            .select(
+              "id, title, description, tags, click_counts, models, author_id, content, created_at, updated_at"
+            )
+            .then(({ data, error }) => {
+              if (error) {
+                console.error("Error fetching prompts:", error);
+                return;
+              }
+              if (data) {
+                setCardData(
+                  data.map((prompt: any) => ({
+                    title: prompt.title,
+                    description: prompt.description ?? "",
+                    tags: prompt.tags ?? [],
+                    onPreview: () => console.log("Previewing", prompt.title),
+                    isNew:
+                      prompt.created_at &&
+                      new Date(prompt.created_at) >
+                        new Date(Date.now() - 1000 * 60 * 60 * 24 * 1),
+                    clicks: prompt.click_counts ?? 0,
+                    prompt_id: prompt.id,
+                    prompt: prompt.content ?? "",
+                    author_id: prompt.author_id,
+                    date: prompt.created_at,
+                    icons: prompt.models ?? [],
+                  }))
+                );
+              }
+            });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
   return (
     <Flex
       fillWidth
@@ -230,6 +292,24 @@ export default function Home() {
                   )}
                 </Row>
               </ToggleButton>{" "}
+              {user ? (
+                <IconButton
+                  tooltip="Logout"
+                  tooltipPosition="bottom"
+                  size="m"
+                  variant="secondary"
+                  style={{
+                    border: "1px solid #33333322",
+                  }}
+                  onClick={supabaseSessionLogout}
+                >
+                  <Row center gap="8">
+                    <Text>
+                      <PiDoorOpen color="#444" />
+                    </Text>
+                  </Row>
+                </IconButton>
+              ) : null}
             </Row>
           </Row>
         </Flex>{" "}
@@ -285,6 +365,8 @@ export default function Home() {
               <IconButton
                 variant="secondary"
                 style={{ backgroundColor: "#33333311" }}
+                tooltip="Open with X"
+                tooltipPosition="bottom"
               >
                 <TbMoodSmile />
               </IconButton>
@@ -308,37 +390,51 @@ export default function Home() {
                   icon: <PiOpenAiLogo />,
                   label: "ChatGPT",
                   onClick: () => console.log("ChatGPT clicked"),
+                  tooltip: "Open with ChatGPT",
+                  tooltipPosition: "bottom",
                 },
                 {
                   icon: <RiGeminiLine />,
                   label: "Gemini",
                   onClick: () => console.log("Gemini clicked"),
+                  tooltip: "Open with Gemini",
+                  tooltipPosition: "bottom",
                 },
                 {
                   icon: <SiPerplexity />,
                   label: "Perplexity",
                   onClick: () => console.log("Perplexity clicked"),
+                  tooltip: "Open with Perplexity",
+                  tooltipPosition: "bottom",
                 },
                 {
                   icon: <PiAndroidLogo />,
                   label: "Android",
                   onClick: () => console.log("Android clicked"),
+                  tooltip: "Open with Android",
+                  tooltipPosition: "bottom",
                 },
                 {
                   icon: <PiAppleLogo />,
                   label: "Apple",
                   onClick: () => console.log("Apple clicked"),
+                  tooltip: "Open with Apple",
+                  tooltipPosition: "bottom",
                 },
                 {
                   icon: <PiLinuxLogo />,
                   label: "Linux",
                   onClick: () => console.log("Linux clicked"),
+                  tooltip: "Open with Linux",
+                  tooltipPosition: "bottom",
                 },
                 {
                   icon: <PiCode />,
                   label: "Code",
                   onClick: () => console.log("Code clicked"),
                   className: interTight.className,
+                  tooltip: "Open with Code",
+                  tooltipPosition: "bottom",
                 },
                 // {
                 //   icon: <PiDotsThreeCircle />,
@@ -427,6 +523,9 @@ export default function Home() {
                   isNew={card.isNew}
                   clicks={card.clicks}
                   prompt_id={card.prompt_id}
+                  prompt={card.prompt}
+                  author_id={card.author_id}
+                  date={card.date}
                 />
               ))}
           </Row>
@@ -447,8 +546,9 @@ type CardContainerProps = {
   icons?: React.ReactNode[];
   prompt_id?: string;
   onPreview?: () => void;
-  
+  author_id?: string;
   prompt: string;
+  date?: string; // Optional date of creation
 };
 
 function CardContainer({
@@ -460,6 +560,8 @@ function CardContainer({
   icons = [],
   prompt_id,
   prompt,
+  author_id,
+  date,
   onPreview,
 }: CardContainerProps) {
   function updateClickCount() {
@@ -477,24 +579,53 @@ function CardContainer({
       .eq("id", prompt_id)
       .single()
       .then(({ data, error }) => {
-      if (error) {
-        console.error("Failed to fetch click count:", error);
-        return;
-      }
-      const currentClicks = data?.click_counts ?? 0;
-      // Now, update the click_counts with incremented value
-      supabase
-        .from("prompts")
-        .update({ click_counts: currentClicks + 1 })
-        .eq("id", prompt_id)
-        .then(({ error }) => {
         if (error) {
-          console.error("Failed to update click count:", error);
+          console.error("Failed to fetch click count:", error);
+          return;
         }
-        });
+        const currentClicks = data?.click_counts ?? 0;
+        // Now, update the click_counts with incremented value
+        supabase
+          .from("prompts")
+          .update({ click_counts: currentClicks + 1 })
+          .eq("id", prompt_id)
+          .then(({ error }) => {
+            if (error) {
+              console.error("Failed to update click count:", error);
+            }
+          });
       });
   }
   const [isOpen, setIsOpen] = useState(false);
+
+  const [authorName, setAuthorName] = useState("");
+
+  useEffect(() => {
+    if (!author_id) return;
+    supabase
+      .from("users")
+      .select("display_name")
+      .eq("id", author_id)
+      .single()
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("Error fetching author name:", error);
+          setAuthorName("");
+        } else {
+          setAuthorName(data?.display_name ?? "");
+        }
+      });
+  }, [author_id]);
+
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  function deletePrompt(promptId: string) {
+    setShowDeleteDialog(true);
+  }
+
+  function editPrompt(promptId: string) {
+    // Logic to edit the prompt
+  }
+
   return (
     <>
       <Flex>
@@ -508,6 +639,7 @@ function CardContainer({
                 }
                 label="Edit"
                 value="edit"
+                onClick={() => prompt_id && editPrompt(prompt_id)}
                 style={{
                   cursor: "pointer",
                   color: "#fafafa",
@@ -522,6 +654,7 @@ function CardContainer({
                 danger
                 label="Delete"
                 value="delete"
+                onClick={() => prompt_id && deletePrompt(prompt_id)}
                 style={{
                   cursor: "pointer",
                   color: "#fafafa",
@@ -653,18 +786,13 @@ function CardContainer({
               vertical="center"
               paddingTop="12"
             >
-              <Row fitWidth gap="2" vertical="center" horizontal="start">
+                <Row fitWidth gap="2" vertical="center" horizontal="start">
                 {icons.map((icon, i) => (
-                  <IconButton
-                    key={i}
-                    variant="tertiary"
-                    style={{ color: "#131315dd" }}
-                    size="s"
-                  >
-                    {icon}
-                  </IconButton>
+                  <span key={i}>
+                  {React.isValidElement(icon) ? icon : null}
+                  </span>
                 ))}
-              </Row>
+                </Row>
               <Text
                 onBackground="neutral-weak"
                 variant="body-default-xs"
@@ -681,6 +809,43 @@ function CardContainer({
         </ContextMenu>
       </Flex>
 
+      {/* Delete Prompt Dialog */}
+      <Dialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        title="Delete Prompt"
+        description="Are you sure you want to delete this prompt? This action cannot be undone."
+      >
+        <Flex direction="column" gap="16">
+          <Button
+            variant="danger"
+            onClick={() => {
+              if (!prompt_id) return;
+              supabase
+                .from("prompts")
+                .delete()
+                .eq("id", prompt_id)
+                .then(({ error }) => {
+                  if (error) {
+                    console.error("Error deleting prompt:", error);
+                  } else {
+                    console.log("Prompt deleted successfully");
+                    setShowDeleteDialog(false);
+                  }
+                });
+            }}
+          >
+            Delete
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => setShowDeleteDialog(false)}
+          >
+            Cancel
+          </Button>
+        </Flex>
+      </Dialog>
+
       {/* rdf */}
       <Dialog
         isOpen={isOpen}
@@ -692,25 +857,24 @@ function CardContainer({
           copyButton={false}
           codes={[
             {
-              code: `// JavaScript
-${}
+              code: `// Prompt
+${[prompt]}
       `,
               language: "javascript",
               label: "Prompt",
             },
             {
               code: `<!-- Date of Creation -->
-add date of creation here
-
+${date ? new Date(date).toUTCString() : ""}
       `,
               language: "html",
-              label: "✷ Date of Creation",
+              label: "✷ Date of Creation (GMT)",
             },
             {
-              code: `/* Author */
-      add author name here
+              code: `<!-- Author -->
+${authorName}
       `,
-              language: "css",
+              language: "html",
               label: "✷ Author",
             },
           ]}

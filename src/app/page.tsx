@@ -89,82 +89,93 @@ const interTight = Inter_Tight({
   display: "swap",
 });
 import { supabase } from "@/lib/supabase";
+import type { Session } from "@supabase/supabase-js";
 
 export default function Home() {
-  const cardData = [
-    {
-      title: "ChatGPT",
-      description: "ChatGPT is a conversational AI model developed by OpenAI.",
-      tags: ["AI", "Chatbot"],
-      onPreview: () => console.log("Previewing ChatGPT"),
-      icons: [
-        <PiOpenAiLogo />,
-        <PiSparkle />,
-        <PiCode />,
-        <PiDotsThreeCircle />,
-      ],
-      isNew: true,
-      clicks: 100,
-    },
-    {
-      title: "Bard",
-      description: "Bard is a conversational AI model developed by Google.",
-      tags: ["AI", "Chatbot"],
-      onPreview: () => console.log("Previewing Bard"),
-      icons: [
-        <PiGoogleLogo />,
-        <PiSparkle />,
-        <PiCode />,
-        <PiDotsThreeCircle />,
-      ],
-      isNew: false,
-      clicks: 50,
-    },
-    {
-      title: "Claude",
-      description:
-        "Claude is a conversational AI model developed by Anthropic.",
-      tags: ["AI", "Chatbot"],
-      onPreview: () => console.log("Previewing Claude"),
-      icons: [
-        <PiOpenAiLogo />,
-        <PiSparkle />,
-        <PiCode />,
-        <PiDotsThreeCircle />,
-      ],
-      isNew: false,
-      clicks: 75,
-    },
-    {
-      title: "Gemini",
-      description:
-        "Gemini is a conversational AI model developed by Google DeepMind.",
-      tags: ["AI", "Chatbot"],
-      onPreview: () => console.log("Previewing Gemini"),
-      icons: [
-        <PiGoogleLogo />,
-        <PiSparkle />,
-        <PiCode />,
-        <PiDotsThreeCircle />,
-      ],
-      isNew: false,
-      clicks: 60,
-    },
-  ];
+  const [cardData, setCardData] = useState<CardContainerProps[]>([]);
+
+  useEffect(() => {
+    async function fetchPrompts() {
+      const { data, error } = await supabase
+        .from("prompts")
+        .select(
+          "id, title, description, tags, click_counts, models, author_id, content, created_at"
+        );
+      if (error) {
+        console.error("Error fetching prompts:", error);
+        return;
+      }
+      if (data) {
+        setCardData(
+          data.map((prompt: any) => ({
+            title: prompt.title,
+            description: prompt.description ?? "",
+            tags: prompt.tags ?? [],
+            onPreview: () => console.log("Previewing", prompt.title),
+            icons: [], // You can map models to icons if needed
+            isNew:
+              prompt.created_at &&
+              new Date(prompt.created_at) >
+                new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // new if created within 7 days
+            clicks: prompt.click_counts ?? 0,
+          }))
+        );
+      }
+    }
+    fetchPrompts();
+  }, []);
   const [searchPromptQuery, setSearchPromptQuery] = useState("");
 
   function googleSignInSupabase() {
     supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-      redirectTo: window.location.origin+"/auth/callback",
-      queryParams: {
-        prompt: "select_account",
-      },
+        redirectTo: window.location.origin + "/auth/callback",
+        queryParams: {
+          prompt: "select_account",
+        },
       },
     });
-  
   }
+
+  const [session, setSession] = useState<Session | null>(null);
+
+  const [user, setUser] = useState<{
+    name?: string;
+    profilePic?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        setUser({
+          name: session.user.user_metadata?.name || session.user.email,
+          profilePic: session.user.user_metadata?.avatar_url || "",
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        if (session?.user) {
+          setUser({
+            name: session.user.user_metadata?.name || session.user.email,
+            profilePic: session.user.user_metadata?.avatar_url || "",
+          });
+        } else {
+          setUser(null);
+        }
+      }
+    );
+
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
+  }, []);
   return (
     <Flex
       fillWidth
@@ -209,8 +220,14 @@ export default function Home() {
               >
                 <Row center gap="8">
                   {" "}
-                  Login after session exists then show username and pfp
-                  <Avatar src={""} />
+                  {user ? (
+                    <>
+                      <Text>{user?.name}</Text>
+                      <Avatar src={user?.profilePic} />
+                    </>
+                  ) : (
+                    <Text>Login</Text>
+                  )}
                 </Row>
               </ToggleButton>{" "}
             </Row>
@@ -409,6 +426,7 @@ export default function Home() {
                   icons={card.icons}
                   isNew={card.isNew}
                   clicks={card.clicks}
+                  prompt_id={card.prompt_id}
                 />
               ))}
           </Row>
@@ -418,6 +436,8 @@ export default function Home() {
     </Flex>
   );
 }
+
+///add things author id and all prompts and all
 type CardContainerProps = {
   title: string;
   isNew?: boolean;
@@ -425,7 +445,10 @@ type CardContainerProps = {
   description: string;
   tags?: string[];
   icons?: React.ReactNode[];
+  prompt_id?: string;
   onPreview?: () => void;
+  
+  prompt: string;
 };
 
 function CardContainer({
@@ -435,8 +458,42 @@ function CardContainer({
   description,
   tags = [],
   icons = [],
+  prompt_id,
+  prompt,
   onPreview,
 }: CardContainerProps) {
+  function updateClickCount() {
+    setIsOpen(true); // Update the click count for the card
+
+    // Only update if prompt_id exists
+    if (!prompt_id) return;
+
+    // Prevent multiple increments per session/user for this prompt
+    // Update click_counts in supabase
+    // First, fetch the current click_counts from the table
+    supabase
+      .from("prompts")
+      .select("click_counts")
+      .eq("id", prompt_id)
+      .single()
+      .then(({ data, error }) => {
+      if (error) {
+        console.error("Failed to fetch click count:", error);
+        return;
+      }
+      const currentClicks = data?.click_counts ?? 0;
+      // Now, update the click_counts with incremented value
+      supabase
+        .from("prompts")
+        .update({ click_counts: currentClicks + 1 })
+        .eq("id", prompt_id)
+        .then(({ error }) => {
+        if (error) {
+          console.error("Failed to update click count:", error);
+        }
+        });
+      });
+  }
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
@@ -483,6 +540,7 @@ function CardContainer({
             maxWidth={20}
             cursor="interactive"
             overflow="hidden"
+            style={{ minWidth: "320px", minHeight: "120px" }}
           >
             <Column
               paddingTop="24"
@@ -614,7 +672,7 @@ function CardContainer({
                 onClick={onPreview}
               >
                 <Row gap="4" center>
-                  <Text onClick={() => setIsOpen(true)}>Preview prompt</Text>
+                  <Text onClick={updateClickCount}>Preview prompt</Text>
                   <BsArrowRight />
                 </Row>
               </Text>
@@ -635,8 +693,7 @@ function CardContainer({
           codes={[
             {
               code: `// JavaScript
-
-      add<Rowprompt here
+${}
       `,
               language: "javascript",
               label: "Prompt",
@@ -671,6 +728,7 @@ import {
 } from "@/components/ui/popover";
 import { DrawerDemo } from "@/components/custom-drawer";
 import { useState } from "react";
+import { useEffect } from "react";
 
 export function PopoverDemo() {
   return (

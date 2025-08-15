@@ -51,7 +51,7 @@ export function DrawerDemo() {
 
   React.useEffect(() => {
     const getSessionUser = async () => {
-      const { data, error } = await supabase.auth.getSession();
+      const { data } = await supabase.auth.getSession();
       if (data?.session?.user) {
         setCurrentUserFromSession(data.session.user.id);
       }
@@ -83,7 +83,7 @@ export function DrawerDemo() {
       ? models
       : [...models, "Others"];
 
-    const { data, error } = await supabase.from("prompts").insert([
+    const { error } = await supabase.from("prompts").insert([
       {
       author_id: currentUserFromSession,
       title: promptName,

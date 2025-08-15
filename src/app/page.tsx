@@ -230,20 +230,20 @@ export default function Home() {
               if (data) {
                 setCardData(
                   data.map((prompt: any) => ({
-                    title: prompt.title,
-                    description: prompt.description ?? "",
-                    tags: prompt.tags ?? [],
-                    onPreview: () => console.log("Previewing", prompt.title),
-                    isNew:
-                      prompt.created_at &&
-                      new Date(prompt.created_at) >
-                        new Date(Date.now() - 1000 * 60 * 60 * 1), // new if created within 1 hour
-                    clicks: prompt.click_counts ?? 0,
-                    prompt_id: prompt.id,
-                    prompt: prompt.content ?? "",
-                    author_id: prompt.author_id,
-                    date: prompt.created_at,
-                    icons: prompt.models ?? [],
+                  title: prompt.title,
+                  description: prompt.description ?? "",
+                  tags: prompt.tags ?? [],
+                  onPreview: () => console.log("Previewing", prompt.title),
+                  isNew:
+                    prompt.created_at &&
+                    new Date(prompt.created_at) >
+                    new Date(Date.now() - 1000 * 60 * 60 * 3), // new if created within 3 hours
+                  clicks: prompt.click_counts ?? 0,
+                  prompt_id: prompt.id,
+                  prompt: prompt.content ?? "",
+                  author_id: prompt.author_id,
+                  date: prompt.created_at,
+                  icons: prompt.models ?? [],
                   }))
                 );
               }

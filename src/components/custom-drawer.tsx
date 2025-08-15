@@ -35,7 +35,7 @@ const MODEL_OPTIONS = [
   { label: "Apple", value: "Apple" },
   { label: "Linux", value: "Linux" },
   { label: "Code", value: "Code" },
-  { label: "Others", value: "Others" }, // Added "Others" checkbox
+  { label: "Others", value: "Others" },
 ];
 
 export function DrawerDemo() {
@@ -45,61 +45,113 @@ export function DrawerDemo() {
   const [promptDescription, setPromptDescription] = React.useState<string>("");
   const [promptTags, setPromptTags] = React.useState<string[]>(["AI"]);
   const [promptUsage, setPromptUsage] = React.useState<string>("");
-
-  const [currentUserFromSession, setCurrentUserFromSession] =
-    React.useState<any>(null);
+  const [currentUserId, setCurrentUserId] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     const getSessionUser = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data?.session?.user) {
-        setCurrentUserFromSession(data.session.user.id);
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          addToast({
+            message: "Failed to get user session",
+            variant: "danger",
+          });
+          return;
+        }
+        if (data?.session?.user) {
+          setCurrentUserId(data.session.user.id);
+        } else {
+          addToast({ message: "No user session found", variant: "danger" });
+        }
+      } catch (err) {
+        addToast({
+          message: "Unexpected error getting session",
+          variant: "danger",
+        });
       }
     };
     getSessionUser();
   }, [addToast]);
 
-  async function insertDataToSupabase() {
-    if (!promptName || !promptDescription || !promptUsage) {
-      addToast({ message: "Please fill in all fields", variant: "danger" });
-      return;
+  const validateFields = () => {
+    if (!promptName.trim()) {
+      addToast({ message: "Prompt name is required", variant: "danger" });
+      return false;
     }
+    if (!promptDescription.trim()) {
+      addToast({
+        message: "Prompt description is required",
+        variant: "danger",
+      });
+      return false;
+    }
+    if (!promptUsage.trim()) {
+      addToast({ message: "Prompt usage is required", variant: "danger" });
+      return false;
+    }
+    if (!currentUserId) {
+      addToast({ message: "User not authenticated", variant: "danger" });
+      return false;
+    }
+    return true;
+  };
 
-    // Insert tags one by one into "tags" table
+  const insertTags = async () => {
     for (const tag of promptTags) {
-      await supabase
-        .from("tags")
-        .insert([{ tag_name: tag }])
-        .then(({ error }) => {
-          if (error) {
-            console.log("Error inserting tag:", tag, error);
-          }
-        });
+      const { error } = await supabase.from("tags").insert([{ tag_name: tag }]);
+      if (error) {
+        addToast({ message: `Error inserting tag: ${tag}`, variant: "danger" });
+      }
     }
+  };
 
-    // Ensure models is stored as JSON array
-    // Ensure "Others" is always included in models
+  const insertPrompt = async () => {
+    // Ensure "Others" is always included
     const modelsWithOthers = models.includes("Others")
       ? models
       : [...models, "Others"];
-
     const { error } = await supabase.from("prompts").insert([
       {
-      author_id: currentUserFromSession,
-      title: promptName,
-      description: promptDescription,
-      content: promptUsage,
-      tags: promptTags,
-      models: modelsWithOthers, // Should be a JSON/array column in Supabase
+        author_id: currentUserId,
+        title: promptName,
+        description: promptDescription,
+        content: promptUsage,
+        tags: promptTags,
+        models: modelsWithOthers,
       },
     ]);
-
     if (error) {
-      addToast({ message: "Error inserting data", variant: "danger" });
-    } else {
-      addToast({ message: "Data inserted successfully", variant: "success" });
+      addToast({ message: "Error inserting prompt", variant: "danger" });
+      return false;
     }
-  }
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateFields()) return;
+    setLoading(true);
+    try {
+      await insertTags();
+      const success = await insertPrompt();
+      if (success) {
+        addToast({ message: "Prompt added successfully", variant: "success" });
+        // Optionally reset form here
+        setPromptName("");
+        setPromptDescription("");
+        setPromptTags(["AI"]);
+        setPromptUsage("");
+        setModels([]);
+      }
+    } catch (err) {
+      addToast({
+        message: "Unexpected error submitting prompt",
+        variant: "danger",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleModelChange = (value: string, checked: boolean) => {
     setModels((prev) =>
@@ -117,8 +169,13 @@ export function DrawerDemo() {
         <IconButton
           variant="secondary"
           style={{ backgroundColor: "#33333311" }}
-          tooltip="Add your Prompt"
-          tooltipPosition="bottom"
+          onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
+            e.currentTarget.style.backgroundColor = "#33333322";
+          }}
+          onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
+            e.currentTarget.style.backgroundColor = "#33333311";
+          }}
+
         >
           <TbPrompt size={14} fontWeight={0} />
         </IconButton>
@@ -151,6 +208,7 @@ export function DrawerDemo() {
                       label="e.g. My Prompt"
                       value={promptName}
                       onChange={(e) => setPromptName(e.target.value)}
+                      disabled={loading}
                     />
                   </Column>
                   <Column gap="2">
@@ -165,8 +223,14 @@ export function DrawerDemo() {
                       onChange={(newTags) => {
                         if (newTags.length <= 4) {
                           setPromptTags(newTags);
+                        } else {
+                          addToast({
+                            message: "Maximum 4 tags allowed",
+                            variant: "danger",
+                          });
                         }
                       }}
+                      disabled={loading}
                     />
                   </Column>
                   <Column gap="2">
@@ -178,6 +242,7 @@ export function DrawerDemo() {
                       label="e.g. Use this prompt to get..."
                       value={promptDescription}
                       onChange={(e) => setPromptDescription(e.target.value)}
+                      disabled={loading}
                     />
                   </Column>
                   <Column gap="8">
@@ -196,6 +261,7 @@ export function DrawerDemo() {
                               !models.includes(model.value)
                             )
                           }
+                          disabled={loading}
                         />
                       ))}
                     </Row>
@@ -210,16 +276,29 @@ export function DrawerDemo() {
                     resize="none"
                     value={promptUsage}
                     onChange={(e) => setPromptUsage(e.target.value)}
+                    disabled={loading}
                   />
                 </Column>
               </Flex>
             </Row>
             <Column fillWidth gap="4">
               <DrawerClose asChild>
-                <Button onClick={insertDataToSupabase} style={{ cursor: "pointer" }}>Submit</Button>
+                <Button
+                  onClick={handleSubmit}
+                  style={{ cursor: "pointer" }}
+                  disabled={loading}
+                >
+                  {loading ? "Submitting..." : "Submit"}
+                </Button>
               </DrawerClose>
               <DrawerClose asChild>
-                <Button variant="outline" style={{ cursor: "pointer" }}>Cancel</Button>
+                <Button
+                  variant="outline"
+                  style={{ cursor: "pointer" }}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
               </DrawerClose>
             </Column>
           </Column>

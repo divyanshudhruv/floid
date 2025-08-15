@@ -46,6 +46,7 @@ import {
   PiArrowDown,
   PiBroom,
   PiCamera,
+  PiCaretDown,
   PiCode,
   PiCodeBlock,
   PiDoor,
@@ -71,7 +72,7 @@ import {
   PiVideoCamera,
   PiVideoConference,
 } from "react-icons/pi";
-import { RiGeminiLine } from "react-icons/ri";
+import { RiFilter3Fill, RiGeminiLine } from "react-icons/ri";
 import { SiPerplexity } from "react-icons/si";
 import {
   TbAbc,
@@ -126,11 +127,11 @@ export default function Home() {
             description: prompt.description ?? "",
             tags: prompt.tags ?? [],
             onPreview: () => console.log("Previewing", prompt.title),
-            // You can map models to icons if needed
-            isNew:
+            isNew: !!(
               prompt.created_at &&
               new Date(prompt.created_at) >
-                new Date(Date.now() - 1000 * 60 * 60 * 24 * 1), // new if created within 1 day
+                new Date(Date.now() - 1000 * 60 * 60 * 1)
+            ), // true if created within 1 hour, else false
             clicks: prompt.click_counts ?? 0,
             prompt_id: prompt.id,
             prompt: prompt.content ?? "",
@@ -252,6 +253,65 @@ export default function Home() {
       supabase.removeChannel(channel);
     };
   }, []);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selected, setSelected] = useState("");
+
+  const options = [
+    { label: "Recent", value: "descending" },
+    { label: "Old", value: "ascending" },
+  ];
+
+  const handleSelect = (value: string) => {
+    setSelected(value);
+    setIsOpen(false);
+    let orderBy = "created_at";
+    let ascending = true;
+
+    if (value === "descending") {
+      ascending = false;
+    } else if (value === "most_recent") {
+      ascending = false;
+      orderBy = "created_at";
+    } else {
+      ascending = true;
+      orderBy = "created_at";
+    }
+
+    supabase
+      .from("prompts")
+      .select(
+        "id, title, description, tags, click_counts, models, author_id, content, created_at, updated_at"
+      )
+      .order(orderBy, { ascending })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("Error fetching prompts:", error);
+          return;
+        }
+        if (data) {
+          setCardData(
+            data.map((prompt: any) => ({
+              title: prompt.title,
+              description: prompt.description ?? "",
+              tags: prompt.tags ?? [],
+              onPreview: () => console.log("Previewing", prompt.title),
+              isNew: !!(
+                prompt.created_at &&
+                new Date(prompt.created_at) >
+                  new Date(Date.now() - 1000 * 60 * 60 * 1)
+              ),
+              clicks: prompt.click_counts ?? 0,
+              prompt_id: prompt.id,
+              prompt: prompt.content ?? "",
+              author_id: prompt.author_id,
+              date: prompt.created_at,
+              icons: prompt.models ?? [],
+            }))
+          );
+        }
+      });
+  };
+
   return (
     <Flex
       fillWidth
@@ -327,7 +387,13 @@ export default function Home() {
             </Row>
           </Row>
         </Flex>{" "}
-        <Flex direction="column" fillWidth horizontal="start" vertical="center" className="heading-container-gap">
+        <Flex
+          direction="column"
+          fillWidth
+          horizontal="start"
+          vertical="center"
+          className="heading-container-gap"
+        >
           <Text
             className={interTight.className + " text-heading"}
             style={{
@@ -484,7 +550,13 @@ export default function Home() {
           </Scroller>
           <Row gap="20" center>
             {" "}
-            <Row fillWidth horizontal="start" vertical="center" maxWidth={23}>
+            <Row
+              fillWidth
+              horizontal="start"
+              vertical="center"
+              maxWidth={26}
+              gap="8"
+            >
               <Input
                 id=""
                 placeholder="Search..."
@@ -494,6 +566,28 @@ export default function Home() {
                 onChange={(e) => setSearchPromptQuery(e.target.value)}
                 value={searchPromptQuery}
               ></Input>
+              <DropdownWrapper
+                isOpen={isOpen}
+                onOpenChange={setIsOpen}
+                trigger={
+                  <IconButton size="l" variant="secondary">
+                    <RiFilter3Fill color="#333" />
+                  </IconButton>
+                }
+                dropdown={
+                  <Column minWidth={10} padding="4" gap="2">
+                    {options.map((option) => (
+                      <Option
+                        key={option.value}
+                        label={option.label}
+                        value={option.value}
+                        selected={option.value === selected}
+                        onClick={handleSelect}
+                      />
+                    ))}
+                  </Column>
+                }
+              />
             </Row>
             <Text variant="label-default-s" onBackground="neutral-weak">
               <Row>
@@ -538,13 +632,16 @@ export default function Home() {
                       <Skeleton
                         key={idx}
                         shape="block"
-                        delay="3"
+                        delay="1"
+                        radius="l"
                         width="s"
+                        className="card-container"
                         style={{
                           minWidth: "320px",
                           minHeight: "180px",
                           maxWidth: "320px",
                           maxHeight: "180px",
+                          borderRadius: "10px",
                         }}
                       />
                     ))}
@@ -709,8 +806,20 @@ export default function Home() {
             paddingTop="0"
             marginTop="m"
           >
-            <Text variant="label-default-s" onBackground="neutral-medium" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              <Row center gap="8">© 2024 Floid. All rights reserved. Powered by <Tag variant="info">Supabase</Tag> & <Tag variant="info">Once UI System</Tag></Row>
+            <Text
+              variant="label-default-s"
+              onBackground="neutral-medium"
+              style={{
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              <Row center gap="8">
+                © 2024 Floid. All rights reserved. Powered by{" "}
+                <Tag variant="info">Supabase</Tag> &{" "}
+                <Tag variant="info">Once UI System</Tag>
+              </Row>
             </Text>
           </Row>
         </Column>
@@ -834,30 +943,28 @@ function CardContainer({
                     onClick={() => prompt_id && editPrompt(prompt_id)}
                     style={{
                       cursor: "pointer",
-                      color: "#fafafa",
+                      color: "#222",
+                      backgroundColor: "#eee",
+                      pointerEvents: "none",
                     }}
                     onMouseEnter={(e) =>
                       (e.currentTarget.style.color = "#fafafa")
                     }
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "#222")}
                   />
 
                   <Line marginY="2" />
                   <Option
                     hasPrefix={<PiTrash color="#222" />}
-                    danger
-                    label="Delete"
                     value="delete"
                     onClick={() => prompt_id && deletePrompt(prompt_id)}
                     style={{
                       cursor: "pointer",
-                      color: "#fafafa",
+                      color: "#333",
                     }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.color = "#fafafa")
-                    }
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "")}
-                  />
+                  >
+                    <Text variant="label-default-s">Delete</Text>
+                  </Option>
                 </>
               ) : (
                 <Option
@@ -1146,13 +1253,13 @@ function CardContainer({
               code: `${date ? new Date(date).toUTCString() : ""}
       `,
               language: "html",
-              label: "✷ Date of Creation (GMT)",
+              label: "Date of Creation (GMT)",
             },
             {
               code: `${authorName}
       `,
               language: "html",
-              label: "✷ Author",
+              label: "Author",
             },
           ]}
         />

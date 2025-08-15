@@ -149,9 +149,9 @@
     min-width: 94vw;
   }
 }
-@media (max-width: 440px) {
+@media (max-width: 480px) {
 
-  .card-container {
-    min-width: 90vw;
+  .navbar-container{
+    display:none;
   }
 }

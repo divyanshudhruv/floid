@@ -62,7 +62,8 @@ export function DrawerDemo() {
         if (data?.session?.user) {
           setCurrentUserId(data.session.user.id);
         } else {
-          addToast({ message: "No user session found", variant: "danger" });
+          // No user session found, do not log repeatedly
+          setCurrentUserId(null);
         }
       } catch (err) {
         addToast({

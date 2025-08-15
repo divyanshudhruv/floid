@@ -1,79 +1,259 @@
-# Once UI for Next.js
+# ✨🌐 Floid — The First Prompt Network for Everyone
 
-A design system for indie builders, startups and freelancers. Once UI combines the simplicity of low-code with the power of code: write 70% less code compared to shadcn + Tailwind. Includes 100+ advanced components.
+Floid is a modern platform where anyone can create, share, and discover prompts for GPT, image generation, and more. It’s a sleek, thread-based website designed for the prompt engineering community—no AI-generated content, just real user creativity. (AI features may come in the future.)
 
-Check the demo [here](https://demo.once-ui.com).
+<br>
 
-![Once UI](public/images/og/home.jpg)
+> [!IMPORTANT]  
+> If you find Floid useful, please star the repository on GitHub! Your support helps drive development.
 
-## Features
+<br>
 
-A lightweight starter template with the [Once UI Core](https://github.com/once-ui-system/core) package and our recommended setup to move fast and break limits without neglecting quality.
+> [!NOTE]  
+> Floid is currently in `beta`. Expect bugs and rapid changes.
 
-* **Customization**: Manage design config in a single file.
-* **Components**: Access advanced components with simple APIs.
-* **Data-viz**: Add responsive charts with a few lines of code.
-* **SEO**: Use our SEO components to simplify meta and schema setup.
-* **PRO**: Launch ready-made apps with minimal coding with Once UI Pro.
+<br>
 
-[Get Once UI Pro](https://once-ui.com/pricing)
+## 🙋‍♀️ **What is Floid?**
 
-## Documentation
+[**Floid**](https://floid.vercel.app/) is the first open prompt network for everyone. Users can generate, share, and discuss prompts for GPT, image generation, or any other AI tool. All content is user-generated—no AI Droids or bots. Floid is a community-driven space for prompt creators and enthusiasts.
 
-Learn how to build with Once UI at [docs.once-ui.com](https://docs.once-ui.com/once-ui/quick-start).
+<br>
 
-## Quick start
+## ✨ **Features**
 
-[Magic Portfolio](https://once-ui.com/products/magic-portfolio) (FREE): Portfolio starter used and loved by thousands of creatives. Simple, customizable, responsive.
+A next-gen, thread-based platform built with [Once UI](https://once-ui.com), focused on prompt sharing and discovery.
 
-[Magic Docs](https://once-ui.com/products/magic-docs) (FREE): Documentation generator. Just add your MDX files and let Magic Docs handle the rest.
+**1.** 📝 User-Generated Prompts: Create and share prompts for GPT, image generation, and more  
+**2.** 🧵 Thread-based Discussions: Discuss and refine prompts in organized threads  
+**3.** ⚡ Real-time Activity: Instantly see new prompts and comments via Supabase subscriptions  
+**4.** 🔐 Secure Authentication: Google OAuth integration for user management  
+**5.** 📱 Responsive Design: Optimized for all devices  
+**6.** 🎨 Modern UI: Built with Once UI for a polished look  
+**7.** 🏷️ Prompt Metadata: Each prompt displays tags, models, author, creation date, and click counts  
+**8.** 🗂️ Rich Prompt Cards: Prompts are shown in interactive cards with copy, preview, and code features  
+**9.** 🧑‍💻 Model Icons: Prompts can be tagged with supported models (ChatGPT, Gemini, Perplexity, Android, Apple, Linux, Code, Others)  
+**10.** 🗑️ Edit/Delete Permissions: Only prompt authors can edit or delete their prompts
 
-[Magic Bio](https://once-ui.com/products/magic-bio) (FREE): Link-in-bio template that automatically fetches open-graph data. Just add your links and deploy.
+## 🗃️ **Prompt Card Details**
 
-[Magic Convert](https://once-ui.com/products/magic-convert) (PRO): Conversion-optimized landing page and dashboard template.
+Each prompt card includes:
 
-[Magic Agent](https://once-ui.com/products/magic-agent) (PRO): Deployment-ready AI agent built with the Vercel AI SDK.
+- Title, description, tags, and model icons (ChatGPT, Gemini, Perplexity, Android, Apple, Linux, Code, Others)
+- Author and creation date
+- Click count
+- Edit/Delete buttons (if you are the author)
+- Copy and preview features
 
-[Magic Store](https://once-ui.com/products/magic-store) (PRO): Ecommerce storefront that lets you sell digital and physical products.
+## 🗄️ **Database Setup**
 
-[Once UI Blocks](https://once-ui.com/blocks) (PRO): Copy-paste pre-designed blocks and deploy fully-functional sites with lightning speed.
+Floid uses Supabase (PostgreSQL) for data storage. To set up the database, run the following SQL in the Supabase SQL editor:
 
-## Design
+```sql
+-- Enable uuid-ossp extension for UUID generation
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-The design counterpart of the Once UI system is available [here](https://once-ui.com/figma).
+-- Users table
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  google_id VARCHAR(255) UNIQUE NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  display_name VARCHAR(255),
+  first_name VARCHAR(100),
+  last_name VARCHAR(100),
+  profile_picture_url TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_sign_in_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
-## Get started
+-- Prompts table
+CREATE TABLE IF NOT EXISTS prompts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  author_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  content TEXT NOT NULL,
+  tags VARCHAR(50)[],
+  click_counts BIGINT DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
-Clone the starter template from GitHub:
-```bash
-git clone https://github.com/once-ui-system/nextjs-starter.git
+-- Function to update 'updated_at' timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger for 'prompts' table
+CREATE TRIGGER update_prompts_updated_at
+BEFORE UPDATE ON prompts
+FOR EACH ROW
+EXECUTE PROCEDURE update_updated_at_column();
 ```
 
-## Creators
+## 🔒 **Permissions & Security**
+
+- Only authenticated users (Google OAuth) can create, edit, or delete prompts.
+- Edit/Delete actions are restricted to the prompt's author.
+- All database actions are performed via Supabase client-side libraries with RLS (Row Level Security) recommended for production.
+
+<br>
+
+[**Try Floid**](https://floid.vercel.app/) and join the prompt engineering community.
+
+<br>
+
+## 🛠️ **Technology Stack**
+
+- ⚛️ **Next.js 15** (React 19)
+- 🟦 **TypeScript**
+- 🟨 **Javascript** (JSON config)
+- 🎨 **Tailwind CSS**, **SCSS**, **PostCSS**
+- 🦸 **Supabase** (Database, Auth, Real-time)
+- 🧩 **Once UI** (Design System)
+- 🏃 **Framer Motion**, **GSAP** (Animations)
+- ▲ **Vercel** (Deployment)
+
+<br>
+
+## 🎥 **Demo**
+
+See Floid in action: [Demo](https://floid.vercel.app/).
+
+<br>
+
+## 🌠 Getting Started
+
+Follow these steps to run Floid locally for development.
+
+### ⚙️ Prerequisites
+
+**1.** Node.js 18+  
+**2.** npm or yarn  
+**3.** Supabase account
+
+### 📩 Installation
+
+1. **Clone the repository:**
+
+```bash
+git clone https://github.com/divyanshudhruv/floid.git
+cd floid
+```
+
+2. **Install dependencies:**
+
+```bash
+npm install
+```
+
+3. **Set up environment variables:**
+
+```bash
+cp .env.example .env.local
+```
+
+Add your Supabase credentials to `.env.local`:
+
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+4. **Run the development server:**
+
+```bash
+npm run dev
+```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+<br>
+
+<details><summary> <h2>😑 Configuration (admins)</h2>
+</summary>
+Configure your Supabase credentials in `.env.local`:
+
+- **SUPABASE_URL**: Your Supabase project URL
+- **SUPABASE_ANON_KEY**: Your Supabase anon key
+
+These are required for authentication, database, and real-time features.
+
+</details>
+
+<br>
+
+## 🧩 **Design System & Customization (dev)**
+
+- 🎨 **Tokens:**
+
+  - Design tokens (colors, spacing, typography) in `src/resources/once-ui.config.js`
+  - Custom styles in `src/resources/custom.css` and `src/app/global.css`
+
+- 🧱 **Components:**
+
+  - Use Once UI components from `src/components/eldoraui`, `magicui`, and `ui`
+
+- 🌗 **Theming:**
+  - Responsive, mobile-first design
+
+<br>
+
+## 📁 Project Structure
+
+A brief overview of Floid's directory structure:
+
+```
+floid/
+├── src/
+│   ├── app/
+│   │   ├── (main)/           # Main application pages & threads
+│   │   ├── auth/             # Authentication
+│   │   └── api/              # OG image generation
+│   ├── blocks/               # Animation components
+│   ├── components/           # UI components
+│   └── lib/                  # Utility functions
+├── public/                   # Static assets
+├── package.json
+├── .env.example              # Example environment variables
+├── .env.local                # Local environment variables
+├── .eslintrc.json            # ESLint config
+├── biome.json                # Biome config
+├── postcss.config.mjs        # PostCSS config
+├── next.config.mjs           # Next.js config
+├── tsconfig.json             # TypeScript config
+├── LICENSE                   # License
+├── README.md                 # This file
+├── .github/                  # GitHub workflows & templates
+├── .next/                    # Next.js build output
+```
+
+<br>
+
+## 👥 **Creators**
 
 Connect with us!
 
-**Lorant One**: [Site](https://lorant.one) / [Threads](https://www.threads.net/@lorant.one) / [LinkedIn](https://www.linkedin.com/in/lorant-one/)
+**1.** **👨‍💻 Lorant One**: [Site](https://lorant.one) / [Threads](https://www.threads.net/@lorant.one) / [LinkedIn](https://www.linkedin.com/in/lorant-one/)  
+**2.** **👨‍💻 Divyanshu Dhruv**: [Site](https://divyanshudhruv.is-a.dev) / [LinkedIn](https://www.linkedin.com/in/divyanshudhruv/)
 
-**Zsofia Komaromi**: [Site](https://zsofia.pro) / [Threads](https://www.threads.net/@zsofia_kom) / [LinkedIn](https://www.linkedin.com/in/zsofiakomaromi/)
+<br>
 
-## Become a Oncer
+## 📄 **License**
 
-![Design Engineers Club](https://docs.once-ui.com/images/docs/vibe-coding-dark.jpg)
+See [`LICENSE`](LICENSE) for details.
 
-Join the [Design Engineers Club](https://discord.com/invite/5EyAQ4eNdS) on Discord to connect with us and share your projects.
+<br>
 
-Found a bug? Report it [here](https://github.com/once-ui-system/nextjs-starter/issues/new?labels=bug&template=bug_report.md). Got a feature request? Submit it [here](https://github.com/once-ui-system/nextjs-starter/issues/new?labels=feature%20request&template=feature_request.md).
+## 🏷️ **Credits**
 
-Please use the Once UI Core [GitHub repository](https://github.com/once-ui-system/core) for design system contributions.
+- 🧩 Built with [Once UI](https://once-ui.com)
+- 🦸 Powered by [Supabase](https://supabase.com)
 
-## Sponsors
+<br>
 
-Once UI is an indie project. [Sponsor us](https://github.com/sponsors/once-ui-system) and get featured on our site!
-
-## License
-
-Distributed under the MIT License. See `LICENSE.txt` for more information.
-
-## Deploy to Vercel
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fonce-ui-system%2Fnextjs-starter&project-name=nextjs-starter&repository-name=nextjs-starter&redirect-url=https%3A%2F%2Fgithub.com%2Fonce-ui-system%2Fnextjs-starter&demo-title=Next.js%20Starter&demo-description=Showcase%20your%20designers%20or%20developer%20portfolio&demo-url=https%3A%2F%2Fdemo.nextjs-starter.com&demo-image=%2F%2Fraw.githubusercontent.com%2Fonce-ui-system%2Fnextjs-starter%2Fmain%2Fpublic%2Fimages%2Fog%2Fhome.jpg)
+_Crafted in shadows by someone unknown ☕ for the open-source community._

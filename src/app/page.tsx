@@ -117,7 +117,7 @@ export default function Home() {
         .select(
           "id, title, description, tags, click_counts, models, author_id, content, created_at, updated_at"
         )
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Error fetching prompts:", error);
@@ -221,7 +221,7 @@ export default function Home() {
             .select(
               "id, title, description, tags, click_counts, models, author_id, content, created_at, updated_at"
             )
-            .order("created_at", { ascending: true })
+            .order("created_at", { ascending: false })
             .then(({ data, error }) => {
               if (error) {
                 console.error("Error fetching prompts:", error);
@@ -1280,5 +1280,3 @@ function CardContainer({
     </>
   );
 }
-
-

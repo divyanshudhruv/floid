@@ -31,6 +31,9 @@ import {
   Spinner,
   Skeleton,
 } from "@once-ui-system/core";
+import { DrawerDemo } from "@/components/custom-drawer";
+import { useState } from "react";
+import { useEffect } from "react";
 
 import { Inter_Tight } from "next/font/google";
 import { AiFillAlert } from "react-icons/ai";
@@ -343,9 +346,11 @@ export default function Home() {
                 size="m"
                 style={{ border: "1px solid #33333322", paddingBlock: "17px" }}
                 onClick={() => {
-                  window.open("https://github.com/divyanshudhruv/floid", "_blank");
-                }
-              }
+                  window.open(
+                    "https://github.com/divyanshudhruv/floid",
+                    "_blank"
+                  );
+                }}
               >
                 <Row center gap="8">
                   {" "}
@@ -1276,73 +1281,4 @@ function CardContainer({
   );
 }
 
-import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { DrawerDemo } from "@/components/custom-drawer";
-import { useState } from "react";
-import { useEffect } from "react";
 
-export function PopoverDemo() {
-  return (
-    <div style={{ zIndex: 999999999 }}>
-      <Popover>
-        <PopoverTrigger asChild>
-          <IconButton
-            variant="secondary"
-            style={{ backgroundColor: "#33333311" }}
-          >
-            <TbPrompt size={14} fontWeight={0} />
-          </IconButton>
-        </PopoverTrigger>
-        <PopoverContent className="w-80">
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <h4 className="leading-none font-medium">Dimensions</h4>
-              <p className="text-muted-foreground text-sm">
-                Set the dimensions for the layer.
-              </p>
-            </div>
-            <div className="grid gap-2">
-              <div className="grid grid-cols-3 items-center gap-4">
-                <Label htmlFor="width">Width</Label>
-                <Input
-                  id="width"
-                  defaultValue="100%"
-                  className="col-span-2 h-8"
-                />
-              </div>
-              <div className="grid grid-cols-3 items-center gap-4">
-                <Label htmlFor="maxWidth">Max. width</Label>
-                <Input
-                  id="maxWidth"
-                  defaultValue="300px"
-                  className="col-span-2 h-8"
-                />
-              </div>
-              <div className="grid grid-cols-3 items-center gap-4">
-                <Label htmlFor="height">Height</Label>
-                <Input
-                  id="height"
-                  defaultValue="25px"
-                  className="col-span-2 h-8"
-                />
-              </div>
-              <div className="grid grid-cols-3 items-center gap-4">
-                <Label htmlFor="maxHeight">Max. height</Label>
-                <Input
-                  id="maxHeight"
-                  defaultValue="none"
-                  className="col-span-2 h-8"
-                />
-              </div>
-            </div>
-          </div>
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-}

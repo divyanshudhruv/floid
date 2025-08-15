@@ -260,7 +260,7 @@ export default function Home() {
   const [selected, setSelected] = useState("");
 
   const options = [
-    { label: "Recent", value: "ascending" },
+    { label: "Recent", value: "descending" },
     { label: "Old", value: "ascending" },
   ];
 

@@ -1,13 +1,29 @@
-import '@once-ui-system/core/css/styles.css';
-import '@once-ui-system/core/css/tokens.css';
-import '@/resources/custom.css'
-import './global.css'
+import "@once-ui-system/core/css/styles.css";
+import "@once-ui-system/core/css/tokens.css";
+import "@/resources/custom.css";
+import "./global.css";
+import { Analytics } from "@vercel/analytics/next";
 
 import classNames from "classnames";
 
-import { baseURL, meta, fonts, effects, style, dataStyle } from "@/resources/once-ui.config";
-import { Meta, Schema,  Column, Flex, opacity, SpacingToken, Background} from "@once-ui-system/core";
-import { Providers } from '@/components/Providers';
+import {
+  baseURL,
+  meta,
+  fonts,
+  effects,
+  style,
+  dataStyle,
+} from "@/resources/once-ui.config";
+import {
+  Meta,
+  Schema,
+  Column,
+  Flex,
+  opacity,
+  SpacingToken,
+  Background,
+} from "@once-ui-system/core";
+import { Providers } from "@/components/Providers";
 
 export async function generateMetadata() {
   return Meta.generate({
@@ -37,7 +53,7 @@ export default function RootLayout({
         fonts.heading.variable,
         fonts.body.variable,
         fonts.label.variable,
-        fonts.code.variable,
+        fonts.code.variable
       )}
     >
       <Schema
@@ -51,22 +67,22 @@ export default function RootLayout({
         <script
           id="theme-init"
           dangerouslySetInnerHTML={{
-        __html: `
+            __html: `
           (function() {
             try {
           const root = document.documentElement;
           const config = ${JSON.stringify({
-            theme: 'light',
+            theme: "light",
             brand: style.brand,
             accent: style.accent,
             neutral: style.neutral,
             solid: style.solid,
-            'solid-style': style.solidStyle,
+            "solid-style": style.solidStyle,
             border: style.border,
             surface: style.surface,
             transition: style.transition,
             scaling: style.scaling,
-            'viz-style': dataStyle.variant,
+            "viz-style": dataStyle.variant,
           })};
           Object.entries(config).forEach(([key, value]) => {
             root.setAttribute('data-' + key, value);
@@ -91,8 +107,8 @@ export default function RootLayout({
         />
       </head>
       <Providers>
+        <Analytics />
         <Column as="body" background="page" fillWidth margin="0" padding="0">
-       
           {children}
         </Column>
       </Providers>

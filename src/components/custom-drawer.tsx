@@ -128,8 +128,11 @@ export function DrawerDemo() {
     }
     return true;
   };
-
   const handleSubmit = async () => {
+    if (!currentUserId) {
+      addToast({ message: "No user session found. Please log in.", variant: "danger" });
+      return;
+    }
     if (!validateFields()) return;
     setLoading(true);
     try {

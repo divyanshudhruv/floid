@@ -257,7 +257,7 @@ export default function Home() {
   const [selected, setSelected] = useState("");
 
   const options = [
-    { label: "Recent", value: "descending" },
+    { label: "Recent", value: "ascending" },
     { label: "Old", value: "ascending" },
   ];
 
@@ -342,6 +342,10 @@ export default function Home() {
               <ToggleButton
                 size="m"
                 style={{ border: "1px solid #33333322", paddingBlock: "17px" }}
+                onClick={() => {
+                  window.open("https://github.com/divyanshudhruv/floid", "_blank");
+                }
+              }
               >
                 <Row center gap="8">
                   {" "}
@@ -445,8 +449,12 @@ export default function Home() {
               <IconButton
                 variant="secondary"
                 style={{ backgroundColor: "#33333311" }}
-                tooltip="Open with X"
-                tooltipPosition="bottom"
+                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
+                  e.currentTarget.style.backgroundColor = "#33333322";
+                }}
+                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
+                  e.currentTarget.style.backgroundColor = "#33333311";
+                }}
               >
                 <TbMoodSmile />
               </IconButton>

@@ -104,18 +104,37 @@ const effects = {
     height: "2",
   },
 };
-
 // metadata for pages
 const meta = {
   home: {
     path: "/",
-    title: "Once UI for Next.js",
+    title: "Floid | The first prompt network — for Everyone",
     description:
-      "An open-source design system and component library for Next.js that emphasizes easy styling and accessibility in UI development.",
+      "Floid is a collaborative platform for sharing and managing prompts, designed to simplify conversations for users of all backgrounds.",
     image: "/images/og/home.jpg",
-    canonical: "https://once-ui.com",
+    canonical: "https://floid.divyanshudhruv.com",
     robots: "index,follow",
-    alternates: [{ href: "https://once-ui.com", hrefLang: "en" }],
+    alternates: [{ href: "https://floid.divyanshudhruv.com", hrefLang: "en" }],
+  },
+  about: {
+    path: "/about",
+    title: "About Floid | Learn more about the prompt network",
+    description:
+      "Explore Floid's mission and team, and discover how our open-source prompt network empowers users worldwide.",
+    image: "/images/og/about.jpg",
+    canonical: "https://floid.divyanshudhruv.com/about",
+    robots: "index,follow",
+    alternates: [{ href: "https://floid.divyanshudhruv.com/about", hrefLang: "en" }],
+  },
+  contact: {
+    path: "/contact",
+    title: "Contact Floid | Get in touch",
+    description:
+      "Reach out to the Floid team for support, feedback, or to discuss collaboration opportunities.",
+    image: "/images/og/contact.jpg",
+    canonical: "https://floid.divyanshudhruv.com/contact",
+    robots: "index,follow",
+    alternates: [{ href: "https://floid.divyanshudhruv.com/contact", hrefLang: "en" }],
   },
   // add more routes and reference them in page.tsx
 };
@@ -124,15 +143,15 @@ const meta = {
 const schema = {
   logo: "",
   type: "Organization",
-  name: "Once UI",
+  name: "Floid",
   description: meta.home.description,
-  email: "lorant@once-ui.com",
+  email: "divyanshudhruv@gmail.com",
 };
 
 // social links
 const social = {
-  twitter: "https://www.twitter.com/_onceui",
-  linkedin: "https://www.linkedin.com/company/once-ui/",
+  twitter: "https://twitter.com/divyanshudhruv",
+  linkedin: "https://www.linkedin.com/in/divyanshudhruv/",
   discord: "https://discord.com/invite/5EyAQ4eNdS",
 };
 

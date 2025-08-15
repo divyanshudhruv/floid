@@ -114,7 +114,44 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+
+@media (max-width: 1030px) {
+  .text-heading {
+    line-height: 1em;
+  }
+
+  .heading-container-gap {
+    gap: 12px;
+  }
+}
+
+.card-container {
+  min-width: 320px;
+  min-height: 120px;
+}
+
+@media (max-width: 1100px) {
+
+  .card-container {
+    min-width: 44vw;
+  }
+}
+
+@media (max-width: 730px) {
+
+  .card-container {
+    min-width: 94vw;
+  }
+}
+@media (max-width: 440px) {
+
+  .card-container {
+    min-width: 90vw;
   }
 }

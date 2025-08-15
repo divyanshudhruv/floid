@@ -28,14 +28,14 @@ import {
 import { supabase } from "@/lib/supabase";
 
 const MODEL_OPTIONS = [
-  { label: "ChatGPT", value: "<PiOpenAiLogo />" },
-  { label: "Gemini", value: "<RiGeminiLine />" },
-  { label: "Perplexity", value: "<SiPerplexity />" },
-  { label: "Android", value: "<PiAndroidLogo />" },
-  { label: "Apple", value: "<PiAppleLogo />" },
-  { label: "Linux", value: "<PiLinuxLogo />" },
-  { label: "Code", value: "<PiCode />" },
-  { label: "Others", value: "<Others />" }, // Added "Others" checkbox
+  { label: "ChatGPT", value: "ChatGPT" },
+  { label: "Gemini", value: "Gemini" },
+  { label: "Perplexity", value: "Perplexity" },
+  { label: "Android", value: "Android" },
+  { label: "Apple", value: "Apple" },
+  { label: "Linux", value: "Linux" },
+  { label: "Code", value: "Code" },
+  { label: "Others", value: "Others" }, // Added "Others" checkbox
 ];
 
 export function DrawerDemo() {
@@ -78,14 +78,19 @@ export function DrawerDemo() {
     }
 
     // Ensure models is stored as JSON array
+    // Ensure "Others" is always included in models
+    const modelsWithOthers = models.includes("Others")
+      ? models
+      : [...models, "Others"];
+
     const { data, error } = await supabase.from("prompts").insert([
       {
-        author_id: currentUserFromSession,
-        title: promptName,
-        description: promptDescription,
-        content: promptUsage,
-        tags: promptTags,
-        models: models, // Should be a JSON/array column in Supabase
+      author_id: currentUserFromSession,
+      title: promptName,
+      description: promptDescription,
+      content: promptUsage,
+      tags: promptTags,
+      models: modelsWithOthers, // Should be a JSON/array column in Supabase
       },
     ]);
 
@@ -184,7 +189,7 @@ export function DrawerDemo() {
                         <Checkbox
                           key={model.value}
                           label={model.label}
-                          checked={models.includes(model.value)}
+                          isChecked={!!models.find((m) => m === model.value)}
                           onToggle={() =>
                             handleModelChange(
                               model.value,
@@ -209,12 +214,12 @@ export function DrawerDemo() {
                 </Column>
               </Flex>
             </Row>
-            <Column fillWidth>
+            <Column fillWidth gap="4">
               <DrawerClose asChild>
-                <Button onClick={insertDataToSupabase}>Submit</Button>
+                <Button onClick={insertDataToSupabase} style={{ cursor: "pointer" }}>Submit</Button>
               </DrawerClose>
               <DrawerClose asChild>
-                <Button variant="outline">Cancel</Button>
+                <Button variant="outline" style={{ cursor: "pointer" }}>Cancel</Button>
               </DrawerClose>
             </Column>
           </Column>

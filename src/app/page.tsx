@@ -27,20 +27,24 @@ import {
   ContextMenu,
   Dialog,
   CodeBlock,
+  useToast,
+  Spinner,
+  Skeleton,
 } from "@once-ui-system/core";
 
 import { Inter_Tight } from "next/font/google";
 import { AiFillAlert } from "react-icons/ai";
-import { BiSearch } from "react-icons/bi";
+import { BiCross, BiExit, BiSearch } from "react-icons/bi";
 import { BsAlphabet, BsArrowRight } from "react-icons/bs";
 import { DiGithub, DiGithubBadge } from "react-icons/di";
-import { FaGithub } from "react-icons/fa";
+import { FaBroom, FaGithub } from "react-icons/fa";
 import { GiGemini } from "react-icons/gi";
 import { GrGithub } from "react-icons/gr";
 import {
   PiAndroidLogo,
   PiAppleLogo,
   PiArrowDown,
+  PiBroom,
   PiCamera,
   PiCode,
   PiCodeBlock,
@@ -59,6 +63,8 @@ import {
   PiOpenAiLogo,
   PiOpenAiLogoDuotone,
   PiOpenAiLogoLight,
+  PiPencil,
+  PiQuestion,
   PiSparkle,
   PiTrash,
   PiVideo,
@@ -80,7 +86,10 @@ import {
   TbFileSmile,
   TbList,
   TbMoodSmile,
+  TbPencil,
+  TbPencilSearch,
   TbPrompt,
+  TbQuestionMark,
   TbTag,
   TbWorldDownload,
 } from "react-icons/tb";
@@ -103,7 +112,9 @@ export default function Home() {
         .from("prompts")
         .select(
           "id, title, description, tags, click_counts, models, author_id, content, created_at, updated_at"
-        );
+        )
+        .order("created_at", { ascending: true });
+
       if (error) {
         console.error("Error fetching prompts:", error);
         return;
@@ -133,6 +144,8 @@ export default function Home() {
     fetchPrompts();
   }, []);
   const [searchPromptQuery, setSearchPromptQuery] = useState("");
+  const [searchPromptQueryViaClick, setSearchPromptQueryViaClick] =
+    useState("");
 
   function googleSignInSupabase() {
     supabase.auth.signInWithOAuth({
@@ -204,6 +217,7 @@ export default function Home() {
             .select(
               "id, title, description, tags, click_counts, models, author_id, content, created_at, updated_at"
             )
+            .order("created_at", { ascending: true })
             .then(({ data, error }) => {
               if (error) {
                 console.error("Error fetching prompts:", error);
@@ -219,7 +233,7 @@ export default function Home() {
                     isNew:
                       prompt.created_at &&
                       new Date(prompt.created_at) >
-                        new Date(Date.now() - 1000 * 60 * 60 * 24 * 1),
+                        new Date(Date.now() - 1000 * 60 * 60 * 1), // new if created within 1 hour
                     clicks: prompt.click_counts ?? 0,
                     prompt_id: prompt.id,
                     prompt: prompt.content ?? "",
@@ -258,7 +272,7 @@ export default function Home() {
           <Row fillWidth horizontal="between" vertical="center">
             {" "}
             <Text
-              className={interTight.className}
+              className={interTight.className + " text-heading"}
               style={{ color: "#FC42FF", fontSize: "32px" }}
             >
               Floid — Prompts
@@ -305,7 +319,7 @@ export default function Home() {
                 >
                   <Row center gap="8">
                     <Text>
-                      <PiDoorOpen color="#444" />
+                      <BiExit color="#444" />
                     </Text>
                   </Row>
                 </IconButton>
@@ -313,9 +327,9 @@ export default function Home() {
             </Row>
           </Row>
         </Flex>{" "}
-        <Flex direction="column" fillWidth horizontal="start" vertical="center">
+        <Flex direction="column" fillWidth horizontal="start" vertical="center" className="heading-container-gap">
           <Text
-            className={interTight.className}
+            className={interTight.className + " text-heading"}
             style={{
               fontSize: "29px",
               backgroundImage:
@@ -329,7 +343,7 @@ export default function Home() {
             Crafted for seamless, engaging interactions with AI models.
           </Text>
           <Text
-            className={interTight.className}
+            className={interTight.className + " text-heading"}
             style={{
               fontSize: "29px",
               backgroundImage:
@@ -389,59 +403,65 @@ export default function Home() {
                 {
                   icon: <PiOpenAiLogo />,
                   label: "ChatGPT",
-                  onClick: () => console.log("ChatGPT clicked"),
+                  onClick: () => setSearchPromptQueryViaClick("ChatGPT"),
                   tooltip: "Open with ChatGPT",
                   tooltipPosition: "bottom",
                 },
                 {
                   icon: <RiGeminiLine />,
                   label: "Gemini",
-                  onClick: () => console.log("Gemini clicked"),
+                  onClick: () => setSearchPromptQueryViaClick("Gemini"),
                   tooltip: "Open with Gemini",
                   tooltipPosition: "bottom",
                 },
                 {
                   icon: <SiPerplexity />,
                   label: "Perplexity",
-                  onClick: () => console.log("Perplexity clicked"),
+                  onClick: () => setSearchPromptQueryViaClick("Perplexity"),
                   tooltip: "Open with Perplexity",
                   tooltipPosition: "bottom",
                 },
                 {
                   icon: <PiAndroidLogo />,
                   label: "Android",
-                  onClick: () => console.log("Android clicked"),
+                  onClick: () => setSearchPromptQueryViaClick("Android"),
                   tooltip: "Open with Android",
                   tooltipPosition: "bottom",
                 },
                 {
                   icon: <PiAppleLogo />,
                   label: "Apple",
-                  onClick: () => console.log("Apple clicked"),
+                  onClick: () => setSearchPromptQueryViaClick("Apple"),
                   tooltip: "Open with Apple",
                   tooltipPosition: "bottom",
                 },
                 {
                   icon: <PiLinuxLogo />,
                   label: "Linux",
-                  onClick: () => console.log("Linux clicked"),
+                  onClick: () => setSearchPromptQueryViaClick("Linux"),
                   tooltip: "Open with Linux",
                   tooltipPosition: "bottom",
                 },
                 {
                   icon: <PiCode />,
                   label: "Code",
-                  onClick: () => console.log("Code clicked"),
+                  onClick: () => setSearchPromptQueryViaClick("Code"),
                   className: interTight.className,
                   tooltip: "Open with Code",
                   tooltipPosition: "bottom",
                 },
-                // {
-                //   icon: <PiDotsThreeCircle />,
-                //   label: "Others",
-                //   onClick: () => console.log("Others clicked"),
-                //   className: interTight.className,
-                // },
+                {
+                  icon: <PiDotsThreeCircle />,
+                  label: "Others",
+                  onClick: () => setSearchPromptQueryViaClick("Others"),
+                  className: interTight.className,
+                },
+                {
+                  icon: <PiBroom />,
+                  label: "Clear",
+                  onClick: () => setSearchPromptQueryViaClick(""),
+                  className: interTight.className,
+                },
               ].map(({ icon, label, onClick, className }, idx) => (
                 <ToggleButton
                   key={label}
@@ -460,7 +480,6 @@ export default function Home() {
                   </Row>
                 </ToggleButton>
               ))}
-              <OtherOptions />
             </Row>
           </Scroller>
           <Row gap="20" center>
@@ -501,18 +520,171 @@ export default function Home() {
           <Flex height={0.1}></Flex>
           <Row fillWidth horizontal="start" vertical="start" wrap gap="24">
             {" "}
-            {cardData
-              .filter(
-                (card) =>
-                  searchPromptQuery.trim() === "" ||
-                  card.title
-                    .toLowerCase()
-                    .includes(searchPromptQuery.toLowerCase()) ||
-                  card.description
-                    .toLowerCase()
-                    .includes(searchPromptQuery.toLowerCase())
-              )
-              .map((card, idx) => (
+            {(() => {
+              const query = searchPromptQuery.trim();
+              const clickQuery = searchPromptQueryViaClick.trim();
+
+              // Show skeletons if loading
+              if (!cardData.length) {
+                return (
+                  <Row
+                    fillWidth
+                    horizontal="start"
+                    vertical="start"
+                    wrap
+                    gap="24"
+                  >
+                    {Array.from({ length: 10 }).map((_, idx) => (
+                      <Skeleton
+                        key={idx}
+                        shape="block"
+                        delay="3"
+                        width="s"
+                        style={{
+                          minWidth: "320px",
+                          minHeight: "180px",
+                          maxWidth: "320px",
+                          maxHeight: "180px",
+                        }}
+                      />
+                    ))}
+                  </Row>
+                );
+              }
+
+              // If both are selected, show cards that match BOTH
+              if (query !== "" && clickQuery !== "") {
+                const filtered = cardData.filter((card) => {
+                  const matchesText =
+                    card.title.toLowerCase().includes(query.toLowerCase()) ||
+                    card.description
+                      .toLowerCase()
+                      .includes(query.toLowerCase());
+                  const matchesModel =
+                    Array.isArray(card.icons) &&
+                    card.icons.some(
+                      (model) =>
+                        typeof model === "string" &&
+                        (model.toLowerCase() === clickQuery.toLowerCase() ||
+                          model
+                            .toLowerCase()
+                            .includes(clickQuery.toLowerCase()))
+                    );
+                  return matchesText && matchesModel;
+                });
+                if (!filtered.length) {
+                  return (
+                    <Flex fillWidth horizontal="start" paddingX="4">
+                      <Text
+                        variant="label-default-m"
+                        onBackground="neutral-medium"
+                      >
+                        No data found
+                      </Text>
+                    </Flex>
+                  );
+                }
+                return filtered.map((card, idx) => (
+                  <CardContainer
+                    key={card.title + idx}
+                    title={card.title}
+                    description={card.description}
+                    tags={card.tags}
+                    onPreview={card.onPreview}
+                    icons={card.icons}
+                    isNew={card.isNew}
+                    clicks={card.clicks}
+                    prompt_id={card.prompt_id}
+                    prompt={card.prompt}
+                    author_id={card.author_id}
+                    date={card.date}
+                  />
+                ));
+              }
+
+              // If only model filter is selected
+              if (clickQuery !== "") {
+                const filtered = cardData.filter(
+                  (card) =>
+                    Array.isArray(card.icons) &&
+                    card.icons.some(
+                      (model) =>
+                        typeof model === "string" &&
+                        (model.toLowerCase() === clickQuery.toLowerCase() ||
+                          model
+                            .toLowerCase()
+                            .includes(clickQuery.toLowerCase()))
+                    )
+                );
+                if (!filtered.length) {
+                  return (
+                    <Flex fillWidth horizontal="start" paddingX="4">
+                      <Text
+                        variant="label-default-m"
+                        onBackground="neutral-medium"
+                      >
+                        No data found
+                      </Text>
+                    </Flex>
+                  );
+                }
+                return filtered.map((card, idx) => (
+                  <CardContainer
+                    key={card.title + idx}
+                    title={card.title}
+                    description={card.description}
+                    tags={card.tags}
+                    onPreview={card.onPreview}
+                    icons={card.icons}
+                    isNew={card.isNew}
+                    clicks={card.clicks}
+                    prompt_id={card.prompt_id}
+                    prompt={card.prompt}
+                    author_id={card.author_id}
+                    date={card.date}
+                  />
+                ));
+              }
+
+              // If only text search is selected
+              if (query !== "") {
+                const filtered = cardData.filter(
+                  (card) =>
+                    card.title.toLowerCase().includes(query.toLowerCase()) ||
+                    card.description.toLowerCase().includes(query.toLowerCase())
+                );
+                if (!filtered.length) {
+                  return (
+                    <Flex fillWidth horizontal="start" paddingX="4">
+                      <Text
+                        variant="label-default-m"
+                        onBackground="neutral-medium"
+                      >
+                        No data found
+                      </Text>
+                    </Flex>
+                  );
+                }
+                return filtered.map((card, idx) => (
+                  <CardContainer
+                    key={card.title + idx}
+                    title={card.title}
+                    description={card.description}
+                    tags={card.tags}
+                    onPreview={card.onPreview}
+                    icons={card.icons}
+                    isNew={card.isNew}
+                    clicks={card.clicks}
+                    prompt_id={card.prompt_id}
+                    prompt={card.prompt}
+                    author_id={card.author_id}
+                    date={card.date}
+                  />
+                ));
+              }
+
+              // If nothing is selected, show all
+              return cardData.map((card, idx) => (
                 <CardContainer
                   key={card.title + idx}
                   title={card.title}
@@ -527,9 +699,20 @@ export default function Home() {
                   author_id={card.author_id}
                   date={card.date}
                 />
-              ))}
+              ));
+            })()}
           </Row>
-          <Row fillWidth horizontal="between" vertical="start"></Row>
+          <Row
+            fillWidth
+            horizontal="start"
+            vertical="start"
+            paddingTop="0"
+            marginTop="m"
+          >
+            <Text variant="label-default-s" onBackground="neutral-medium" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <Row center gap="8">© 2024 Floid. All rights reserved. Powered by <Tag variant="info">Supabase</Tag> & <Tag variant="info">Once UI System</Tag></Row>
+            </Text>
+          </Row>
         </Column>
       </Column>
     </Flex>
@@ -626,6 +809,15 @@ function CardContainer({
     // Logic to edit the prompt
   }
 
+  const [sessionID, setSessionID] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSessionID(session?.user?.id ?? null);
+    });
+  }, []);
+
+  const { addToast } = useToast();
   return (
     <>
       <Flex>
@@ -633,35 +825,51 @@ function CardContainer({
           placement="bottom-start"
           dropdown={
             <Column gap="2" padding="4" minWidth={10}>
-              <Option
-                hasPrefix={
-                  <Icon size="xs" name="edit" onBackground="neutral-weak" />
-                }
-                label="Edit"
-                value="edit"
-                onClick={() => prompt_id && editPrompt(prompt_id)}
-                style={{
-                  cursor: "pointer",
-                  color: "#fafafa",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#fafafa")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "")}
-              />
+              {author_id === sessionID ? (
+                <>
+                  <Option
+                    hasPrefix={<PiPencil color="#333" />}
+                    label="Edit"
+                    value="edit"
+                    onClick={() => prompt_id && editPrompt(prompt_id)}
+                    style={{
+                      cursor: "pointer",
+                      color: "#fafafa",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.color = "#fafafa")
+                    }
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+                  />
 
-              <Line marginY="2" />
-              <Option
-                hasPrefix={<PiTrash color="#222" />}
-                danger
-                label="Delete"
-                value="delete"
-                onClick={() => prompt_id && deletePrompt(prompt_id)}
-                style={{
-                  cursor: "pointer",
-                  color: "#fafafa",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#fafafa")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "")}
-              />
+                  <Line marginY="2" />
+                  <Option
+                    hasPrefix={<PiTrash color="#222" />}
+                    danger
+                    label="Delete"
+                    value="delete"
+                    onClick={() => prompt_id && deletePrompt(prompt_id)}
+                    style={{
+                      cursor: "pointer",
+                      color: "#fafafa",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.color = "#fafafa")
+                    }
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+                  />
+                </>
+              ) : (
+                <Option
+                  hasPrefix={<PiQuestion color="#333" />}
+                  label="You don't have permission to edit"
+                  value="edit"
+                  style={{
+                    cursor: "pointer",
+                    color: "#fafafa",
+                  }}
+                />
+              )}
             </Column>
           }
         >
@@ -673,7 +881,7 @@ function CardContainer({
             maxWidth={20}
             cursor="interactive"
             overflow="hidden"
-            style={{ minWidth: "320px", minHeight: "120px" }}
+            className="card-container"
           >
             <Column
               paddingTop="24"
@@ -700,7 +908,13 @@ function CardContainer({
                         WebkitTextFillColor: "transparent",
                         backgroundClip: "text",
                         color: "transparent",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        maxWidth: sessionID === author_id ? "120px" : "170px", // adjust as needed
+                        display: "block",
                       }}
+                      title={title}
                     >
                       {title}
                     </Text>
@@ -722,6 +936,26 @@ function CardContainer({
                           style={{ color: "#fafafa", fontSize: "10px" }}
                         >
                           New
+                        </Text>
+                      </Tag>
+                    )}
+
+                    {sessionID === author_id && (
+                      <Tag
+                        variant="gradient"
+                        className={interTight.className}
+                        style={{
+                          fontWeight: 500,
+                          paddingInline: "4px",
+                          paddingBlock: "2px",
+                        }}
+                        data-border="rounded"
+                      >
+                        <Text
+                          variant="label-strong-xs"
+                          style={{ fontSize: "10px" }}
+                        >
+                          You
                         </Text>
                       </Tag>
                     )}
@@ -750,6 +984,7 @@ function CardContainer({
                 textVariant="label-default-s"
                 onBackground="neutral-medium"
                 paddingX="24"
+                wrap={true}
               >
                 {tags.map((tag) => (
                   <Tag
@@ -786,13 +1021,52 @@ function CardContainer({
               vertical="center"
               paddingTop="12"
             >
-                <Row fitWidth gap="2" vertical="center" horizontal="start">
-                {icons.map((icon, i) => (
-                  <span key={i}>
-                  {React.isValidElement(icon) ? icon : null}
-                  </span>
-                ))}
-                </Row>
+              <Row fitWidth gap="2" vertical="center" horizontal="start">
+                {Array.isArray(icons) && icons.length > 0
+                  ? (icons as string[]).map((iconStr, i) => {
+                      // Map string to React element
+                      let icon: React.ReactNode = null;
+                      switch (iconStr) {
+                        case "ChatGPT":
+                          icon = <PiOpenAiLogo />;
+                          break;
+                        case "Gemini":
+                          icon = <RiGeminiLine />;
+                          break;
+                        case "Perplexity":
+                          icon = <SiPerplexity />;
+                          break;
+                        case "Android":
+                          icon = <PiAndroidLogo />;
+                          break;
+                        case "Apple":
+                          icon = <PiAppleLogo />;
+                          break;
+                        case "Linux":
+                          icon = <PiLinuxLogo />;
+                          break;
+                        case "Code":
+                          icon = <PiCode />;
+                          break;
+                        case "Others":
+                          icon = <PiDotsThreeCircle />;
+                          break;
+                        default:
+                          icon = null;
+                      }
+                      return icon ? (
+                        <IconButton
+                          key={i}
+                          variant="tertiary"
+                          style={{ color: "#131315dd" }}
+                          size="s"
+                        >
+                          {icon}
+                        </IconButton>
+                      ) : null;
+                    })
+                  : null}
+              </Row>
               <Text
                 onBackground="neutral-weak"
                 variant="body-default-xs"
@@ -816,7 +1090,7 @@ function CardContainer({
         title="Delete Prompt"
         description="Are you sure you want to delete this prompt? This action cannot be undone."
       >
-        <Flex direction="column" gap="16">
+        <Flex direction="row" gap="16">
           <Button
             variant="danger"
             onClick={() => {
@@ -827,10 +1101,16 @@ function CardContainer({
                 .eq("id", prompt_id)
                 .then(({ error }) => {
                   if (error) {
-                    console.error("Error deleting prompt:", error);
+                    addToast({
+                      message: error.message,
+                      variant: "danger",
+                    });
                   } else {
-                    console.log("Prompt deleted successfully");
                     setShowDeleteDialog(false);
+                    addToast({
+                      message: "Prompt deleted successfully",
+                      variant: "success",
+                    });
                   }
                 });
             }}
@@ -854,25 +1134,22 @@ function CardContainer({
         description={description}
       >
         <CodeBlock
-          copyButton={false}
+          copyButton={true}
           codes={[
             {
-              code: `// Prompt
-${[prompt]}
+              code: `${[prompt]}
       `,
               language: "javascript",
               label: "Prompt",
             },
             {
-              code: `<!-- Date of Creation -->
-${date ? new Date(date).toUTCString() : ""}
+              code: `${date ? new Date(date).toUTCString() : ""}
       `,
               language: "html",
               label: "✷ Date of Creation (GMT)",
             },
             {
-              code: `<!-- Author -->
-${authorName}
+              code: `${authorName}
       `,
               language: "html",
               label: "✷ Author",
@@ -952,94 +1229,5 @@ export function PopoverDemo() {
         </PopoverContent>
       </Popover>
     </div>
-  );
-}
-
-function OtherOptions() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const options = [
-    { label: "Apple", value: "apple", description: "Fruit" },
-    { label: "Banana", value: "banana", description: "Fruit" },
-    { label: "Carrot", value: "carrot", description: "Vegetable" },
-    { label: "Broccoli", value: "broccoli", description: "Vegetable" },
-    { label: "Orange", value: "orange", description: "Fruit" },
-  ];
-
-  const handleSelect = (value: string) => {
-    setSelected(value);
-    setIsOpen(false);
-  };
-
-  const filteredOptions = options.filter((option) =>
-    option.label.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  return (
-    <DropdownWrapper
-      isOpen={isOpen}
-      onOpenChange={setIsOpen}
-      minHeight={200}
-      trigger={
-        <ToggleButton
-          size="m"
-          style={{
-            border: "1px solid #33333322",
-            paddingBlock: "17px",
-          }}
-          data-border="rounded"
-          className={interTight.className}
-          onClick={() => setIsOpen((v) => !v)}
-        >
-          <Row center gap="4">
-            <PiDotsThreeCircle />
-            Others
-            <PiArrowDown />
-          </Row>
-        </ToggleButton>
-      }
-      dropdown={
-        <Column fillWidth minWidth={12}>
-          <Column
-            padding="4"
-            fillWidth
-            position="sticky"
-            top="0"
-            background="page"
-            zIndex={1}
-          >
-            <Input
-              height="s"
-              id="search-dropdown"
-              placeholder="Search"
-              hasPrefix={<Icon name="search" size="xs" />}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ zIndex: "99999999999" }}
-            />
-          </Column>
-          <Column fillWidth gap="2" padding="4">
-            {filteredOptions.length > 0 ? (
-              filteredOptions.map((option) => (
-                <Option
-                  key={option.value}
-                  label={option.label}
-                  value={option.value}
-                  description={option.description}
-                  selected={option.value === selected}
-                  onClick={handleSelect}
-                />
-              ))
-            ) : (
-              <Flex fillWidth center paddingX="16" paddingY="32">
-                <Text>No results found</Text>
-              </Flex>
-            )}
-          </Column>
-        </Column>
-      }
-    />
   );
 }

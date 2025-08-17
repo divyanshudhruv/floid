@@ -231,20 +231,20 @@ export default function Home() {
               if (data) {
                 setCardData(
                   data.map((prompt: any) => ({
-                  title: prompt.title,
-                  description: prompt.description ?? "",
-                  tags: prompt.tags ?? [],
-                  onPreview: () => console.log("Previewing", prompt.title),
-                  isNew:
-                    prompt.created_at &&
-                    new Date(prompt.created_at) >
-                    new Date(Date.now() - 1000 * 60 * 60 * 3), // new if created within 3 hours
-                  clicks: prompt.click_counts ?? 0,
-                  prompt_id: prompt.id,
-                  prompt: prompt.content ?? "",
-                  author_id: prompt.author_id,
-                  date: prompt.created_at,
-                  icons: prompt.models ?? [],
+                    title: prompt.title,
+                    description: prompt.description ?? "",
+                    tags: prompt.tags ?? [],
+                    onPreview: () => console.log("Previewing", prompt.title),
+                    isNew:
+                      prompt.created_at &&
+                      new Date(prompt.created_at) >
+                        new Date(Date.now() - 1000 * 60 * 60 * 3), // new if created within 3 hours
+                    clicks: prompt.click_counts ?? 0,
+                    prompt_id: prompt.id,
+                    prompt: prompt.content ?? "",
+                    author_id: prompt.author_id,
+                    date: prompt.created_at,
+                    icons: prompt.models ?? [],
                   }))
                 );
               }
@@ -368,7 +368,7 @@ export default function Home() {
                   {" "}
                   {user ? (
                     <>
-                      <Text  className="user-name">{user?.name}</Text>
+                      <Text className="user-name">{user?.name}</Text>
                       <Avatar src={user?.profilePic} />
                     </>
                   ) : (
@@ -536,12 +536,6 @@ export default function Home() {
                   onClick: () => setSearchPromptQueryViaClick("Others"),
                   className: interTight.className,
                 },
-                {
-                  icon: <PiBroom />,
-                  label: "Clear",
-                  onClick: () => setSearchPromptQueryViaClick(""),
-                  className: interTight.className,
-                },
               ].map(({ icon, label, onClick, className }, idx) => (
                 <ToggleButton
                   key={label}
@@ -560,6 +554,42 @@ export default function Home() {
                   </Row>
                 </ToggleButton>
               ))}
+
+              {/* Add Clear button */}
+              <ToggleButton
+                key="Clear"
+                size="m"
+                style={{
+                  border: "1px solid #33333322",
+                  paddingBlock: "17px",
+                  backgroundColor: searchPromptQueryViaClick
+                    ? "#333"
+                    : undefined,
+                  color: searchPromptQueryViaClick ? "#fff" : undefined,
+                }}
+                onMouseEnter={
+                  searchPromptQueryViaClick
+                    ? (e: React.MouseEvent<HTMLButtonElement>) => {
+                        e.currentTarget.style.backgroundColor = "#222";
+                      }
+                    : undefined
+                }
+                onMouseLeave={
+                  searchPromptQueryViaClick
+                    ? (e: React.MouseEvent<HTMLButtonElement>) => {
+                        e.currentTarget.style.backgroundColor = "#333";
+                      }
+                    : undefined
+                }
+                data-border="rounded"
+                className={interTight.className}
+                onClick={() => setSearchPromptQueryViaClick("")}
+              >
+                <Row center gap="4">
+                  <PiBroom />
+                  Clear
+                </Row>
+              </ToggleButton>
             </Row>
           </Scroller>
           <Row gap="20" center>
@@ -813,31 +843,31 @@ export default function Home() {
               ));
             })()}
           </Row>
-            <Row
+          <Row
             fillWidth
             horizontal="start"
             vertical="start"
             paddingTop="0"
             marginTop="m"
-            >
+          >
             <Text
               variant="label-default-s"
               onBackground="neutral-medium"
               style={{
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              textAlign: "left", // <-- add this for left alignment
-              lineHeight: "0.8"
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                textAlign: "left", // <-- add this for left alignment
+                lineHeight: "0.8",
               }}
             >
               <Row gap="8" wrap={true} center>
-              © 2024 Floid. All rights reserved. Powered by{" "}
-              <Tag variant="info">Supabase</Tag> &{" "}
-              <Tag variant="info">Once UI System</Tag>
+                © 2024 Floid. All rights reserved. Powered by{" "}
+                <Tag variant="info">Supabase</Tag> &{" "}
+                <Tag variant="info">Once UI System</Tag>
               </Row>
             </Text>
-            </Row>
+          </Row>
         </Column>
       </Column>
     </Flex>
@@ -943,10 +973,27 @@ function CardContainer({
   }, []);
 
   const { addToast } = useToast();
+  // Set maxWidth based on different cases using switch
+  let maxWidth = "170px";
+  switch (true) {
+    case clicks > 100 && sessionID === author_id:
+      maxWidth = "80px";
+      break;
+    case clicks > 100:
+      maxWidth = "120px";
+      break;
+    case sessionID === author_id:
+      maxWidth = "120px";
+      break;
+    default:
+      maxWidth = "170px";
+      break;
+  }
   return (
     <>
       <Flex>
         <ContextMenu
+          style={{ cursor: "default" }}
           placement="bottom-start"
           dropdown={
             <Column gap="2" padding="4" minWidth={10}>
@@ -1002,7 +1049,6 @@ function CardContainer({
             border="neutral-alpha-medium"
             paddingBottom="12"
             maxWidth={20}
-            cursor="interactive"
             overflow="hidden"
             className="card-container"
           >
@@ -1034,7 +1080,7 @@ function CardContainer({
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        maxWidth: sessionID === author_id ? "120px" : "170px", // adjust as needed
+                        maxWidth: maxWidth, // adjust as needed
                         display: "block",
                       }}
                       title={title}
@@ -1065,7 +1111,7 @@ function CardContainer({
 
                     {sessionID === author_id && (
                       <Tag
-                        variant="gradient"
+                        variant="accent"
                         className={interTight.className}
                         style={{
                           fontWeight: 500,
@@ -1079,6 +1125,26 @@ function CardContainer({
                           style={{ fontSize: "10px" }}
                         >
                           You
+                        </Text>
+                      </Tag>
+                    )}
+
+                    {clicks > 50 && (
+                      <Tag
+                        variant="gradient"
+                        className={interTight.className}
+                        style={{
+                          fontWeight: 500,
+                          paddingInline: "4px",
+                          paddingBlock: "2px",
+                        }}
+                        data-border="rounded"
+                      >
+                        <Text
+                          variant="label-strong-xs"
+                          style={{ fontSize: "10px" }}
+                        >
+                          Featured
                         </Text>
                       </Tag>
                     )}
@@ -1197,7 +1263,24 @@ function CardContainer({
                 onClick={onPreview}
               >
                 <Row gap="4" center>
-                  <Text onClick={updateClickCount}>Preview prompt</Text>
+                  <Text
+                    onClick={updateClickCount}
+                    style={{
+                      transition: "color 0.2s, text-decoration 0.2s",
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={(e) => {
+                      const el = e.currentTarget as HTMLSpanElement;
+                      el.style.textDecoration = "underline";
+                    }}
+                    onMouseLeave={(e) => {
+                      const el = e.currentTarget as HTMLSpanElement;
+                      el.style.color = "";
+                      el.style.textDecoration = "";
+                    }}
+                  >
+                    Preview prompt
+                  </Text>
                   <BsArrowRight />
                 </Row>
               </Text>
@@ -1256,45 +1339,51 @@ function CardContainer({
         title={title}
         description={description}
       >
-        <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflowWrap: "break-word" }}>
+        <div
+          style={{
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            overflowWrap: "break-word",
+          }}
+        >
           <CodeBlock
             copyButton={true}
             wrap={true}
             fullscreenButton={true}
             codes={[
               {
-          code: (() => {
-            // Split prompt into lines so that each line fits within 80 chars (approx dialog width)
-            if (typeof prompt === "string") {
-              const maxLineLength = 65;
-              const words = prompt.split(" ");
-              let lines: string[] = [];
-              let currentLine = "";
-              words.forEach(word => {
-                if ((currentLine + word).length > maxLineLength) {
-            lines.push(currentLine.trim());
-            currentLine = word + " ";
-                } else {
-            currentLine += word + " ";
-                }
-              });
-              if (currentLine.trim()) lines.push(currentLine.trim());
-              return lines.join("\n");
-            }
-            return String(prompt);
-          })(),
-          language: "javascript",
-          label: "Prompt",
+                code: (() => {
+                  // Split prompt into lines so that each line fits within 80 chars (approx dialog width)
+                  if (typeof prompt === "string") {
+                    const maxLineLength = 65;
+                    const words = prompt.split(" ");
+                    let lines: string[] = [];
+                    let currentLine = "";
+                    words.forEach((word) => {
+                      if ((currentLine + word).length > maxLineLength) {
+                        lines.push(currentLine.trim());
+                        currentLine = word + " ";
+                      } else {
+                        currentLine += word + " ";
+                      }
+                    });
+                    if (currentLine.trim()) lines.push(currentLine.trim());
+                    return lines.join("\n");
+                  }
+                  return String(prompt);
+                })(),
+                language: "javascript",
+                label: "Prompt",
               },
               {
-          code: `${date ? new Date(date).toUTCString() : ""}\n`,
-          language: "html",
-          label: "Date of Creation (GMT)",
+                code: `${date ? new Date(date).toUTCString() : ""}\n`,
+                language: "html",
+                label: "Date of Creation (GMT)",
               },
               {
-          code: `${authorName}\n`,
-          language: "html",
-          label: "Author",
+                code: `${authorName}\n`,
+                language: "html",
+                label: "Author",
               },
             ]}
           />

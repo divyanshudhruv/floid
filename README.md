@@ -1,4 +1,4 @@
-# ✨🌐 Floid — The First Prompt Network for Everyone
+# 🔥📜 Floid — The First Prompt Network for Everyone
 
 Floid is a **`modern 🔥`** platform where anyone can **`create ✒️`**, **`share 📩`**, and **`discover 🧭`** prompts for **`GPT 🤖`**, **`image generation 📷`**, and more. It’s a sleek, **`thread-based 🧵`** website designed for the prompt engineering community—no AI-generated content, just real **`user creativity ✨`**.
 
@@ -33,7 +33,7 @@ A next-gen, thread-based platform built with [Once UI](https://once-ui.com), foc
 **`7.`** 🏷️ **`Prompt Metadata`**: Each prompt displays tags, models, author, creation date, and click counts  
 **`8.`** 🗂️ **`Rich Prompt Cards`: Prompts are shown in interactive cards with copy, preview, and code features  
 **`9.`** 🧑‍💻 **`Model Icons`**: Prompts can be tagged with supported models (ChatGPT, Gemini, Perplexity, Android, Apple, Linux, Code, Others)  
-**`10.`** 🗑️ **`Edit/Delete Permissions`**: Only prompt authors can edit or delete their prompts
+**`10.`** 🗑️ **`Edit/Delete Permissions`\*\*: Only prompt authors can edit or delete their prompts
 
 ## 🗃️ **Prompt Card Details**
 
@@ -45,7 +45,6 @@ Each prompt card includes:
 - Edit/Delete buttons (if you are the author)
 - `Copy` and preview features
 - **`🚨 Future API usage 🚨`**
-
 
 ## 🗄️ **Database Setup**
 

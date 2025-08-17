@@ -157,3 +157,24 @@
     display: none;
   }
 }
+
+@media (max-width: 600px) {
+  .highlight {
+    display: none !important;
+  }
+
+
+}
+
+@media (max-width: 420px) {
+  .user-name {
+    display: none;
+  }
+}
+
+
+@media (max-width: 850px) {
+  .flex-1 {
+    flex-direction: column !important;
+  }
+}

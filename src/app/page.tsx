@@ -338,7 +338,7 @@ export default function Home() {
               className={interTight.className + " text-heading"}
               style={{ color: "#FC42FF", fontSize: "32px" }}
             >
-              Floid — Prompts
+              Floid <span className="highlight">— Prompts</span>
             </Text>
             <Row gap="8">
               {" "}
@@ -367,7 +367,7 @@ export default function Home() {
                   {" "}
                   {user ? (
                     <>
-                      <Text>{user?.name}</Text>
+                      <Text  className="user-name">{user?.name}</Text>
                       <Avatar src={user?.profilePic} />
                     </>
                   ) : (
@@ -812,29 +812,31 @@ export default function Home() {
               ));
             })()}
           </Row>
-          <Row
+            <Row
             fillWidth
             horizontal="start"
             vertical="start"
             paddingTop="0"
             marginTop="m"
-          >
+            >
             <Text
               variant="label-default-s"
               onBackground="neutral-medium"
               style={{
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              textAlign: "left", // <-- add this for left alignment
+              lineHeight: "0.8"
               }}
             >
-              <Row center gap="8">
-                © 2024 Floid. All rights reserved. Powered by{" "}
-                <Tag variant="info">Supabase</Tag> &{" "}
-                <Tag variant="info">Once UI System</Tag>
+              <Row gap="8" wrap={true} center>
+              © 2024 Floid. All rights reserved. Powered by{" "}
+              <Tag variant="info">Supabase</Tag> &{" "}
+              <Tag variant="info">Once UI System</Tag>
               </Row>
             </Text>
-          </Row>
+            </Row>
         </Column>
       </Column>
     </Flex>

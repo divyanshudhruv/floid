@@ -3,6 +3,7 @@
 import * as React from "react";
 import { TbPrompt } from "react-icons/tb";
 import { Button } from "@/components/ui/button";
+import "./../app/global.css";
 import {
   Drawer,
   DrawerClose,
@@ -20,6 +21,7 @@ import {
   IconButton,
   Input,
   Row,
+  Scroller,
   TagInput,
   Text,
   Textarea,
@@ -130,7 +132,10 @@ export function DrawerDemo() {
   };
   const handleSubmit = async () => {
     if (!currentUserId) {
-      addToast({ message: "No user session found. Please log in.", variant: "danger" });
+      addToast({
+        message: "No user session found. Please log in.",
+        variant: "danger",
+      });
       return;
     }
     if (!validateFields()) return;
@@ -179,7 +184,6 @@ export function DrawerDemo() {
           onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
             e.currentTarget.style.backgroundColor = "#33333311";
           }}
-
         >
           <TbPrompt size={14} fontWeight={0} />
         </IconButton>
@@ -199,112 +203,148 @@ export function DrawerDemo() {
             <DrawerDescription>Set your prompt here.</DrawerDescription>
           </DrawerHeader>
           <Column gap="16" width={50} fillWidth>
-            <Row fillWidth gap="12" horizontal="center" fillHeight>
-              <Flex fillWidth gap="20">
-                <Column gap="20" fillWidth>
-                  <Column gap="2">
-                    <Text variant="label-default-s" onBackground="neutral-weak">
-                      Name:
-                    </Text>
-                    <Input
-                      id="prompt-name"
-                      height="s"
-                      label="e.g. My Prompt"
-                      value={promptName}
-                      onChange={(e) => setPromptName(e.target.value)}
-                      disabled={loading}
-                    />
-                  </Column>
-                  <Column gap="2">
-                    <Text variant="label-default-s" onBackground="neutral-weak">
-                      Tags:
-                    </Text>
-                    <TagInput
-                      id="prompt-tags"
-                      height="s"
-                      placeholder="e.g. Image Generation"
-                      value={promptTags}
-                      onChange={(newTags) => {
-                        if (newTags.length <= 4) {
-                          setPromptTags(newTags);
-                        } else {
-                          addToast({
-                            message: "Maximum 4 tags allowed",
-                            variant: "danger",
-                          });
-                        }
-                      }}
-                      disabled={loading}
-                    />
-                  </Column>
-                  <Column gap="2">
-                    <Text variant="label-default-s" onBackground="neutral-weak">
-                      Description:
-                    </Text>
-                    <Textarea
-                      id="prompt-description"
-                      label="e.g. Use this prompt to get..."
-                      value={promptDescription}
-                      onChange={(e) => setPromptDescription(e.target.value)}
-                      disabled={loading}
-                    />
-                  </Column>
-                  <Column gap="8">
-                    <Text variant="label-default-s" onBackground="neutral-weak">
-                      Select the AI models:
-                    </Text>
-                    <Row gap="12" wrap={true}>
-                      {MODEL_OPTIONS.map((model) => (
-                        <Checkbox
-                          key={model.value}
-                          label={model.label}
-                          isChecked={!!models.find((m) => m === model.value)}
-                          onToggle={() =>
-                            handleModelChange(
-                              model.value,
-                              !models.includes(model.value)
-                            )
+            <Column fillWidth gap="12" horizontal="center" fillHeight>
+              <Scroller
+                direction="column"
+                maxHeight={25}
+                style={{ maxWidth: "90vw" }}
+              >
+                <Flex fillWidth gap="20" className="flex-1">
+                  <Column gap="20" fillWidth>
+                    <Column gap="2">
+                      <Text
+                        variant="label-default-s"
+                        onBackground="neutral-weak"
+                      >
+                        Name:
+                      </Text>
+                      <Input
+                        id="prompt-name"
+                        height="s"
+                        label="e.g. My Prompt"
+                        value={promptName}
+                        onChange={(e) => setPromptName(e.target.value)}
+                        disabled={loading}
+                      />
+                    </Column>
+                    <Column gap="2">
+                      <Text
+                        variant="label-default-s"
+                        onBackground="neutral-weak"
+                      >
+                        Tags:
+                      </Text>
+                      <TagInput
+                        id="prompt-tags"
+                        height="s"
+                        placeholder="e.g. Image Generation"
+                        value={promptTags}
+                        onChange={(newTags) => {
+                          if (newTags.length <= 4) {
+                            setPromptTags(newTags);
+                          } else {
+                            addToast({
+                              message: "Maximum 4 tags allowed",
+                              variant: "danger",
+                            });
                           }
-                          disabled={loading}
-                        />
-                      ))}
-                    </Row>
+                        }}
+                        disabled={loading}
+                      />
+                    </Column>
+                    <Column gap="2">
+                      <Text
+                        variant="label-default-s"
+                        onBackground="neutral-weak"
+                      >
+                        Description:
+                      </Text>
+                      <Textarea
+                        id="prompt-description"
+                        label="e.g. Use this prompt to get..."
+                        value={promptDescription}
+                        onChange={(e) => setPromptDescription(e.target.value)}
+                        disabled={loading}
+                      />
+                    </Column>
+                    <Column gap="8">
+                      <Text
+                        variant="label-default-s"
+                        onBackground="neutral-weak"
+                      >
+                        Select the AI models:
+                      </Text>
+                      <Row gap="12" wrap={true}>
+                        {MODEL_OPTIONS.map((model) => (
+                          <Checkbox
+                            key={model.value}
+                            label={model.label}
+                            isChecked={!!models.find((m) => m === model.value)}
+                            onToggle={() =>
+                              handleModelChange(
+                                model.value,
+                                !models.includes(model.value)
+                              )
+                            }
+                            disabled={loading}
+                          />
+                        ))}
+                      </Row>
+                    </Column>
                   </Column>
-                </Column>
-                <Column fillWidth fillHeight>
-                  <Textarea
-                    style={{ height: "100% !important" }}
-                    lines={13}
-                    id="prompt-usage"
-                    label="e.g. Hello, you are a professional assistant and..."
-                    resize="none"
-                    value={promptUsage}
-                    onChange={(e) => setPromptUsage(e.target.value)}
-                    disabled={loading}
-                  />
-                </Column>
+                  <Column fillWidth fillHeight>
+                    <Textarea
+                      style={{ height: "100% !important" }}
+                      lines={13}
+                      id="prompt-usage"
+                      label="e.g. Hello, you are a professional assistant and..."
+                      resize="none"
+                      value={promptUsage}
+                      onChange={(e) => setPromptUsage(e.target.value)}
+                      disabled={loading}
+                    />
+                  </Column>
+                </Flex>
+              </Scroller>
+              <Column
+              fillWidth
+              gap="4"
+              style={{ maxWidth: "100vw", alignItems: "center" }}
+              center
+              onBackground="accent-strong"
+            >
+              <Flex
+              fillWidth
+              center
+              direction="column"
+              style={{
+                maxWidth: "90vw",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              >
+              <DrawerClose asChild>
+                <Button
+                onClick={handleSubmit}
+                style={{ cursor: "pointer", width: "100%" }}
+                disabled={loading}
+                >
+                {loading ? "Submitting..." : "Submit"}
+                </Button>
+              </DrawerClose>
+              <DrawerClose asChild>
+                <Button
+                variant="outline"
+                style={{ cursor: "pointer", width: "100%" }}
+                disabled={loading}
+                >
+                Cancel
+                </Button>
+              </DrawerClose>
               </Flex>
-            </Row>
-            <Column fillWidth gap="4">
-              <DrawerClose asChild>
-                <Button
-                  onClick={handleSubmit}
-                  style={{ cursor: "pointer" }}
-                  disabled={loading}
-                >
-                  {loading ? "Submitting..." : "Submit"}
-                </Button>
-              </DrawerClose>
-              <DrawerClose asChild>
-                <Button
-                  variant="outline"
-                  style={{ cursor: "pointer" }}
-                  disabled={loading}
-                >
-                  Cancel
-                </Button>
-              </DrawerClose>
             </Column>
+            </Column>
+            
           </Column>
           <DrawerFooter></DrawerFooter>
         </div>

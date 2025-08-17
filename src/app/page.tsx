@@ -106,6 +106,7 @@ const interTight = Inter_Tight({
 });
 import { supabase } from "@/lib/supabase";
 import type { Session } from "@supabase/supabase-js";
+import { wrap } from "module";
 
 export default function Home() {
   const [cardData, setCardData] = useState<CardContainerProps[]>([]);
@@ -1255,29 +1256,49 @@ function CardContainer({
         title={title}
         description={description}
       >
-        <CodeBlock
-          copyButton={true}
-          codes={[
-            {
-              code: `${[prompt]}
-      `,
-              language: "javascript",
-              label: "Prompt",
-            },
-            {
-              code: `${date ? new Date(date).toUTCString() : ""}
-      `,
-              language: "html",
-              label: "Date of Creation (GMT)",
-            },
-            {
-              code: `${authorName}
-      `,
-              language: "html",
-              label: "Author",
-            },
-          ]}
-        />
+        <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflowWrap: "break-word" }}>
+          <CodeBlock
+            copyButton={true}
+            wrap={true}
+            fullscreenButton={true}
+            codes={[
+              {
+          code: (() => {
+            // Split prompt into lines so that each line fits within 80 chars (approx dialog width)
+            if (typeof prompt === "string") {
+              const maxLineLength = 65;
+              const words = prompt.split(" ");
+              let lines: string[] = [];
+              let currentLine = "";
+              words.forEach(word => {
+                if ((currentLine + word).length > maxLineLength) {
+            lines.push(currentLine.trim());
+            currentLine = word + " ";
+                } else {
+            currentLine += word + " ";
+                }
+              });
+              if (currentLine.trim()) lines.push(currentLine.trim());
+              return lines.join("\n");
+            }
+            return String(prompt);
+          })(),
+          language: "javascript",
+          label: "Prompt",
+              },
+              {
+          code: `${date ? new Date(date).toUTCString() : ""}\n`,
+          language: "html",
+          label: "Date of Creation (GMT)",
+              },
+              {
+          code: `${authorName}\n`,
+          language: "html",
+          label: "Author",
+              },
+            ]}
+          />
+        </div>
       </Dialog>
     </>
   );

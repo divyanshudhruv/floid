@@ -24,26 +24,26 @@ Floid is a **`modern 🔥`** platform where anyone can **`create ✒️`**, **`s
 
 A next-gen, thread-based platform built with [Once UI](https://once-ui.com), focused on prompt sharing and discovery.
 
-**`1.`** 📝 **`Creation`**: Create and share prompts for GPT, image generation, and more  
-**`2.`** 🧵 **`Thread-based Discussions`**: Discuss and refine prompts in organized threads  
-**`3.`** ⚡ **`Real-time Activity`**: Instantly see new prompts and comments via Supabase subscriptions  
-**`4.`** 🔐 **`Secure Authentication`**: Google OAuth integration for user management  
-**`5.`** 📱 **`Responsive Design`**: Optimized for all devices  
-**`6.`** 🎨 **`Modern UI`**: Built with Once UI for a polished look  
-**`7.`** 🏷️ **`Prompt Metadata`**: Each prompt displays tags, models, author, creation date, and click counts  
-**`8.`** 🗂️ **`Rich Prompt Cards`: Prompts are shown in interactive cards with copy, preview, and code features  
-**`9.`** 🧑‍💻 **`Model Icons`**: Prompts can be tagged with supported models (ChatGPT, Gemini, Perplexity, Android, Apple, Linux, Code, Others)  
-**`10.`** 🗑️ **`Edit/Delete Permissions`\*\*: Only prompt authors can edit or delete their prompts
+**`1.`** **`📝 Creation`**: Create and share prompts for GPT, image generation, and more  
+**`2.`** **`🧵 Thread-based Discussions`**: Discuss and refine prompts in organized threads  
+**`3.`** **`⚡ Real-time Activity`**: Instantly see new prompts and comments via Supabase subscriptions  
+**`4.`** **`🔐 Secure Authentication`**: Google OAuth integration for user management  
+**`5.`** **`📱 Responsive Design`**: Optimized for all devices  
+**`6.`** **`🎨 Modern UI`**: Built with Once UI for a polished look  
+**`7.`** **`🏷️ Prompt Metadata`**: Each prompt displays tags, models, author, creation date, and click counts  
+**`8.`** **`🗂️ Rich Prompt Cards`**: Prompts are shown in interactive cards with copy, preview, and code features  
+**`9.`** **`🧑‍💻 Model Icons`**: Prompts can be tagged with supported models (ChatGPT, Gemini, Perplexity, Android, Apple, Linux, Code, Others)  
+**`10.`** **`🗑️ Edit/Delete Permissions`**: Only prompt authors can edit or delete their prompts
 
 ## 🗃️ **Prompt Card Details**
 
 Each prompt card includes:
 
-- `Title`, `description`, `tags`, and `model icons` (ChatGPT, Gemini, Perplexity, Android, Apple, Linux, Code, Others)
-- `Author` and `creation date`
+- **`Title`**, **`description`**, **`tags`**, and **`model icons`** (ChatGPT, Gemini, Perplexity, Android, Apple, Linux, Code, Others)
+- **`Author`** and **`creation date`**
 - **`Click count`**
 - Edit/Delete buttons (if you are the author)
-- `Copy` and preview features
+- **`Copy`** and preview features
 - **`🚨 Future API usage 🚨`**
 
 ## 🗄️ **Database Setup**

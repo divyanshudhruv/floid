@@ -134,8 +134,8 @@ export default function Home() {
             isNew: !!(
               prompt.created_at &&
               new Date(prompt.created_at) >
-                new Date(Date.now() - 1000 * 60 * 60 * 1)
-            ), // true if created within 1 hour, else false
+          new Date(Date.now() - 1000 * 60 * 60 * 24)
+            ), // true if created within 1 day, else false
             clicks: prompt.click_counts ?? 0,
             prompt_id: prompt.id,
             prompt: prompt.content ?? "",
